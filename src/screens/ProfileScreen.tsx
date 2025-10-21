@@ -7,6 +7,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
+import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
@@ -37,110 +38,117 @@ const ProfileScreen = () => {
 
   return (
     <FuturisticBackground>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <MotiView
-          style={styles.container}
-          from={{ opacity: 0, translateY: 20 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 480 }}
+      <View style={styles.screen}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <Pressable
-              style={styles.backButton}
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Volver"
-            >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={26}
-                color={palette.textPrimary}
-              />
-            </Pressable>
-            <Text style={styles.title}>Tu perfil financiero</Text>
-            <View style={styles.backButton} />
-          </View>
-
           <MotiView
-            from={{ opacity: 0, translateY: 24 }}
+            style={styles.container}
+            from={{ opacity: 0, translateY: 20 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 500 }}
+            transition={{ type: "timing", duration: 480 }}
           >
+            <View style={styles.header}>
+              <Pressable
+                style={styles.backButton}
+                onPress={() => router.back()}
+                accessibilityRole="button"
+                accessibilityLabel="Volver"
+              >
+                <MaterialCommunityIcons
+                  name="arrow-left"
+                  size={26}
+                  color={palette.textPrimary}
+                />
+              </Pressable>
+              <Text style={styles.title}>Tu perfil financiero</Text>
+              <View style={styles.backButton} />
+            </View>
+
+            <MotiView
+              from={{ opacity: 0, translateY: 24 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 500 }}
+            >
+              <GlassCard>
+                <View style={styles.identityCard}>
+                  <View style={styles.avatarWrapper}>
+                    <Text style={styles.avatarLabel}>{user.name.charAt(0)}</Text>
+                  </View>
+                  <View style={styles.identityCopy}>
+                    <Text style={styles.identityName}>{user.name}</Text>
+                    <Text style={styles.identityField}>
+                      Documento: {user.idType}
+                    </Text>
+                    <Text style={styles.identityField}>Número: {user.id}</Text>
+                    <Text style={styles.identityField}>
+                      Teléfono: {user.phone}
+                    </Text>
+                  </View>
+                </View>
+              </GlassCard>
+            </MotiView>
+
             <GlassCard>
-              <View style={styles.identityCard}>
-                <View style={styles.avatarWrapper}>
-                  <Text style={styles.avatarLabel}>{user.name.charAt(0)}</Text>
-                </View>
-                <View style={styles.identityCopy}>
-                  <Text style={styles.identityName}>{user.name}</Text>
-                  <Text style={styles.identityField}>
-                    Documento: {user.idType}
-                  </Text>
-                  <Text style={styles.identityField}>Número: {user.id}</Text>
-                  <Text style={styles.identityField}>
-                    Teléfono: {user.phone}
-                  </Text>
-                </View>
+              <View style={styles.balanceSection}>
+                <Text style={styles.sectionLabel}>Saldo disponible</Text>
+                <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
+                <Text style={styles.balanceHint}>
+                  Saldo inicial: {formatCurrency(initialBalance)}
+                </Text>
               </View>
             </GlassCard>
+
+            <GlassCard>
+              <View style={styles.metricsGrid}>
+                <MetricTile
+                  label="Transferido"
+                  value={formatCurrency(totals.sent)}
+                  icon="bank-transfer-out"
+                  accent="#FF3B6B"
+                />
+                <MetricTile
+                  label="Recargas"
+                  value={formatCurrency(totals.recharged)}
+                  icon="cellphone-check"
+                  accent="#7A2BFF"
+                />
+                <MetricTile
+                  label="Operaciones"
+                  value={`${totals.operations}`}
+                  icon="timeline-clock"
+                  accent="#00F0FF"
+                />
+                <MetricTile
+                  label="Ahorro"
+                  value={formatCurrency(totals.savings)}
+                  icon="piggy-bank"
+                  accent="#4ADE80"
+                />
+              </View>
+            </GlassCard>
+
+            <View style={styles.actions}>
+              <PrimaryButton
+                label="Gestionar automatizaciones"
+                onPress={() => router.push("/(app)/automations")}
+              />
+              <PrimaryButton
+                label="Realizar transferencia"
+                onPress={() => router.push("/(app)/transfer")}
+              />
+              <PrimaryButton
+                label="Cerrar sesión"
+                onPress={handleLogout}
+                style={styles.secondaryButton}
+              />
+            </View>
           </MotiView>
-
-          <GlassCard>
-            <View style={styles.balanceSection}>
-              <Text style={styles.sectionLabel}>Saldo disponible</Text>
-              <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
-              <Text style={styles.balanceHint}>
-                Saldo inicial: {formatCurrency(initialBalance)}
-              </Text>
-            </View>
-          </GlassCard>
-
-          <GlassCard>
-            <View style={styles.metricsGrid}>
-              <MetricTile
-                label="Transferido"
-                value={formatCurrency(totals.sent)}
-                icon="bank-transfer-out"
-                accent="#FF3B6B"
-              />
-              <MetricTile
-                label="Recargas"
-                value={formatCurrency(totals.recharged)}
-                icon="cellphone-check"
-                accent="#7A2BFF"
-              />
-              <MetricTile
-                label="Operaciones"
-                value={`${totals.operations}`}
-                icon="timeline-clock"
-                accent="#00F0FF"
-              />
-              <MetricTile
-                label="Ahorro"
-                value={formatCurrency(totals.savings)}
-                icon="piggy-bank"
-                accent="#4ADE80"
-              />
-            </View>
-          </GlassCard>
-
-          <View style={styles.actions}>
-            <PrimaryButton
-              label="Realizar transferencia"
-              onPress={() => router.push("/(app)/transfer")}
-            />
-            <PrimaryButton
-              label="Cerrar sesión"
-              onPress={handleLogout}
-              style={styles.secondaryButton}
-            />
-          </View>
-        </MotiView>
-      </ScrollView>
+        </ScrollView>
+        <BottomNavigationBar />
+      </View>
     </FuturisticBackground>
   );
 };
@@ -170,8 +178,12 @@ const MetricTile = ({ label, value, icon, accent }: MetricTileProps) => {
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    position: "relative",
+  },
   scroll: {
-    paddingBottom: 140,
+    paddingBottom: 260,
   },
   container: {
     paddingHorizontal: 20,

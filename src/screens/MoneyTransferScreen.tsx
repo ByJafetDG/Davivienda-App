@@ -14,6 +14,7 @@ import {
 import FuturisticBackground from "@/components/FuturisticBackground";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
+import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { useBankStore, Contact } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
@@ -123,17 +124,18 @@ const MoneyTransferScreen = () => {
 
   return (
     <FuturisticBackground>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <MotiView
-          style={styles.container}
-          from={{ opacity: 0, translateY: 24 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          transition={{ type: "timing", duration: 480 }}
+      <View style={styles.screen}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
+          <MotiView
+            style={styles.container}
+            from={{ opacity: 0, translateY: 24 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 480 }}
+          >
           <View style={styles.header}>
             <Pressable onPress={() => router.back()}>
               <MaterialCommunityIcons
@@ -275,15 +277,21 @@ const MoneyTransferScreen = () => {
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <PrimaryButton label="Continuar" onPress={handleContinue} />
           </MotiView>
-        </MotiView>
-      </ScrollView>
+          </MotiView>
+        </ScrollView>
+        <BottomNavigationBar />
+      </View>
     </FuturisticBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    position: "relative",
+  },
   scroll: {
-    paddingBottom: 120,
+    paddingBottom: 260,
   },
   container: {
     paddingTop: 28,

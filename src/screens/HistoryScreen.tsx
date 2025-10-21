@@ -12,6 +12,7 @@ import {
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
+import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { useBankStore, TransferRecord, RechargeRecord } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
@@ -127,95 +128,96 @@ const HistoryScreen = () => {
 
   return (
     <FuturisticBackground>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Pressable
-              style={styles.backButton}
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Volver"
-            >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={26}
-                color={palette.textPrimary}
-              />
-            </Pressable>
-            <Text style={styles.title}>Historial de movimientos</Text>
-            <View style={styles.backButton} />
-          </View>
-
-          <MotiView
-            from={{ opacity: 0, translateY: 24 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 480 }}
-          >
-            <GlassCard>
-              <View style={styles.summaryCard}>
-                <View>
-                  <Text style={styles.summaryLabel}>Total transferido</Text>
-                  <Text style={styles.summaryValue}>{formatCurrency(totalTransfers)}</Text>
-                </View>
-                <View>
-                  <Text style={styles.summaryLabel}>Total recargado</Text>
-                  <Text style={styles.summaryValue}>{formatCurrency(totalRecharges)}</Text>
-                </View>
-                <View>
-                  <Text style={styles.summaryLabel}>Movimientos en el mes</Text>
-                  <Text style={styles.summaryValue}>
-                    {operationsCount > 0 ? operationsCount : "0"}
-                  </Text>
-                  <Text style={styles.summaryHint}>
-                    Salieron {formatCurrency(monthTotalOutflow)} este mes.
-                  </Text>
-                </View>
-              </View>
-            </GlassCard>
-          </MotiView>
-
-          <View style={styles.filtersRow}>
-            {FILTERS.map((item) => {
-              const isActive = item.id === filter;
-              return (
-                <Pressable
-                  key={item.id}
-                  onPress={() => setFilter(item.id)}
-                  style={[styles.filterChip, isActive && styles.filterChipActive]}
-                  accessibilityRole="button"
-                >
-                  <Text
-                    style={[
-                      styles.filterLabel,
-                      { color: isActive ? palette.textPrimary : palette.textSecondary },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {groupedTimeline.length === 0 ? (
-            <GlassCard>
-              <View style={styles.emptyState}>
+      <View style={styles.screen}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.container}>
+            <View style={styles.header}>
+              <Pressable
+                style={styles.backButton}
+                onPress={() => router.back()}
+                accessibilityRole="button"
+                accessibilityLabel="Volver"
+              >
                 <MaterialCommunityIcons
-                  name="clock-outline"
-                  size={42}
-                  color={palette.accentCyan}
+                  name="arrow-left"
+                  size={26}
+                  color={palette.textPrimary}
                 />
-                <Text style={styles.emptyTitle}>Sin movimientos registrados</Text>
-                <Text style={styles.emptyCopy}>
-                  Realiza una transferencia o recarga para ver el resumen aquí.
-                </Text>
-              </View>
-            </GlassCard>
-          ) : (
+              </Pressable>
+              <Text style={styles.title}>Historial de movimientos</Text>
+              <View style={styles.backButton} />
+            </View>
+
+            <MotiView
+              from={{ opacity: 0, translateY: 24 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 480 }}
+            >
+              <GlassCard>
+                <View style={styles.summaryCard}>
+                  <View>
+                    <Text style={styles.summaryLabel}>Total transferido</Text>
+                    <Text style={styles.summaryValue}>{formatCurrency(totalTransfers)}</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.summaryLabel}>Total recargado</Text>
+                    <Text style={styles.summaryValue}>{formatCurrency(totalRecharges)}</Text>
+                  </View>
+                  <View>
+                    <Text style={styles.summaryLabel}>Movimientos en el mes</Text>
+                    <Text style={styles.summaryValue}>
+                      {operationsCount > 0 ? operationsCount : "0"}
+                    </Text>
+                    <Text style={styles.summaryHint}>
+                      Salieron {formatCurrency(monthTotalOutflow)} este mes.
+                    </Text>
+                  </View>
+                </View>
+              </GlassCard>
+            </MotiView>
+
+            <View style={styles.filtersRow}>
+              {FILTERS.map((item) => {
+                const isActive = item.id === filter;
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => setFilter(item.id)}
+                    style={[styles.filterChip, isActive && styles.filterChipActive]}
+                    accessibilityRole="button"
+                  >
+                    <Text
+                      style={[
+                        styles.filterLabel,
+                        { color: isActive ? palette.textPrimary : palette.textSecondary },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {groupedTimeline.length === 0 ? (
+              <GlassCard>
+                <View style={styles.emptyState}>
+                  <MaterialCommunityIcons
+                    name="clock-outline"
+                    size={42}
+                    color={palette.accentCyan}
+                  />
+                  <Text style={styles.emptyTitle}>Sin movimientos registrados</Text>
+                  <Text style={styles.emptyCopy}>
+                    Realiza una transferencia o recarga para ver el resumen aquí.
+                  </Text>
+                </View>
+              </GlassCard>
+            ) : (
             groupedTimeline.map((group) => (
               <MotiView
                 key={group.dayLabel}
@@ -255,15 +257,21 @@ const HistoryScreen = () => {
               </MotiView>
             ))
           )}
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+        <BottomNavigationBar />
+      </View>
     </FuturisticBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    position: "relative",
+  },
   scroll: {
-    paddingBottom: 160,
+    paddingBottom: 260,
   },
   container: {
     paddingHorizontal: 20,
