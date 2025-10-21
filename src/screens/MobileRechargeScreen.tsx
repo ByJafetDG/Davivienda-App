@@ -16,6 +16,7 @@ import GlassCard from "@/components/GlassCard";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
@@ -103,7 +104,12 @@ const MobileRechargeScreen = () => {
               />
             </Pressable>
             <Text style={styles.title}>Recarga móvil</Text>
-            <View style={{ width: 26 }} />
+            <ProfileAvatarButton
+              size={40}
+              onPress={() => router.push("/(app)/profile")}
+              accessibilityLabel="Ir a tu perfil"
+              style={styles.profileShortcut}
+            />
           </View>
 
           <GlassCard>
@@ -210,6 +216,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  profileShortcut: {
+    shadowOpacity: 0.25,
   },
   title: {
     color: palette.textPrimary,

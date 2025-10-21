@@ -13,6 +13,7 @@ import {
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import {
   useBankStore,
   NotificationItem,
@@ -140,7 +141,12 @@ const NotificationsScreen = () => {
               />
             </Pressable>
             <Text style={styles.title}>Centro de notificaciones</Text>
-            <View style={styles.backButton} />
+            <ProfileAvatarButton
+              size={40}
+              onPress={() => router.push("/(app)/profile")}
+              accessibilityLabel="Ir a tu perfil"
+              style={styles.profileShortcut}
+            />
           </View>
 
           <MotiView
@@ -274,6 +280,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  profileShortcut: {
+    shadowColor: palette.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: {
     color: palette.textPrimary,

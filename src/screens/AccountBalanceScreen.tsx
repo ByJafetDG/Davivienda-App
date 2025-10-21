@@ -23,6 +23,7 @@ import {
   TransferRecord,
   useBankStore,
 } from "@/store/useBankStore";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 
 type ActivityItem = {
   id: string;
@@ -127,19 +128,11 @@ const AccountBalanceScreen = () => {
                 <Text style={styles.caption}>SINPE Móvil</Text>
                 <Text style={styles.title}>Hola, {user.name.split(" ")[0]}</Text>
               </View>
-              <Pressable
+              <ProfileAvatarButton
+                size={52}
                 onPress={() => router.push("/(app)/profile")}
-                style={styles.avatarButton}
-                accessibilityRole="button"
                 accessibilityLabel="Ver perfil"
-              >
-                <LinearGradient
-                  colors={["#FF3B6B", "#7A2BFF"]}
-                  style={styles.avatar}
-                >
-                  <Text style={styles.avatarText}>{user.name.charAt(0)}</Text>
-                </LinearGradient>
-              </Pressable>
+              />
             </View>
 
             <MotiView
@@ -409,22 +402,6 @@ const styles = StyleSheet.create({
     color: palette.textPrimary,
     fontSize: 28,
     fontWeight: "800",
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarButton: {
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  avatarText: {
-    color: palette.textPrimary,
-    fontSize: 24,
-    fontWeight: "700",
   },
   balanceCard: {
     borderRadius: 36,

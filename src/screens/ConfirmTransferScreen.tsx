@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -95,6 +95,23 @@ const ConfirmTransferScreen = () => {
           animate={{ opacity: 1, translateY: 0 }}
           transition={{ type: "timing", duration: 480 }}
         >
+          <View style={styles.header}>
+            <Pressable
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+              style={styles.backButton}
+            >
+              <MaterialCommunityIcons
+                name="arrow-left"
+                size={24}
+                color={palette.textPrimary}
+              />
+            </Pressable>
+            <Text style={styles.headerTitle}>Confirmar envío</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
           {!completed ? (
             <>
               <Text style={styles.title}>Confirma la transferencia</Text>
@@ -182,6 +199,28 @@ const styles = StyleSheet.create({
     paddingTop: 64,
     paddingHorizontal: 24,
     gap: 24,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  headerTitle: {
+    color: palette.textPrimary,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  headerSpacer: {
+    width: 40,
+    height: 40,
   },
   title: {
     color: palette.textPrimary,

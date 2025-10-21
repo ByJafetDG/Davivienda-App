@@ -15,6 +15,7 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, Contact } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
@@ -34,6 +35,8 @@ const MoneyTransferScreen = () => {
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [showRecipientField, setShowRecipientField] = useState(false);
 
   const didPrefill = useRef(false);
 
@@ -66,6 +69,10 @@ const MoneyTransferScreen = () => {
       setNote(params.note);
     }
 
+    if (typeof params.contactName === "string" || typeof params.phone === "string") {
+      setShowRecipientField(true);
+    }
+
     didPrefill.current = true;
   }, [params.amount, params.contactName, params.note, params.phone]);
 
@@ -86,16 +93,27 @@ const MoneyTransferScreen = () => {
   }, [contacts]);
 
   const handleSelectContact = (contact: Contact) => {
+    if (selectedContactId === contact.id) {
+      setSelectedContactId(null);
+      setContactName("");
+      setPhone("");
+      setShowRecipientField(false);
+      return;
+    }
+
+    setSelectedContactId(contact.id);
     setContactName(contact.name);
     setPhone(contact.phone);
+    setShowRecipientField(true);
     recordContactUsage(contact.phone, contact.name);
   };
 
   const handleContinue = () => {
     setError(null);
     const amountNumber = parseFloat(amount.replace(/,/g, "."));
-    if (!contactName.trim()) {
-      setError("Agrega un nombre para identificar a quién envías.");
+    const resolvedContactName = contactName.trim() || phone.trim();
+    if (!resolvedContactName) {
+      setError("Selecciona un destinatario o ingresa un número válido.");
       return;
     }
     if (!phone.trim() || phone.length < 8) {
@@ -114,13 +132,15 @@ const MoneyTransferScreen = () => {
     router.push({
       pathname: "/(app)/confirm-transfer",
       params: {
-        contactName,
+        contactName: resolvedContactName,
         phone,
         amount: amountNumber.toString(),
         note,
       },
     });
   };
+
+  const shouldShowRecipientInput = showRecipientField || contactName.trim().length > 0;
 
   return (
     <FuturisticBackground>
@@ -136,147 +156,183 @@ const MoneyTransferScreen = () => {
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 480 }}
           >
-          <View style={styles.header}>
-            <Pressable onPress={() => router.back()}>
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={26}
-                color={palette.textPrimary}
+            <View style={styles.header}>
+              <Pressable
+                onPress={() => router.back()}
+                accessibilityRole="button"
+                accessibilityLabel="Volver"
+                style={styles.backButton}
+              >
+                <MaterialCommunityIcons
+                  name="arrow-left"
+                  size={26}
+                  color={palette.textPrimary}
+                />
+              </Pressable>
+              <Text style={styles.title}>Nueva transferencia</Text>
+              <ProfileAvatarButton
+                size={42}
+                onPress={() => router.push("/(app)/profile")}
+                accessibilityLabel="Ir a tu perfil"
+                style={styles.profileShortcut}
               />
-            </Pressable>
-            <Text style={styles.title}>Nueva transferencia</Text>
-            <View style={{ width: 26 }} />
-          </View>
+            </View>
 
-          <MotiView
-            from={{ opacity: 0, translateY: 32 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 600 }}
-            style={styles.balanceSummary}
-          >
-            <Text style={styles.balanceCaption}>Saldo disponible</Text>
-            <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
-            <Text style={styles.balanceHint}>
-              Recuerda que todo queda almacenado localmente.
-            </Text>
-          </MotiView>
-
-          <View style={styles.contactRow}>
-            <Text style={styles.sectionTitle}>Contactos frecuentes</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsRow}
-              keyboardShouldPersistTaps="handled"
+            <MotiView
+              from={{ opacity: 0, translateY: 32 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 600 }}
+              style={styles.balanceSummary}
             >
-              {topContacts.map((contact: Contact) => (
+              <Text style={styles.balanceCaption}>Saldo disponible</Text>
+              <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
+              <Text style={styles.balanceHint}>
+                Recuerda que todo queda almacenado localmente.
+              </Text>
+            </MotiView>
+
+            <View style={styles.contactRow}>
+              <View style={styles.contactHeader}>
+                <Text style={styles.sectionTitle}>Contactos frecuentes</Text>
                 <Pressable
-                  key={contact.id}
-                  onPress={() => handleSelectContact(contact)}
-                  style={styles.contactChip}
+                  onPress={() => router.push("/(app)/contacts")}
                   accessibilityRole="button"
+                  accessibilityLabel="Gestionar contactos"
                 >
-                  {(state: PressableStateCallbackType) => (
-                    <MotiView
-                      animate={{
-                        scale: state.pressed ? 0.95 : 1,
-                        opacity: state.pressed ? 0.7 : 1,
-                      }}
-                      style={styles.contactBadge}
+                  {({ pressed }) => (
+                    <Text
+                      style={[
+                        styles.contactsLink,
+                        pressed && styles.contactsLinkPressed,
+                      ]}
                     >
-                      <View
-                        style={[
-                          styles.contactAvatar,
-                          { backgroundColor: contact.avatarColor },
-                        ]}
-                      >
-                        <Text style={styles.contactAvatarLabel}>
-                          {contact.name.charAt(0)}
-                        </Text>
-                      </View>
-                      <View style={styles.contactLabelWrapper}>
-                        <Text style={styles.contactName}>
-                          {contact.name.split(" ")[0]}
-                        </Text>
-                        {contact.favorite ? (
-                          <MaterialCommunityIcons
-                            name="star"
-                            size={16}
-                            color={palette.accentCyan}
-                          />
-                        ) : null}
-                      </View>
-                    </MotiView>
+                      Ver contactos
+                    </Text>
                   )}
                 </Pressable>
-              ))}
-            </ScrollView>
-          </View>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsRow}
+                keyboardShouldPersistTaps="handled"
+              >
+                {topContacts.map((contact: Contact) => {
+                  const isSelected = contact.id === selectedContactId;
+                  return (
+                    <Pressable
+                      key={contact.id}
+                      onPress={() => handleSelectContact(contact)}
+                      style={styles.contactChip}
+                      accessibilityRole="button"
+                    >
+                      {(state: PressableStateCallbackType) => (
+                        <MotiView
+                          animate={{
+                            scale: state.pressed ? 0.95 : 1,
+                            opacity: state.pressed ? 0.75 : 1,
+                          }}
+                          style={[
+                            styles.contactBadge,
+                            isSelected && styles.contactBadgeActive,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.contactAvatar,
+                              { backgroundColor: contact.avatarColor },
+                            ]}
+                          >
+                            <Text style={styles.contactAvatarLabel}>
+                              {contact.name.charAt(0)}
+                            </Text>
+                          </View>
+                          <View style={styles.contactLabelWrapper}>
+                            <Text style={styles.contactName}>
+                              {contact.name.split(" ")[0]}
+                            </Text>
+                            {contact.favorite ? (
+                              <MaterialCommunityIcons
+                                name="star"
+                                size={16}
+                                color={palette.accentCyan}
+                              />
+                            ) : null}
+                          </View>
+                        </MotiView>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
 
-          <MotiView
-            style={styles.form}
-            from={{ opacity: 0, translateY: 30 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 520, delay: 150 }}
-          >
-            <NeonTextField
-              label="Nombre del destinatario"
-              placeholder="Juan Pérez"
-              value={contactName}
-              onChangeText={setContactName}
-              icon={
-                <MaterialCommunityIcons
-                  name="account"
-                  size={20}
-                  color={palette.accentCyan}
+            <MotiView
+              style={styles.form}
+              from={{ opacity: 0, translateY: 30 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 520, delay: 150 }}
+            >
+              {shouldShowRecipientInput ? (
+                <NeonTextField
+                  label="Nombre del destinatario"
+                  placeholder="Juan Pérez"
+                  value={contactName}
+                  onChangeText={setContactName}
+                  icon={
+                    <MaterialCommunityIcons
+                      name="account"
+                      size={20}
+                      color={palette.accentCyan}
+                    />
+                  }
                 />
-              }
-            />
-            <NeonTextField
-              label="Número telefónico"
-              placeholder="0000 0000"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              icon={
-                <MaterialCommunityIcons
-                  name="cellphone-nfc"
-                  size={20}
-                  color={palette.accentCyan}
-                />
-              }
-            />
-            <NeonTextField
-              label="Monto a enviar"
-              placeholder="₡10,000"
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              icon={
-                <MaterialCommunityIcons
-                  name="currency-usd"
-                  size={20}
-                  color={palette.accentCyan}
-                />
-              }
-            />
-            <NeonTextField
-              label="Mensaje (opcional)"
-              placeholder="Cena viernes"
-              value={note}
-              onChangeText={setNote}
-              icon={
-                <MaterialCommunityIcons
-                  name="message-text-outline"
-                  size={20}
-                  color={palette.accentCyan}
-                />
-              }
-              helpText="Se mostrará en tu historial local."
-            />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <PrimaryButton label="Continuar" onPress={handleContinue} />
-          </MotiView>
+              ) : null}
+              <NeonTextField
+                label="Número telefónico"
+                placeholder="0000 0000"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                icon={
+                  <MaterialCommunityIcons
+                    name="cellphone-nfc"
+                    size={20}
+                    color={palette.accentCyan}
+                  />
+                }
+              />
+              <NeonTextField
+                label="Monto a enviar"
+                placeholder="₡10,000"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+                icon={
+                  <MaterialCommunityIcons
+                    name="currency-usd"
+                    size={20}
+                    color={palette.accentCyan}
+                  />
+                }
+              />
+              <NeonTextField
+                label="Mensaje (opcional)"
+                placeholder="Cena viernes"
+                value={note}
+                onChangeText={setNote}
+                icon={
+                  <MaterialCommunityIcons
+                    name="message-text-outline"
+                    size={20}
+                    color={palette.accentCyan}
+                  />
+                }
+                helpText="Se mostrará en tu historial local."
+              />
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              <PrimaryButton label="Continuar" onPress={handleContinue} />
+            </MotiView>
           </MotiView>
         </ScrollView>
         <BottomNavigationBar />
@@ -303,6 +359,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  profileShortcut: {
+    shadowOpacity: 0.32,
   },
   title: {
     color: palette.textPrimary,
@@ -334,13 +401,27 @@ const styles = StyleSheet.create({
   contactRow: {
     gap: 12,
   },
+  contactHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   sectionTitle: {
     color: palette.textPrimary,
     fontSize: 16,
     fontWeight: "600",
   },
+  contactsLink: {
+    color: palette.accentCyan,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  contactsLinkPressed: {
+    opacity: 0.7,
+  },
   chipsRow: {
     gap: 12,
+    paddingRight: 12,
   },
   contactChip: {
     borderRadius: 22,
@@ -356,6 +437,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  contactBadgeActive: {
+    borderColor: palette.accentCyan,
+    backgroundColor: "rgba(0, 240, 255, 0.16)",
   },
   contactAvatar: {
     width: 36,

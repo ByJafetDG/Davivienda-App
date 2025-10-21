@@ -16,6 +16,7 @@ import {
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { palette } from "@/theme/colors";
 
 const QrScannerScreen = () => {
@@ -82,7 +83,12 @@ const QrScannerScreen = () => {
               />
             </Pressable>
             <Text style={styles.title}>Escanear código QR</Text>
-            <View style={styles.backButton} />
+            <ProfileAvatarButton
+              size={40}
+              onPress={() => router.push("/(app)/profile")}
+              accessibilityLabel="Ir a tu perfil"
+              style={styles.profileShortcut}
+            />
           </View>
 
           <Text style={styles.subtitle}>
@@ -296,6 +302,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  profileShortcut: {
+    shadowColor: palette.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: {
     color: palette.textPrimary,

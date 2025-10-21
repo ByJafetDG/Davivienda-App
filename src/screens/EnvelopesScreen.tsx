@@ -22,6 +22,7 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import {
   ENVELOPE_COLORS,
   AutomationRule,
@@ -451,18 +452,26 @@ const EnvelopesScreen = () => {
               />
             </Pressable>
             <Text style={styles.title}>Sobres inteligentes</Text>
-            <Pressable
-              style={styles.iconButton}
-              onPress={openCreateEnvelope}
-              accessibilityRole="button"
-              accessibilityLabel="Crear sobre"
-            >
-              <MaterialCommunityIcons
-                name="plus"
-                size={22}
-                color={palette.textPrimary}
+            <View style={styles.headerActions}>
+              <Pressable
+                style={styles.iconButton}
+                onPress={openCreateEnvelope}
+                accessibilityRole="button"
+                accessibilityLabel="Crear sobre"
+              >
+                <MaterialCommunityIcons
+                  name="plus"
+                  size={22}
+                  color={palette.textPrimary}
+                />
+              </Pressable>
+              <ProfileAvatarButton
+                size={40}
+                onPress={() => router.push("/(app)/profile")}
+                accessibilityLabel="Ir a tu perfil"
+                style={styles.profileShortcut}
               />
-            </Pressable>
+            </View>
           </View>
 
           <MotiView
@@ -1224,6 +1233,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  profileShortcut: {
+    shadowColor: palette.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: {
     color: palette.textPrimary,

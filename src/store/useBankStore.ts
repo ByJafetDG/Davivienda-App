@@ -38,6 +38,20 @@ export type TransferRecord = {
   automationId?: string;
 };
 
+type SimulationTransferOptions = {
+  amount?: number;
+  contactName?: string;
+  phone?: string;
+  note?: string;
+};
+
+declare global {
+  // eslint-disable-next-line no-var
+  var simulateIncomingTransfer:
+    | ((options?: SimulationTransferOptions) => TransferRecord)
+    | undefined;
+}
+
 export type RechargeRecord = {
   id: string;
   provider: string;
@@ -1144,3 +1158,39 @@ export const useBankStore = create<BankState>(
     },
   };
 });
+
+if (typeof __DEV__ !== "undefined" && __DEV__) {
+  const simulateIncomingTransfer = (
+    options: SimulationTransferOptions = {},
+  ): TransferRecord => {
+    const {
+      amount = 15000,
+      contactName = "Transferencia demo",
+      phone = "88888888",
+      note,
+    } = options;
+
+    const parsedAmount = Number(amount);
+    const safeAmount =
+      Number.isFinite(parsedAmount) && parsedAmount > 0
+        ? parsedAmount
+        : 15000;
+
+    const record = useBankStore.getState().receiveTransfer({
+      contactName,
+      phone,
+      amount: safeAmount,
+      note,
+    });
+
+    console.log(
+      `Simulación: recibiste ${formatCurrency(safeAmount)} de ${
+        contactName || phone
+      }.`,
+    );
+
+    return record;
+  };
+
+  (globalThis as any).simulateIncomingTransfer = simulateIncomingTransfer;
+}
