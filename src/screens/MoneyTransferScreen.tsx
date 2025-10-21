@@ -26,7 +26,7 @@ const MoneyTransferScreen = () => {
     amount?: string;
     note?: string;
   }>();
-  const { contacts, balance } = useBankStore();
+  const { contacts, balance, recordContactUsage } = useBankStore();
 
   const [contactName, setContactName] = useState("");
   const [phone, setPhone] = useState("");
@@ -68,11 +68,26 @@ const MoneyTransferScreen = () => {
     didPrefill.current = true;
   }, [params.amount, params.contactName, params.note, params.phone]);
 
-  const topContacts = useMemo(() => contacts.slice(0, 5), [contacts]);
+  const topContacts = useMemo(() => {
+    return [...contacts]
+      .sort((a, b) => {
+        if (a.favorite !== b.favorite) {
+          return Number(b.favorite) - Number(a.favorite);
+        }
+        const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0;
+        const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0;
+        if (aTime !== bTime) {
+          return bTime - aTime;
+        }
+        return a.name.localeCompare(b.name, "es");
+      })
+      .slice(0, 6);
+  }, [contacts]);
 
   const handleSelectContact = (contact: Contact) => {
     setContactName(contact.name);
     setPhone(contact.phone);
+    recordContactUsage(contact.phone, contact.name);
   };
 
   const handleContinue = () => {
@@ -157,6 +172,7 @@ const MoneyTransferScreen = () => {
                   key={contact.id}
                   onPress={() => handleSelectContact(contact)}
                   style={styles.contactChip}
+                  accessibilityRole="button"
                 >
                   {(state: PressableStateCallbackType) => (
                     <MotiView
@@ -176,9 +192,18 @@ const MoneyTransferScreen = () => {
                           {contact.name.charAt(0)}
                         </Text>
                       </View>
-                      <Text style={styles.contactName}>
-                        {contact.name.split(" ")[0]}
-                      </Text>
+                      <View style={styles.contactLabelWrapper}>
+                        <Text style={styles.contactName}>
+                          {contact.name.split(" ")[0]}
+                        </Text>
+                        {contact.favorite ? (
+                          <MaterialCommunityIcons
+                            name="star"
+                            size={16}
+                            color={palette.accentCyan}
+                          />
+                        ) : null}
+                      </View>
                     </MotiView>
                   )}
                 </Pressable>
@@ -338,6 +363,11 @@ const styles = StyleSheet.create({
   contactName: {
     color: palette.textPrimary,
     fontWeight: "600",
+  },
+  contactLabelWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   form: {
     gap: 18,

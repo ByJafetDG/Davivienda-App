@@ -46,6 +46,12 @@ const quickActions = [
     accent: "#00F0FF",
   },
   {
+    icon: "account-box-outline",
+    label: "Contactos",
+    route: "/(app)/contacts",
+    accent: "#FF8A65",
+  },
+  {
     icon: "qrcode-scan",
     label: "Escanear",
     route: "/(app)/scan",
@@ -57,11 +63,23 @@ const quickActions = [
     route: "/(app)/goals",
     accent: "#4ADE80",
   },
+  {
+    icon: "bell-ring",
+    label: "Alertas",
+    route: "/(app)/notifications",
+    accent: "#FACC15",
+  },
+  {
+    icon: "chart-line",
+    label: "Insights",
+    route: "/(app)/insights",
+    accent: "#7A2BFF",
+  },
 ] as const;
 
 const AccountBalanceScreen = () => {
   const router = useRouter();
-  const { user, balance, transfers, recharges } = useBankStore();
+  const { user, balance, transfers, recharges, notifications } = useBankStore();
 
   const timeline = useMemo<ActivityItem[]>(() => {
     const transfersMapped = transfers.map((item: TransferRecord) => ({
@@ -86,6 +104,11 @@ const AccountBalanceScreen = () => {
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
   }, [transfers, recharges]);
+
+  const unreadNotifications = useMemo(
+    () => notifications.filter((item) => !item.read).length,
+    [notifications],
+  );
 
   return (
     <FuturisticBackground>
@@ -157,6 +180,13 @@ const AccountBalanceScreen = () => {
                     }}
                     style={[styles.actionCard, { shadowColor: action.accent }]}
                   >
+                    {action.route === "/(app)/notifications" && unreadNotifications > 0 ? (
+                      <View style={styles.actionBadge}>
+                        <Text style={styles.actionBadgeText}>
+                          {unreadNotifications > 9 ? "9+" : unreadNotifications}
+                        </Text>
+                      </View>
+                    ) : null}
                     <LinearGradient
                       colors={[`${action.accent}40`, `${action.accent}15`]}
                       style={styles.actionIcon}
@@ -313,6 +343,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(8, 13, 26, 0.8)",
     shadowOffset: { width: 0, height: 14 },
     shadowRadius: 24,
+    position: "relative",
   },
   actionIcon: {
     width: 54,
@@ -324,6 +355,23 @@ const styles = StyleSheet.create({
   actionLabel: {
     color: palette.textPrimary,
     fontWeight: "600",
+  },
+  actionBadge: {
+    position: "absolute",
+    top: 12,
+    right: 18,
+    minWidth: 24,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 12,
+    backgroundColor: palette.danger,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionBadgeText: {
+    color: palette.textPrimary,
+    fontSize: 12,
+    fontWeight: "700",
   },
   historyHeader: {
     flexDirection: "row",

@@ -16,6 +16,9 @@ export default function AppLayout() {
       <Stack.Screen name="profile" />
       <Stack.Screen name="goals" />
       <Stack.Screen name="history" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="contacts" />
+      <Stack.Screen name="insights" />
     </Stack>
   );
 }
