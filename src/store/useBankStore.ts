@@ -61,6 +61,8 @@ export type NotificationDraft = {
   category?: NotificationCategory;
 };
 
+export type BiometricAttemptResult = "success" | "mismatch" | "timeout";
+
 export type UserProfile = {
   name: string;
   id: string;
@@ -87,6 +89,15 @@ export type BankState = {
   balance: number;
   isAuthenticated: boolean;
   user: UserProfile;
+  biometricRegistered: boolean;
+  biometricLastSync?: string;
+  biometricAttempts: Array<{
+    id: string;
+    label: string;
+    result: BiometricAttemptResult;
+    timestamp: string;
+    device: string;
+  }>;
   contacts: Contact[];
   transfers: TransferRecord[];
   recharges: RechargeRecord[];
@@ -97,6 +108,11 @@ export type BankState = {
   toggleFavoriteContact: (id: string) => void;
   recordContactUsage: (phone: string, name?: string) => void;
   login: (payload: { id: string; phone: string; idType?: string }) => boolean;
+  simulateBiometricValidation: (payload?: {
+    latencyMs?: number;
+    expectedMatch?: boolean;
+  }) => Promise<{ success: boolean; deviceName: string }>;
+  registerBiometrics: (provider: { displayName: string }) => void;
   logout: () => void;
   sendTransfer: (draft: TransferDraft) => TransferRecord;
   makeRecharge: (draft: RechargeDraft) => RechargeRecord;
@@ -197,8 +213,11 @@ export const useBankStore = create<BankState>(
     initialBalance: STARTING_BALANCE,
     balance: STARTING_BALANCE,
     isAuthenticated: false,
-  user: DEFAULT_USER,
-  contacts: getDefaultContacts(),
+    user: DEFAULT_USER,
+    biometricRegistered: false,
+    biometricLastSync: undefined,
+    biometricAttempts: [],
+    contacts: getDefaultContacts(),
     transfers: [],
     recharges: [],
     notifications: getDefaultNotifications(),
@@ -342,6 +361,56 @@ export const useBankStore = create<BankState>(
         },
       }));
       return true;
+    },
+    simulateBiometricValidation: async ({ latencyMs = 1200, expectedMatch = true } = {}) => {
+      const attemptId = createId("biometric");
+      const deviceName = "FaceGraph Sensor v2";
+      const delay = Math.max(400, latencyMs + Math.floor(Math.random() * 240 - 120));
+      const rawResult: BiometricAttemptResult = expectedMatch
+        ? "success"
+        : Math.random() > 0.5
+        ? "mismatch"
+        : "timeout";
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      const timestamp = new Date().toISOString();
+      set((state: BankState) => ({
+        biometricAttempts: [
+          {
+            id: attemptId,
+            label: expectedMatch ? "Reconocimiento facial" : "Huella digital",
+            device: deviceName,
+            result: rawResult,
+            timestamp,
+          },
+          ...state.biometricAttempts,
+        ].slice(0, 5),
+        biometricLastSync: timestamp,
+      }));
+
+      if (rawResult === "success") {
+        set({ biometricRegistered: true });
+      }
+
+      return { success: rawResult === "success", deviceName };
+    },
+    registerBiometrics: ({ displayName }) => {
+      const timestamp = new Date().toISOString();
+      set((state: BankState) => ({
+        biometricRegistered: true,
+        biometricLastSync: timestamp,
+        biometricAttempts: [
+          {
+            id: createId("biometric"),
+            label: `Registro en ${displayName}`,
+            result: "success" as BiometricAttemptResult,
+            timestamp,
+            device: displayName,
+          },
+          ...state.biometricAttempts,
+        ].slice(0, 5),
+      }));
     },
     logout: () => {
       set((state: BankState) => ({

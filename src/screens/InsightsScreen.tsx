@@ -328,7 +328,7 @@ const InsightsScreen = () => {
               ))}
               <PrimaryButton
                 label="Crear automatización"
-                onPress={() => router.push("/(app)/goals")}
+                onPress={() => router.push("/(app)/automations")}
                 style={styles.actionButton}
               />
             </GlassCard>

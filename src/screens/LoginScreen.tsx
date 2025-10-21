@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import NeonSelectField from "@/components/NeonSelectField";
@@ -47,7 +47,16 @@ const ID_TYPE_OPTIONS = [
 
 const LoginScreen = () => {
   const router = useRouter();
-  const { login, isAuthenticated, user } = useBankStore();
+  const {
+    login,
+    isAuthenticated,
+    user,
+    biometricRegistered,
+    biometricLastSync,
+    biometricAttempts,
+    simulateBiometricValidation,
+    registerBiometrics,
+  } = useBankStore();
   const [cedula, setCedula] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,6 +68,9 @@ const LoginScreen = () => {
     return found?.value ?? ID_TYPE_OPTIONS[0].value;
   });
 
+  const [biometricHint, setBiometricHint] = useState<string | null>(null);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+
   useEffect(() => {
     const match = ID_TYPE_OPTIONS.find(
       (option) => option.label === user.idType,
@@ -67,6 +79,22 @@ const LoginScreen = () => {
       setIdType(match.value);
     }
   }, [user.idType]);
+
+  const biometricHistory = useMemo(
+    () => biometricAttempts.slice(0, 3),
+    [biometricAttempts],
+  );
+
+  const biometricStatusLabel = biometricRegistered ? "Activo" : "Pendiente";
+  const biometricStatusStyle = biometricRegistered
+    ? styles.biometricStatusActive
+    : styles.biometricStatusPending;
+  const biometricSubtitle = biometricRegistered && biometricLastSync
+    ? `Última sincronización ${new Date(biometricLastSync).toLocaleTimeString("es-CR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`
+    : "Registra datos biométricos simulados en este dispositivo.";
 
   const selectedIdType = useMemo(
     () =>
@@ -90,6 +118,7 @@ const LoginScreen = () => {
 
   const handleSubmit = () => {
     setError(null);
+    setBiometricHint(null);
     if (!cedula.trim() || cedula.length < 9) {
       setError("Ingresa una cédula válida.");
       return;
@@ -112,6 +141,43 @@ const LoginScreen = () => {
       }
       router.replace("/(app)/home");
     }, 600);
+  };
+
+  const handleProvisionBiometrics = () => {
+    if (biometricLoading) {
+      return;
+    }
+    setError(null);
+    registerBiometrics({ displayName: "FaceGraph Sensor v2" });
+    setBiometricHint("Biometría de demostración registrada en tu dispositivo.");
+  };
+
+  const handleBiometricLogin = async () => {
+    if (!biometricRegistered || biometricLoading) {
+      return;
+    }
+    setError(null);
+    setBiometricHint(null);
+    setBiometricLoading(true);
+    try {
+      const { success, deviceName } = await simulateBiometricValidation({ expectedMatch: true });
+      if (!success) {
+        setError("No pudimos validar tu biometría. Usa tus datos o intenta de nuevo.");
+        setBiometricHint(`Intento biométrico fallido con ${deviceName}.`);
+        return;
+      }
+      setCedula(user.id);
+      setPhone(user.phone);
+      setBiometricHint(`Biometría validada en ${deviceName}. Ingresando...`);
+      const loggedIn = login({ id: user.id, phone: user.phone, idType: user.idType });
+      if (loggedIn) {
+        router.replace("/(app)/home");
+      }
+    } catch (err) {
+      setError("Ocurrió un error con la validación biométrica.");
+    } finally {
+      setBiometricLoading(false);
+    }
   };
 
   return (
@@ -210,6 +276,84 @@ const LoginScreen = () => {
                 onPress={handleSubmit}
                 loading={loading}
               />
+              <View style={styles.biometricSection}>
+                <View style={styles.biometricHeader}>
+                  <View style={styles.biometricIcon}>
+                    <MaterialCommunityIcons
+                      name="fingerprint"
+                      size={22}
+                      color={palette.textPrimary}
+                    />
+                  </View>
+                  <View style={styles.biometricCopy}>
+                    <Text style={styles.biometricTitle}>Biometría simulada</Text>
+                    <Text style={styles.biometricSubtitle}>{biometricSubtitle}</Text>
+                  </View>
+                  <View style={[styles.biometricStatus, biometricStatusStyle]}>
+                    <Text style={styles.biometricStatusText}>{biometricStatusLabel}</Text>
+                  </View>
+                </View>
+                {biometricHistory.length > 0 ? (
+                  <View style={styles.biometricHistory}>
+                    {biometricHistory.map((attempt) => {
+                      const timeLabel = new Date(attempt.timestamp).toLocaleTimeString("es-CR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                      const resultLabel =
+                        attempt.result === "success"
+                          ? "Coincidencia"
+                          : attempt.result === "mismatch"
+                          ? "No coincide"
+                          : "Tiempo agotado";
+                      const resultColor =
+                        attempt.result === "success"
+                          ? palette.success
+                          : attempt.result === "mismatch"
+                          ? palette.warning
+                          : palette.textMuted;
+                      return (
+                        <View key={attempt.id} style={styles.biometricRow}>
+                          <View style={styles.biometricRowCopy}>
+                            <Text style={styles.biometricRowTitle}>{attempt.label}</Text>
+                            <Text style={styles.biometricRowSubtitle}>{`${timeLabel} · ${attempt.device}`}</Text>
+                          </View>
+                          <Text style={[styles.biometricResult, { color: resultColor }]}>
+                            {resultLabel}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : null}
+                {biometricHint ? (
+                  <Text style={styles.biometricHint}>{biometricHint}</Text>
+                ) : null}
+                <View style={styles.biometricActions}>
+                  {biometricRegistered ? (
+                    <PrimaryButton
+                      label={biometricLoading ? "Validando..." : "Ingresar con biometría"}
+                      onPress={handleBiometricLogin}
+                      loading={biometricLoading}
+                      disabled={biometricLoading}
+                    />
+                  ) : (
+                    <Pressable
+                      onPress={handleProvisionBiometrics}
+                      style={styles.biometricSecondary}
+                      accessibilityRole="button"
+                      disabled={biometricLoading}
+                    >
+                      <MaterialCommunityIcons
+                        name="account-check-outline"
+                        size={18}
+                        color={palette.accentCyan}
+                      />
+                      <Text style={styles.biometricSecondaryLabel}>Registrar biometría demo</Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
               <Text style={styles.helper}>
                 Tus datos se quedan en tu dispositivo. Sin conexiones externas.
               </Text>
@@ -277,6 +421,102 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: palette.textPrimary,
+  },
+  biometricSection: {
+    borderTopWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.06)",
+    paddingTop: 18,
+    gap: 16,
+  },
+  biometricHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  biometricIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 240, 255, 0.08)",
+  },
+  biometricCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  biometricTitle: {
+    color: palette.textPrimary,
+    fontWeight: "700",
+  },
+  biometricSubtitle: {
+    color: palette.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  biometricStatus: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  biometricStatusActive: {
+    backgroundColor: "rgba(24, 255, 178, 0.18)",
+  },
+  biometricStatusPending: {
+    backgroundColor: "rgba(255, 200, 87, 0.18)",
+  },
+  biometricStatusText: {
+    color: palette.textPrimary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  biometricHistory: {
+    gap: 12,
+  },
+  biometricRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  biometricRowCopy: {
+    flex: 1,
+    gap: 4,
+  },
+  biometricRowTitle: {
+    color: palette.textPrimary,
+    fontWeight: "600",
+  },
+  biometricRowSubtitle: {
+    color: palette.textMuted,
+    fontSize: 12,
+  },
+  biometricResult: {
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  biometricHint: {
+    color: palette.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  biometricActions: {
+    gap: 12,
+  },
+  biometricSecondary: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.4)",
+    backgroundColor: "rgba(0, 240, 255, 0.08)",
+  },
+  biometricSecondaryLabel: {
+    color: palette.accentCyan,
+    fontWeight: "600",
   },
   helper: {
     fontSize: 12,

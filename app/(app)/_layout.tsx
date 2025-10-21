@@ -19,6 +19,7 @@ export default function AppLayout() {
       <Stack.Screen name="notifications" />
       <Stack.Screen name="contacts" />
       <Stack.Screen name="insights" />
+      <Stack.Screen name="automations" />
     </Stack>
   );
 }
