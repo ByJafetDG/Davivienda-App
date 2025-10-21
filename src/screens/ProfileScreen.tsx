@@ -1,16 +1,23 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import QRCode from "react-native-qrcode-svg";
 import { MotiView } from "moti";
 import { ComponentProps, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
-import { useBankStore } from "@/store/useBankStore";
+import {
+  useBankStore,
+  type RechargeRecord,
+  type TransferRecord,
+} from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
+
+const bankLogo = require("../../assets/logo.png");
 
 const ProfileScreen = () => {
   const router = useRouter();
@@ -18,9 +25,12 @@ const ProfileScreen = () => {
     useBankStore();
 
   const totals = useMemo(() => {
-    const sent = transfers.reduce((acc, transfer) => acc + transfer.amount, 0);
+    const sent = transfers.reduce(
+      (acc: number, transfer: TransferRecord) => acc + transfer.amount,
+      0,
+    );
     const recharged = recharges.reduce(
-      (acc, recharge) => acc + recharge.amount,
+      (acc: number, recharge: RechargeRecord) => acc + recharge.amount,
       0,
     );
     return {
@@ -35,6 +45,14 @@ const ProfileScreen = () => {
     logout();
     router.replace("/");
   };
+
+  const qrPreviewValue = useMemo(() => {
+    return JSON.stringify({
+      type: "SINPE",
+      owner: user.name,
+      phone: user.phone,
+    });
+  }, [user.name, user.phone]);
 
   return (
     <FuturisticBackground>
@@ -102,6 +120,35 @@ const ProfileScreen = () => {
             </GlassCard>
 
             <GlassCard>
+              <View style={styles.qrPreview}>
+                <View style={styles.qrCopy}>
+                  <Text style={styles.qrLabel}>Tu código QR</Text>
+                  <Text style={styles.qrDescription}>
+                    Comparte un código personalizado para recibir dinero sin
+                    errores.
+                  </Text>
+                  <PrimaryButton
+                    label="Ver código"
+                    onPress={() => router.push("/(app)/profile-qr")}
+                  />
+                </View>
+                <View style={styles.qrMiniFrame}>
+                  <QRCode
+                    value={qrPreviewValue}
+                    size={96}
+                    color="#020617"
+                    backgroundColor="transparent"
+                    logo={bankLogo}
+                    logoSize={28}
+                    logoBackgroundColor="rgba(255,255,255,0.95)"
+                    logoBorderRadius={12}
+                    ecl="H"
+                  />
+                </View>
+              </View>
+            </GlassCard>
+
+            <GlassCard>
               <View style={styles.metricsGrid}>
                 <MetricTile
                   label="Transferido"
@@ -131,6 +178,10 @@ const ProfileScreen = () => {
             </GlassCard>
 
             <View style={styles.actions}>
+              <PrimaryButton
+                label="Administrar sobres"
+                onPress={() => router.push("/(app)/envelopes")}
+              />
               <PrimaryButton
                 label="Gestionar automatizaciones"
                 onPress={() => router.push("/(app)/automations")}
@@ -258,6 +309,37 @@ const styles = StyleSheet.create({
   balanceHint: {
     color: palette.textSecondary,
     fontSize: 13,
+  },
+  qrPreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 18,
+    padding: 22,
+  },
+  qrCopy: {
+    flex: 1,
+    gap: 10,
+  },
+  qrLabel: {
+    color: palette.textPrimary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  qrDescription: {
+    color: palette.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  qrMiniFrame: {
+    width: 120,
+    height: 120,
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(9, 18, 38, 0.75)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
   },
   metricsGrid: {
     flexDirection: "row",

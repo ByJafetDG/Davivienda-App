@@ -1,6 +1,6 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { usePathname, useRouter } from "expo-router";
+import { usePathname, useRouter, useSegments } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo, useState } from "react";
 import {
@@ -83,17 +83,47 @@ const indicatorGradients: Record<string, [string, string]> = {
   profile: ["#21F5C1", "#174D45"],
 };
 
+const segmentToKey: Record<string, BottomNavItem["key"]> = {
+  home: "balance",
+  history: "history",
+  transfer: "transfer",
+  "confirm-transfer": "transfer",
+  "mobile-recharge": "recharge",
+  charges: "charges",
+  profile: "profile",
+  "profile-qr": "profile",
+  automations: "profile",
+  notifications: "profile",
+  contacts: "transfer",
+  scan: "transfer",
+  envelopes: "balance",
+};
+
 const INDICATOR_INSET = 6;
 
 const BottomNavigationBar = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const segments = useSegments();
   const insets = useSafeAreaInsets();
 
+  const routeSegment = useMemo(() => {
+    const reversed = [...segments].reverse();
+    const matching = reversed.find(
+      (segment) => segment && !segment.startsWith("(")
+    );
+    return matching ?? "home";
+  }, [segments]);
+
   const activeKey = useMemo(() => {
-    const active = items.find((item) => pathname.startsWith(item.route));
-    return active?.key ?? "balance";
-  }, [pathname]);
+    const fromSegment = segmentToKey[routeSegment];
+    if (fromSegment) {
+      return fromSegment;
+    }
+
+    const byRoute = items.find((item) => pathname.startsWith(item.route));
+    return byRoute?.key ?? "balance";
+  }, [pathname, routeSegment]);
 
   const [layouts, setLayouts] = useState<Record<string, ItemLayout>>({});
 
@@ -131,12 +161,16 @@ const BottomNavigationBar = () => {
           style={styles.indicator}
           animate={{
             opacity: activeLayout ? 1 : 0,
-            width: activeLayout ? Math.max(0, activeLayout.width - INDICATOR_INSET * 2) : 0,
-            height: activeLayout ? Math.max(0, activeLayout.height - INDICATOR_INSET * 2) : 0,
+            width: activeLayout
+              ? Math.max(0, activeLayout.width - INDICATOR_INSET * 2)
+              : 0,
+            height: activeLayout
+              ? Math.max(0, activeLayout.height - INDICATOR_INSET * 2)
+              : 0,
             translateX: activeLayout ? activeLayout.x + INDICATOR_INSET : 0,
             translateY: activeLayout ? activeLayout.y + INDICATOR_INSET : 0,
           }}
-          transition={{ type: "timing", duration: 280 }}
+          transition={{ type: "timing", duration: 300 }}
         >
           <LinearGradient
             colors={indicatorColors}
@@ -158,7 +192,7 @@ const BottomNavigationBar = () => {
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
                 onPress={() => {
-                  if (pathname !== item.route) {
+                  if (!pathname.startsWith(item.route)) {
                     router.push(item.route);
                   }
                 }}

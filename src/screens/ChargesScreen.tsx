@@ -2,12 +2,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ComponentProps } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -15,7 +11,17 @@ import PrimaryButton from "@/components/PrimaryButton";
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { palette } from "@/theme/colors";
 
-const highlights = [
+type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
+
+type HighlightFeature = {
+  key: string;
+  title: string;
+  description: string;
+  icon: IconName;
+  accent: [string, string];
+};
+
+const highlights: HighlightFeature[] = [
   {
     key: "links",
     title: "Links de cobro",

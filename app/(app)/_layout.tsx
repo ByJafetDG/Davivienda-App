@@ -14,12 +14,14 @@ export default function AppLayout() {
       <Stack.Screen name="mobile-recharge" />
       <Stack.Screen name="scan" />
       <Stack.Screen name="profile" />
+      <Stack.Screen name="profile-qr" />
       <Stack.Screen name="goals" />
       <Stack.Screen name="history" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="contacts" />
       <Stack.Screen name="insights" />
       <Stack.Screen name="automations" />
+  <Stack.Screen name="envelopes" />
       <Stack.Screen name="charges" />
     </Stack>
   );
