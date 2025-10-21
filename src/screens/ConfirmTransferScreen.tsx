@@ -89,7 +89,12 @@ const ConfirmTransferScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 24 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 480 }}
+        >
           {!completed ? (
             <>
               <Text style={styles.title}>Confirma la transferencia</Text>
@@ -163,7 +168,7 @@ const ConfirmTransferScreen = () => {
               <PrimaryButton label="Volver al inicio" onPress={handleFinish} />
             </MotiView>
           )}
-        </View>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );

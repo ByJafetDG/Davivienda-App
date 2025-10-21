@@ -42,7 +42,12 @@ const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 480 }}
+        >
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
@@ -72,7 +77,10 @@ const ProfileScreen = () => {
                 </View>
                 <View style={styles.identityCopy}>
                   <Text style={styles.identityName}>{user.name}</Text>
-                  <Text style={styles.identityField}>Cédula: {user.id}</Text>
+                  <Text style={styles.identityField}>
+                    Documento: {user.idType}
+                  </Text>
+                  <Text style={styles.identityField}>Número: {user.id}</Text>
                   <Text style={styles.identityField}>
                     Teléfono: {user.phone}
                   </Text>
@@ -131,7 +139,7 @@ const ProfileScreen = () => {
               style={styles.secondaryButton}
             />
           </View>
-        </View>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );

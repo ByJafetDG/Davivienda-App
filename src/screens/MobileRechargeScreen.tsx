@@ -86,7 +86,12 @@ const MobileRechargeScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 24 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 480 }}
+        >
           <View style={styles.header}>
             <Pressable onPress={() => router.back()}>
               <MaterialCommunityIcons
@@ -134,7 +139,12 @@ const MobileRechargeScreen = () => {
             </View>
           </GlassCard>
 
-          <View style={styles.form}>
+          <MotiView
+            style={styles.form}
+            from={{ opacity: 0, translateY: 20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 500, delay: 120 }}
+          >
             <NeonTextField
               label="Número a recargar"
               placeholder="0000 0000"
@@ -171,8 +181,8 @@ const MobileRechargeScreen = () => {
               onPress={handleSubmit}
               loading={loading}
             />
-          </View>
-        </View>
+          </MotiView>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );

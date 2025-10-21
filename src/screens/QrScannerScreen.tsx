@@ -62,7 +62,12 @@ const QrScannerScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 480 }}
+        >
           <View style={styles.header}>
             <Pressable
               accessibilityRole="button"
@@ -118,9 +123,20 @@ const QrScannerScreen = () => {
                   }
                   style={StyleSheet.absoluteFillObject}
                 />
-                <View pointerEvents="none" style={styles.overlay}>
-                  <View style={styles.reticle} />
-                </View>
+                <MotiView
+                  pointerEvents="none"
+                  style={styles.overlay}
+                  from={{ opacity: 0.4 }}
+                  animate={{ opacity: 0.15 }}
+                  transition={{ loop: true, type: "timing", duration: 2200 }}
+                >
+                  <MotiView
+                    style={styles.reticle}
+                    from={{ scale: 0.92, opacity: 0.5 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ loop: true, type: "timing", duration: 1600 }}
+                  />
+                </MotiView>
               </View>
             )}
           </View>
@@ -179,7 +195,7 @@ const QrScannerScreen = () => {
               </GlassCard>
             </MotiView>
           ) : null}
-        </View>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );

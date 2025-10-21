@@ -6,10 +6,44 @@ import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
+import NeonSelectField from "@/components/NeonSelectField";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
+
+const ID_TYPE_OPTIONS = [
+  {
+    value: "cedula-persona",
+    label: "Cédula de identidad",
+    description: "Ciudadanía nacional",
+    placeholder: "1-1234-5678",
+  },
+  {
+    value: "cedula-juridica",
+    label: "Cédula jurídica",
+    description: "Empresas y organizaciones",
+    placeholder: "3-101-123456",
+  },
+  {
+    value: "pasaporte",
+    label: "Pasaporte",
+    description: "Documentos internacionales",
+    placeholder: "AA1234567",
+  },
+  {
+    value: "dimex",
+    label: "DIMEX",
+    description: "Documento para extranjeros residentes",
+    placeholder: "123456789012",
+  },
+  {
+    value: "didi",
+    label: "DIDI",
+    description: "Documento de identidad digital",
+    placeholder: "CR-DIDI-1234",
+  },
+] as const;
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -18,6 +52,28 @@ const LoginScreen = () => {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [idType, setIdType] = useState<string>(() => {
+    const found = ID_TYPE_OPTIONS.find(
+      (option) => option.label === user.idType,
+    );
+    return found?.value ?? ID_TYPE_OPTIONS[0].value;
+  });
+
+  useEffect(() => {
+    const match = ID_TYPE_OPTIONS.find(
+      (option) => option.label === user.idType,
+    );
+    if (match) {
+      setIdType(match.value);
+    }
+  }, [user.idType]);
+
+  const selectedIdType = useMemo(
+    () =>
+      ID_TYPE_OPTIONS.find((option) => option.value === idType) ??
+      ID_TYPE_OPTIONS[0],
+    [idType],
+  );
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -44,7 +100,11 @@ const LoginScreen = () => {
     }
     setLoading(true);
     setTimeout(() => {
-      const success = login({ id: cedula, phone });
+      const success = login({
+        id: cedula,
+        phone,
+        idType: selectedIdType.label,
+      });
       setLoading(false);
       if (!success) {
         setError("No pudimos validar tus datos, intenta de nuevo.");
@@ -62,7 +122,12 @@ const LoginScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 24 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 500 }}
+        >
           <MotiView
             from={{ opacity: 0, translateY: 30 }}
             animate={{ opacity: 1, translateY: 0 }}
@@ -91,9 +156,28 @@ const LoginScreen = () => {
               style={styles.card}
             >
               <Text style={styles.cardTitle}>Datos de acceso</Text>
+              <NeonSelectField
+                label="Tipo de identificación"
+                value={idType}
+                onValueChange={setIdType}
+                options={ID_TYPE_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                  description: option.description,
+                }))}
+                placeholder="Selecciona un documento"
+                helpText="Selecciona el documento con el que deseas iniciar sesión."
+                icon={
+                  <MaterialCommunityIcons
+                    name="card-account-details"
+                    size={20}
+                    color={palette.accentCyan}
+                  />
+                }
+              />
               <NeonTextField
-                label="Cédula de identidad"
-                placeholder={user.id}
+                label="Número de identificación"
+                placeholder={selectedIdType.placeholder}
                 value={cedula}
                 autoCapitalize="characters"
                 onChangeText={setCedula}
@@ -131,7 +215,7 @@ const LoginScreen = () => {
               </Text>
             </MotiView>
           </View>
-        </View>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );

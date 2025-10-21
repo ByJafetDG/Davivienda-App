@@ -113,7 +113,12 @@ const MoneyTransferScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 24 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 480 }}
+        >
           <View style={styles.header}>
             <Pressable onPress={() => router.back()}>
               <MaterialCommunityIcons
@@ -181,7 +186,12 @@ const MoneyTransferScreen = () => {
             </ScrollView>
           </View>
 
-          <View style={styles.form}>
+          <MotiView
+            style={styles.form}
+            from={{ opacity: 0, translateY: 30 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 520, delay: 150 }}
+          >
             <NeonTextField
               label="Nombre del destinatario"
               placeholder="Juan Pérez"
@@ -239,8 +249,8 @@ const MoneyTransferScreen = () => {
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <PrimaryButton label="Continuar" onPress={handleContinue} />
-          </View>
-        </View>
+          </MotiView>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );

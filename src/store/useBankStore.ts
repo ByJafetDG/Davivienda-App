@@ -31,6 +31,7 @@ export type UserProfile = {
   id: string;
   phone: string;
   avatarColor: string;
+  idType: string;
 };
 
 export type TransferDraft = {
@@ -54,7 +55,7 @@ export type BankState = {
   contacts: Contact[];
   transfers: TransferRecord[];
   recharges: RechargeRecord[];
-  login: (payload: { id: string; phone: string }) => boolean;
+  login: (payload: { id: string; phone: string; idType?: string }) => boolean;
   logout: () => void;
   sendTransfer: (draft: TransferDraft) => TransferRecord;
   makeRecharge: (draft: RechargeDraft) => RechargeRecord;
@@ -66,6 +67,7 @@ const DEFAULT_USER: UserProfile = {
   id: "1-1234-5678",
   phone: "6203-4545",
   avatarColor: "#FF3358",
+  idType: "Cédula de identidad",
 };
 
 const DEFAULT_CONTACTS: Contact[] = [
@@ -108,7 +110,15 @@ export const useBankStore = create<BankState>(
     contacts: DEFAULT_CONTACTS,
     transfers: [],
     recharges: [],
-    login: ({ id, phone }: { id: string; phone: string }) => {
+    login: ({
+      id,
+      phone,
+      idType,
+    }: {
+      id: string;
+      phone: string;
+      idType?: string;
+    }) => {
       if (!id.trim() || !phone.trim()) {
         return false;
       }
@@ -118,6 +128,7 @@ export const useBankStore = create<BankState>(
           ...state.user,
           id: id.trim(),
           phone: phone.trim(),
+          idType: idType?.trim() || state.user.idType,
         },
       }));
       return true;

@@ -51,6 +51,12 @@ const quickActions = [
     route: "/(app)/scan",
     accent: "#7A2BFF",
   },
+  {
+    icon: "target",
+    label: "Metas",
+    route: "/(app)/goals",
+    accent: "#4ADE80",
+  },
 ] as const;
 
 const AccountBalanceScreen = () => {
@@ -88,7 +94,12 @@ const AccountBalanceScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.container}>
+        <MotiView
+          style={styles.container}
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 480 }}
+        >
           <View style={styles.header}>
             <View>
               <Text style={styles.caption}>SINPE Móvil</Text>
@@ -165,12 +176,20 @@ const AccountBalanceScreen = () => {
 
           <GlassCard>
             <View style={styles.historyHeader}>
-              <Text style={styles.sectionTitle}>Actividad reciente</Text>
-              <MaterialCommunityIcons
-                name="clock-time-eight-outline"
-                size={20}
-                color={palette.textSecondary}
-              />
+              <View style={styles.historyTitleRow}>
+                <Text style={styles.sectionTitle}>Actividad reciente</Text>
+                <MaterialCommunityIcons
+                  name="clock-time-eight-outline"
+                  size={20}
+                  color={palette.textSecondary}
+                />
+              </View>
+              <Pressable
+                onPress={() => router.push("/(app)/history")}
+                accessibilityRole="button"
+              >
+                <Text style={styles.historyLink}>Ver historial</Text>
+              </Pressable>
             </View>
             {timeline.length === 0 ? (
               <Text style={styles.emptyState}>
@@ -199,7 +218,7 @@ const AccountBalanceScreen = () => {
               ))
             )}
           </GlassCard>
-        </View>
+        </MotiView>
       </ScrollView>
     </FuturisticBackground>
   );
@@ -277,11 +296,12 @@ const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 16,
-    justifyContent: "space-between",
   },
   actionButton: {
-    flex: 1,
+    flexBasis: "48%",
+    flexGrow: 1,
   },
   actionCard: {
     borderRadius: 26,
@@ -310,6 +330,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 12,
+  },
+  historyTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  historyLink: {
+    color: palette.accentCyan,
+    fontSize: 13,
+    fontWeight: "600",
   },
   sectionTitle: {
     color: palette.textPrimary,

@@ -14,6 +14,8 @@ export default function AppLayout() {
       <Stack.Screen name="mobile-recharge" />
       <Stack.Screen name="scan" />
       <Stack.Screen name="profile" />
+      <Stack.Screen name="goals" />
+      <Stack.Screen name="history" />
     </Stack>
   );
 }

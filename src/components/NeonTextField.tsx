@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { ReactNode, useMemo } from "react";
+import { MotiView } from "moti";
+import { ReactNode, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -30,27 +31,61 @@ const NeonTextField = ({
     [errorMessage, helpText],
   );
   const hintColor = errorMessage ? palette.danger : palette.textMuted;
+  const [focused, setFocused] = useState(false);
+
+  const { onFocus, onBlur, ...inputProps } = rest;
+
+  const handleFocus: TextInputProps["onFocus"] = (event) => {
+    setFocused(true);
+    onFocus?.(event);
+  };
+
+  const handleBlur: TextInputProps["onBlur"] = (event) => {
+    setFocused(false);
+    onBlur?.(event);
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <LinearGradient
-        colors={[palette.elevatedSurface, palette.surface]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
+      <MotiView
+        style={styles.animatedShell}
+        from={{ opacity: 0.85, scale: 0.98 }}
+        animate={{
+          opacity: focused ? 1 : 0.9,
+          scale: focused ? 1.01 : 0.98,
+          shadowOpacity: focused ? 0.45 : 0,
+        }}
+        transition={{ type: "timing", duration: 200 }}
       >
-        <View style={styles.fieldSurface}>
-          {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
-          <TextInput
-            placeholderTextColor={palette.textMuted}
-            style={[styles.input, style]}
-            selectionColor={palette.accentCyan}
-            {...rest}
+        <LinearGradient
+          colors={[palette.elevatedSurface, palette.surface]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+        >
+          <View style={styles.fieldSurface}>
+            {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
+            <TextInput
+              placeholderTextColor={palette.textMuted}
+              style={[styles.input, style]}
+              selectionColor={palette.accentCyan}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              {...inputProps}
+            />
+          </View>
+          <MotiView
+            pointerEvents="none"
+            style={styles.glow}
+            animate={{
+              opacity: focused ? 0.45 : 0.2,
+              scale: focused ? 1.05 : 1,
+            }}
+            transition={{ type: "timing", duration: 220 }}
           />
-        </View>
-        <View pointerEvents="none" style={styles.glow} />
-      </LinearGradient>
+        </LinearGradient>
+      </MotiView>
       {hint ? (
         <Text style={[styles.hint, { color: hintColor }]}>{hint}</Text>
       ) : null}
@@ -72,6 +107,10 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 2,
     position: "relative",
+  },
+  animatedShell: {
+    borderRadius: 24,
+    shadowColor: palette.accentCyan,
   },
   fieldSurface: {
     backgroundColor: "rgba(7, 17, 31, 0.7)",

@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "jsEngine": "jsc",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#040b16"
