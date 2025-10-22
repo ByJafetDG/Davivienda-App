@@ -2,7 +2,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { usePathname, useRouter, useSegments } from "expo-router";
 import { MotiView } from "moti";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
   Pressable,
@@ -10,6 +10,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { palette } from "@/theme/colors";
@@ -126,6 +127,8 @@ const BottomNavigationBar = () => {
   }, [pathname, routeSegment]);
 
   const [layouts, setLayouts] = useState<Record<string, ItemLayout>>({});
+  const [indicatorFlow, setIndicatorFlow] = useState<"right" | "left">("right");
+  const lastXRef = useRef<number | null>(null);
 
   const handleLayout = (key: string) => (event: LayoutChangeEvent) => {
     const { x, y, width, height } = event.nativeEvent.layout;
@@ -146,6 +149,22 @@ const BottomNavigationBar = () => {
 
   const activeLayout = layouts[activeKey];
   const indicatorColors = indicatorGradients[activeKey] ?? indicatorGradients.balance;
+
+  useEffect(() => {
+    if (!activeLayout) {
+      return;
+    }
+    const nextX = activeLayout.x;
+    const prevX = lastXRef.current;
+    if (prevX !== null && Math.abs(nextX - prevX) > 1) {
+      setIndicatorFlow(nextX > prevX ? "right" : "left");
+    }
+    lastXRef.current = nextX;
+  }, [activeLayout]);
+
+  const gradientOrientation = indicatorFlow === "right"
+    ? { start: { x: 0, y: 0 }, end: { x: 1, y: 1 } }
+    : { start: { x: 1, y: 0 }, end: { x: 0, y: 1 } };
 
   return (
     <View
@@ -170,12 +189,16 @@ const BottomNavigationBar = () => {
             translateX: activeLayout ? activeLayout.x + INDICATOR_INSET : 0,
             translateY: activeLayout ? activeLayout.y + INDICATOR_INSET : 0,
           }}
-          transition={{ type: "timing", duration: 300 }}
+          transition={{
+            type: "timing",
+            duration: 320,
+            easing: indicatorFlow === "right" ? Easing.out(Easing.cubic) : Easing.out(Easing.cubic),
+          }}
         >
           <LinearGradient
             colors={indicatorColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={gradientOrientation.start}
+            end={gradientOrientation.end}
             style={StyleSheet.absoluteFillObject}
           />
           <View style={styles.indicatorGlow} />
