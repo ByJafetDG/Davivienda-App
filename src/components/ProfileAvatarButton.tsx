@@ -52,6 +52,7 @@ const ProfileAvatarButton = ({
           width: size,
           height: size,
           borderRadius: radius,
+          aspectRatio: 1,
           shadowRadius: size * 0.45,
           shadowOffset: { width: 0, height: size * 0.28 },
           transform: [{ scale: pressed ? 0.96 : 1 }],
@@ -91,6 +92,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#7A2BFF",
     elevation: 8,
+    backgroundColor: "transparent",
   },
   gradient: {
     flex: 1,
