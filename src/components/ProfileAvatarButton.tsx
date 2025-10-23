@@ -1,10 +1,10 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useMemo } from "react";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   Pressable,
   StyleProp,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
 } from "react-native";
@@ -31,15 +31,14 @@ const ProfileAvatarButton = ({
   initials,
 }: ProfileAvatarButtonProps) => {
   const { user } = useBankStore();
-
-  const letter = useMemo(() => {
-    const base = initials ?? user?.name ?? "M";
-    return base.trim().charAt(0).toUpperCase();
-  }, [initials, user?.name]);
+  // keep initials prop for possible future use but we render a modern icon instead
+  const displayName = useMemo(() => initials ?? user?.name ?? "", [initials, user?.name]);
 
   const radius = size / 2;
   const ringThickness = Math.max(2, size * 0.12);
-  const innerRadius = Math.max(radius - ringThickness, radius * 0.55);
+  // innerDiameter is the visible inner circle diameter (inside the gradient ring)
+  const innerDiameter = Math.max(size - ringThickness * 2, size * 0.5);
+  const innerRadius = innerDiameter / 2;
 
   return (
     <Pressable
@@ -71,15 +70,29 @@ const ProfileAvatarButton = ({
           colors={INNER_GRADIENT}
           start={{ x: 0.15, y: 0 }}
           end={{ x: 0.85, y: 1 }}
-          style={[styles.innerGradient, { borderRadius: innerRadius }]}
+          style={[
+            styles.innerGradient,
+            {
+              width: innerDiameter,
+              height: innerDiameter,
+              borderRadius: innerRadius,
+            },
+          ]}
         >
           <LinearGradient
-            colors={["rgba(255,255,255,0.35)", "transparent"]}
+            colors={["rgba(255,255,255,0.18)", "transparent"]}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 0.8, y: 0.9 }}
             style={[styles.gloss, { borderRadius: innerRadius }]}
           />
-          <Text style={[styles.initials, { fontSize: size * 0.46 }]}>{letter}</Text>
+          {/* Modern profile icon */}
+          <View style={styles.iconWrap}>
+            <MaterialCommunityIcons
+              name="account-circle-outline"
+              size={Math.round(innerDiameter * 0.56)}
+              color={palette.textPrimary}
+            />
+          </View>
         </LinearGradient>
       </LinearGradient>
     </Pressable>
@@ -114,6 +127,10 @@ const styles = StyleSheet.create({
     color: palette.textPrimary,
     fontWeight: "800",
     letterSpacing: 1,
+  },
+  iconWrap: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

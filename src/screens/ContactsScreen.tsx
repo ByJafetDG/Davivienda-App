@@ -77,6 +77,7 @@ const ContactFormModal = ({
             value={form.phone}
             onChangeText={(value) => setForm({ ...form, phone: value })}
             keyboardType="phone-pad"
+            allowOnlyNumeric
             icon={
               <MaterialCommunityIcons
                 name="phone"

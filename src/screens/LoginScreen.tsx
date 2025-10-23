@@ -262,6 +262,7 @@ const LoginScreen = () => {
                 value={phone}
                 keyboardType="phone-pad"
                 onChangeText={setPhone}
+                allowOnlyNumeric
                 icon={
                   <MaterialCommunityIcons
                     name="cellphone"

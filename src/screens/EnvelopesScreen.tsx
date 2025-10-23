@@ -884,6 +884,7 @@ const EnvelopeFormModal = ({
               setFormState((current) => ({ ...current, targetAmount: text }))
             }
             keyboardType="decimal-pad"
+            allowOnlyNumeric
             icon={
               <MaterialCommunityIcons
                 name="target"
@@ -1032,6 +1033,7 @@ const AllocationModal = ({
               setFormState((current) => ({ ...current, amount: text }))
             }
             keyboardType="decimal-pad"
+            allowOnlyNumeric
             icon={
               <MaterialCommunityIcons
                 name="cash-multiple"
@@ -1115,6 +1117,7 @@ const AutomationFormModal = ({
               setFormState((current) => ({ ...current, matchPhone: text }))
             }
             keyboardType="phone-pad"
+            allowOnlyNumeric
             icon={
               <MaterialCommunityIcons
                 name="cellphone-check"

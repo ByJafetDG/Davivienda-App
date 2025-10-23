@@ -219,7 +219,7 @@ const HistoryScreen = () => {
               </Pressable>
               <Text style={styles.title}>Historial de movimientos</Text>
               <ProfileAvatarButton
-                size={42}
+                size={40}
                 onPress={() => router.push("/(app)/profile")}
                 accessibilityLabel="Ir a tu perfil"
                 style={styles.profileShortcut}

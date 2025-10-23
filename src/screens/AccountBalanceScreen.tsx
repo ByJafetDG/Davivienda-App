@@ -129,7 +129,7 @@ const AccountBalanceScreen = () => {
                 <Text style={styles.title}>Hola, {user.name.split(" ")[0]}</Text>
               </View>
               <ProfileAvatarButton
-                size={52}
+                size={40}
                 onPress={() => router.push("/(app)/profile")}
                 accessibilityLabel="Ver perfil"
               />

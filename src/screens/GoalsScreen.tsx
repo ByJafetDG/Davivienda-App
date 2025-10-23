@@ -437,6 +437,7 @@ const GoalFormModal = ({
             value={formState.targetAmount}
             onChangeText={(text) => setFormState({ ...formState, targetAmount: text })}
             keyboardType="decimal-pad"
+            allowOnlyNumeric
             icon={
               <MaterialCommunityIcons
                 name="cash"

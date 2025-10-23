@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 44,
     height: 44,
-    borderRadius: 18,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -332,8 +332,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.95)",
     borderColor: "transparent",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 18,
+    shadowOpacity: 0.34,
+    shadowRadius: 22,
   },
   label: {
     color: palette.textSecondary,

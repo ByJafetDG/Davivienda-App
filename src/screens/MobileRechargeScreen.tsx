@@ -159,6 +159,7 @@ const MobileRechargeScreen = () => {
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
+              allowOnlyNumeric
               icon={
                 <MaterialCommunityIcons
                   name="cellphone"
@@ -173,6 +174,7 @@ const MobileRechargeScreen = () => {
               value={amount}
               onChangeText={setAmount}
               keyboardType="decimal-pad"
+              allowOnlyNumeric
               icon={
                 <MaterialCommunityIcons
                   name="cash-multiple"

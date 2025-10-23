@@ -325,7 +325,7 @@ const MoneyTransferScreen = () => {
               </Pressable>
               <Text style={styles.title}>Nueva transferencia</Text>
               <ProfileAvatarButton
-                size={42}
+                size={40}
                 onPress={() => router.push("/(app)/profile")}
                 accessibilityLabel="Ir a tu perfil"
                 style={styles.profileShortcut}
@@ -537,6 +537,7 @@ const MoneyTransferScreen = () => {
                 placeholder="0000 0000"
                 value={phone}
                 onChangeText={setPhone}
+                allowOnlyNumeric
                 keyboardType="phone-pad"
                 icon={
                   <MaterialCommunityIcons
@@ -552,6 +553,7 @@ const MoneyTransferScreen = () => {
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="decimal-pad"
+                allowOnlyNumeric
                 icon={
                   <MaterialCommunityIcons
                     name="currency-usd"

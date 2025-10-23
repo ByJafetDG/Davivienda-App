@@ -22,7 +22,12 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#040b16"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.anonymous.daviviendasinpemobile"
     },
     "plugins": [
       "expo-router",

@@ -16,6 +16,17 @@ export type NeonTextFieldProps = TextInputProps & {
   icon?: ReactNode;
   helpText?: string;
   errorMessage?: string;
+  /**
+   * When true, the component will filter input to allow only numeric characters
+   * (digits, optional decimal separators like dot or comma, and optional leading -).
+   * This filtering happens before calling the provided onChangeText prop.
+   */
+  allowOnlyNumeric?: boolean;
+  /**
+   * Optional custom RegExp to control allowed characters when allowOnlyNumeric is true.
+   * The regex should match allowed characters (global flag not required).
+   */
+  numericPattern?: RegExp;
 };
 
 const NeonTextField = ({
@@ -33,7 +44,10 @@ const NeonTextField = ({
   const hintColor = errorMessage ? palette.danger : palette.textMuted;
   const [focused, setFocused] = useState(false);
 
-  const { onFocus, onBlur, ...inputProps } = rest;
+  const { onFocus, onBlur, onChangeText, allowOnlyNumeric, numericPattern, ...inputProps } = rest as NeonTextFieldProps;
+
+  // Default numeric pattern: digits, dot, comma and leading minus
+  const defaultNumericPattern = /^[0-9.,-]+$/;
 
   const handleFocus: TextInputProps["onFocus"] = (event) => {
     setFocused(true);
@@ -73,6 +87,32 @@ const NeonTextField = ({
               onFocus={handleFocus}
               onBlur={handleBlur}
               {...inputProps}
+              onChangeText={(text) => {
+                if (allowOnlyNumeric) {
+                  const pattern = numericPattern ?? defaultNumericPattern;
+                  // Remove chars not matching the allowed set
+                  let filtered = text.split("").filter((ch) => pattern.test(ch)).join("");
+                  // Normalize multiple separators: allow at most one dot or comma
+                  const hasDot = filtered.includes(".");
+                  const hasComma = filtered.includes(",");
+                  if (hasDot && hasComma) {
+                    // If both present, keep the last one as decimal separator and remove earlier ones
+                    const lastDot = filtered.lastIndexOf(".");
+                    const lastComma = filtered.lastIndexOf(",");
+                    const lastSepIndex = Math.max(lastDot, lastComma);
+                    filtered = filtered
+                      .slice(0, lastSepIndex + 1)
+                      .replace(/[.,]/g, (m, idx) => (idx === lastSepIndex ? m : "")) +
+                      filtered.slice(lastSepIndex + 1).replace(/[.,]/g, "");
+                  } else {
+                    // remove any extra separators of same type keeping first
+                    filtered = filtered.replace(/\.(?=.*\.)/g, "").replace(/,(?=.*,)/g, "");
+                  }
+                  onChangeText?.(filtered);
+                } else {
+                  onChangeText?.(text);
+                }
+              }}
             />
           </View>
           <MotiView
