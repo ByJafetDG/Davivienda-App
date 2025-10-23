@@ -205,7 +205,7 @@ const BottomNavigationBar = () => {
         { paddingBottom: Math.max(insets.bottom, 10) + 18 },
       ]}
     >
-      <View style={styles.bar}>
+  <View style={styles.bar}>
         <MotiView
           pointerEvents="none"
           style={styles.indicator}
@@ -277,8 +277,9 @@ const BottomNavigationBar = () => {
                 </View>
                 <Text
                   style={[styles.label, isActive ? styles.labelActive : null]}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.88}
                 >
                   {item.label}
                 </Text>
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
     gap: 12,
     position: "relative",
     borderRadius: 32,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 14,
     backgroundColor: "rgba(8, 13, 26, 0.92)",
     borderWidth: 1,
@@ -322,6 +323,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 4,
     paddingVertical: 4,
+    minWidth: 0,
   },
   indicator: {
     position: "absolute",
@@ -372,12 +374,12 @@ const styles = StyleSheet.create({
   },
   label: {
     color: palette.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
-    lineHeight: 12,
-    letterSpacing: 0.2,
-    maxWidth: 68,
+    lineHeight: 13.5,
+    letterSpacing: 0.12,
     textAlign: "center",
+    paddingHorizontal: 2,
   },
   labelActive: {
     color: palette.textPrimary,

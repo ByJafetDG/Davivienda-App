@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   PressableStateCallbackType,
@@ -25,20 +26,20 @@ const OPERATORS = [
   {
     id: "kolbi",
     label: "Kolbi",
-    accent: "#00F0FF",
-    icon: { name: "alpha-k-circle", color: "#00ff62ff" },
+    accent: "#00ff1eff",
+    logo: require("../../assets/logo_kolbi.png"),
   },
   {
     id: "claro",
     label: "Claro",
     accent: "#FF3B6B",
-    icon: { name: "alpha-c-circle", color: "#FF3B6B" },
+    logo: require("../../assets/logo_claro.png"),
   },
   {
     id: "liberty",
     label: "Liberty",
-    accent: "#FF9F3D",
-    icon: { name: "alpha-l-circle", color: "#FF9F3D" },
+    accent: "#3da1ffff",
+    logo: require("../../assets/logo_liberty.png"),
   },
 ] as const;
 
@@ -172,10 +173,10 @@ const MobileRechargeScreen = () => {
                             },
                           ]}
                         >
-                          <MaterialCommunityIcons
-                            name={item.icon.name as any}
-                            size={26}
-                            color={item.icon.color}
+                          <Image
+                            source={item.logo}
+                            style={styles.operatorLogo}
+                            resizeMode="contain"
                           />
                         </View>
                         <Text style={styles.operatorLabel}>{item.label}</Text>
@@ -330,30 +331,30 @@ const styles = StyleSheet.create({
   },
   operatorRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 8,
     justifyContent: "space-between",
     flexWrap: "wrap",
   },
   operatorButton: {
     flexBasis: "31%",
-    maxWidth: 130,
-    flexGrow: 1,
+    maxWidth: 100,
+    flexGrow: 0,
   },
   operatorCard: {
-    borderRadius: 18,
+    borderRadius: 14,
     borderWidth: 2,
-    paddingVertical: 18,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     alignItems: "center",
-    gap: 10,
+    gap: 6,
     backgroundColor: "rgba(10, 20, 40, 0.82)",
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 18,
   },
   operatorIconWrapper: {
-    width: 42,
-    height: 42,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -361,8 +362,13 @@ const styles = StyleSheet.create({
   operatorLabel: {
     color: palette.textPrimary,
     fontWeight: "700",
-    fontSize: 14,
-    letterSpacing: 0.3,
+    fontSize: 12,
+    letterSpacing: 0.15,
+    textAlign: "center",
+  },
+  operatorLogo: {
+    width: 24,
+    height: 24,
   },
   modalBackdrop: {
     flex: 1,
