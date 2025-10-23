@@ -102,6 +102,13 @@ const segmentToKey: Record<string, BottomNavItem["key"]> = {
 
 const INDICATOR_INSET = 6;
 
+const layoutMemory: Record<string, ItemLayout> = {};
+let indicatorMemory = {
+  lastLayout: null as ItemLayout | null,
+  flow: "right" as "right" | "left",
+  ready: false,
+};
+
 const BottomNavigationBar = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -126,9 +133,13 @@ const BottomNavigationBar = () => {
     return byRoute?.key ?? "balance";
   }, [pathname, routeSegment]);
 
-  const [layouts, setLayouts] = useState<Record<string, ItemLayout>>({});
-  const [indicatorFlow, setIndicatorFlow] = useState<"right" | "left">("right");
-  const lastXRef = useRef<number | null>(null);
+  const [layouts, setLayouts] = useState<Record<string, ItemLayout>>(
+    () => ({ ...layoutMemory })
+  );
+  const [indicatorFlow, setIndicatorFlow] = useState<"right" | "left">(() => indicatorMemory.flow);
+  const [indicatorReady, setIndicatorReady] = useState(() => indicatorMemory.ready);
+  const lastXRef = useRef<number | null>(indicatorMemory.lastLayout?.x ?? null);
+  const lastLayoutRef = useRef<ItemLayout | null>(indicatorMemory.lastLayout);
 
   const handleLayout = (key: string) => (event: LayoutChangeEvent) => {
     const { x, y, width, height } = event.nativeEvent.layout;
@@ -143,7 +154,9 @@ const BottomNavigationBar = () => {
       ) {
         return prev;
       }
-      return { ...prev, [key]: { x, y, width, height } };
+      const nextLayouts = { ...prev, [key]: { x, y, width, height } };
+      layoutMemory[key] = { x, y, width, height };
+      return nextLayouts;
     });
   };
 
@@ -157,10 +170,28 @@ const BottomNavigationBar = () => {
     const nextX = activeLayout.x;
     const prevX = lastXRef.current;
     if (prevX !== null && Math.abs(nextX - prevX) > 1) {
-      setIndicatorFlow(nextX > prevX ? "right" : "left");
+      const nextFlow = nextX > prevX ? "right" : "left";
+      indicatorMemory = { ...indicatorMemory, flow: nextFlow };
+      setIndicatorFlow(nextFlow);
     }
     lastXRef.current = nextX;
   }, [activeLayout]);
+
+  useEffect(() => {
+    if (activeLayout) {
+      lastLayoutRef.current = activeLayout;
+      if (!indicatorReady) {
+        setIndicatorReady(true);
+      }
+      indicatorMemory = {
+        ...indicatorMemory,
+        lastLayout: activeLayout,
+        ready: true,
+      };
+    }
+  }, [activeLayout, indicatorReady]);
+
+  const targetLayout = activeLayout ?? lastLayoutRef.current;
 
   const gradientOrientation = indicatorFlow === "right"
     ? { start: { x: 0, y: 0 }, end: { x: 1, y: 1 } }
@@ -179,20 +210,22 @@ const BottomNavigationBar = () => {
           pointerEvents="none"
           style={styles.indicator}
           animate={{
-            opacity: activeLayout ? 1 : 0,
-            width: activeLayout
-              ? Math.max(0, activeLayout.width - INDICATOR_INSET * 2)
+            opacity: indicatorReady ? 1 : 0,
+            width: targetLayout
+              ? Math.max(0, targetLayout.width - INDICATOR_INSET * 2)
               : 0,
-            height: activeLayout
-              ? Math.max(0, activeLayout.height - INDICATOR_INSET * 2)
+            height: targetLayout
+              ? Math.max(0, targetLayout.height - INDICATOR_INSET * 2)
               : 0,
-            translateX: activeLayout ? activeLayout.x + INDICATOR_INSET : 0,
-            translateY: activeLayout ? activeLayout.y + INDICATOR_INSET : 0,
+            translateX: targetLayout ? targetLayout.x + INDICATOR_INSET : 0,
+            translateY: targetLayout ? targetLayout.y + INDICATOR_INSET : 0,
           }}
           transition={{
             type: "timing",
-            duration: 320,
-            easing: indicatorFlow === "right" ? Easing.out(Easing.cubic) : Easing.out(Easing.cubic),
+            duration: 360,
+            easing: indicatorFlow === "right"
+              ? Easing.out(Easing.cubic)
+              : Easing.out(Easing.cubic),
           }}
         >
           <LinearGradient
@@ -216,7 +249,7 @@ const BottomNavigationBar = () => {
                 accessibilityLabel={item.label}
                 onPress={() => {
                   if (!pathname.startsWith(item.route)) {
-                    router.push(item.route);
+                    router.replace(item.route);
                   }
                 }}
                 style={({ pressed }) => [
@@ -244,6 +277,8 @@ const BottomNavigationBar = () => {
                 </View>
                 <Text
                   style={[styles.label, isActive ? styles.labelActive : null]}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
                 >
                   {item.label}
                 </Text>
@@ -337,13 +372,17 @@ const styles = StyleSheet.create({
   },
   label: {
     color: palette.textSecondary,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
+    lineHeight: 12,
+    letterSpacing: 0.2,
+    maxWidth: 68,
+    textAlign: "center",
   },
   labelActive: {
     color: palette.textPrimary,
     textShadowColor: "rgba(255,255,255,0.3)",
-    textShadowRadius: 8,
+    textShadowRadius: 6,
   },
 });
 

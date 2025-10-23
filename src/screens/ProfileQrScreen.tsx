@@ -9,7 +9,6 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 
@@ -150,7 +149,6 @@ const ProfileQrScreen = () => {
             </View>
           </MotiView>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
     </FuturisticBackground>
   );

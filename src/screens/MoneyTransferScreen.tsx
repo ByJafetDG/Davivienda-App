@@ -25,7 +25,6 @@ import { Easing } from "react-native-reanimated";
 import FuturisticBackground from "@/components/FuturisticBackground";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, Contact } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
@@ -695,7 +694,6 @@ const MoneyTransferScreen = () => {
             </MotiView>
           </MotiView>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
 
       <Modal

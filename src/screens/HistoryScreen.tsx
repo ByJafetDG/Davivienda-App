@@ -13,7 +13,6 @@ import {
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, TransferRecord, RechargeRecord } from "@/store/useBankStore";
@@ -329,7 +328,6 @@ const HistoryScreen = () => {
           )}
           </View>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
 
       <Modal

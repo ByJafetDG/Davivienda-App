@@ -14,7 +14,6 @@ import {
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
 import {
@@ -368,7 +367,6 @@ const AccountBalanceScreen = () => {
             </MotiView>
           </MotiView>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
     </FuturisticBackground>
   );

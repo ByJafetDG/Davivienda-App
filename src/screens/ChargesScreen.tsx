@@ -8,7 +8,6 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import { palette } from "@/theme/colors";
 
 type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
@@ -157,7 +156,6 @@ const ChargesScreen = () => {
             </GlassCard>
           </MotiView>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
     </FuturisticBackground>
   );

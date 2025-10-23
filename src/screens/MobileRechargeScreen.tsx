@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useState } from "react";
 import {
+  Modal,
   Pressable,
   PressableStateCallbackType,
   ScrollView,
@@ -15,16 +16,30 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
-import { useBankStore } from "@/store/useBankStore";
+import { RechargeRecord, useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
 
 const OPERATORS = [
-  { id: "kolbi", label: "kolbi", accent: "#00F0FF" },
-  { id: "claro", label: "Claro", accent: "#FF3B6B" },
-  { id: "movistar", label: "Movistar", accent: "#7A2BFF" },
+  {
+    id: "kolbi",
+    label: "Kolbi",
+    accent: "#00F0FF",
+    icon: { name: "alpha-k-circle", color: "#00ff62ff" },
+  },
+  {
+    id: "claro",
+    label: "Claro",
+    accent: "#FF3B6B",
+    icon: { name: "alpha-c-circle", color: "#FF3B6B" },
+  },
+  {
+    id: "liberty",
+    label: "Liberty",
+    accent: "#FF9F3D",
+    icon: { name: "alpha-l-circle", color: "#FF9F3D" },
+  },
 ] as const;
 
 const MobileRechargeScreen = () => {
@@ -36,12 +51,13 @@ const MobileRechargeScreen = () => {
   const [phone, setPhone] = useState("");
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [successRecord, setSuccessRecord] = useState<RechargeRecord | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleSubmit = () => {
     setError(null);
-    setFeedback(null);
+    setSuccessRecord(null);
     const parsedAmount = Number(amount);
     if (!phone.trim() || phone.length < 8) {
       setError("Ingresa un número válido.");
@@ -64,9 +80,8 @@ const MobileRechargeScreen = () => {
           phone,
           amount: parsedAmount,
         });
-        setFeedback(
-          `Recarga exitosa a ${record.phone} por ${formatCurrency(parsedAmount)}.`,
-        );
+        setSuccessRecord(record);
+        setModalVisible(true);
         setPhone("");
         setAmount("");
       } catch (err) {
@@ -131,6 +146,10 @@ const MobileRechargeScreen = () => {
                               ? `${item.accent}`
                               : "rgba(255, 255, 255, 0.08)",
                           shadowOpacity: operator === item.id ? 0.45 : 0,
+                          backgroundColor:
+                            operator === item.id
+                              ? "rgba(255, 255, 255, 0.12)"
+                              : "rgba(10, 20, 40, 0.85)",
                         }}
                         transition={{ type: "timing", duration: 160 }}
                         style={[
@@ -138,6 +157,27 @@ const MobileRechargeScreen = () => {
                           { shadowColor: item.accent },
                         ]}
                       >
+                        <View
+                          style={[
+                            styles.operatorIconWrapper,
+                            {
+                              borderColor:
+                                operator === item.id
+                                  ? `${item.accent}55`
+                                  : "rgba(255,255,255,0.12)",
+                              backgroundColor:
+                                operator === item.id
+                                  ? "rgba(0, 8, 16, 0.45)"
+                                  : "rgba(0,0,0,0.15)",
+                            },
+                          ]}
+                        >
+                          <MaterialCommunityIcons
+                            name={item.icon.name as any}
+                            size={26}
+                            color={item.icon.color}
+                          />
+                        </View>
                         <Text style={styles.operatorLabel}>{item.label}</Text>
                       </MotiView>
                     )}
@@ -185,7 +225,6 @@ const MobileRechargeScreen = () => {
               helpText={`Saldo disponible: ${formatCurrency(balance)}`}
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            {feedback ? <Text style={styles.feedback}>{feedback}</Text> : null}
             <PrimaryButton
               label="Realizar recarga"
               onPress={handleSubmit}
@@ -194,11 +233,64 @@ const MobileRechargeScreen = () => {
           </MotiView>
           </MotiView>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <MaterialCommunityIcons
+                name="check-decagram"
+                size={38}
+                color={palette.accentCyan}
+              />
+              <Text style={styles.modalTitle}>Recarga completada</Text>
+              <Text style={styles.modalSubtitle}>
+                Tu saldo se acreditó correctamente.
+              </Text>
+            </View>
+            {successRecord ? (
+              <View style={styles.modalDetails}>
+                <DetailRow
+                  label="Operador"
+                  value={
+                    OPERATORS.find((item) => item.id === successRecord.provider)?.label ??
+                    successRecord.provider
+                  }
+                />
+                <DetailRow label="Número" value={successRecord.phone} />
+                <DetailRow
+                  label="Monto"
+                  value={formatCurrency(successRecord.amount)}
+                />
+                <DetailRow
+                  label="Fecha"
+                  value={new Date(successRecord.createdAt).toLocaleString()}
+                />
+              </View>
+            ) : null}
+            <PrimaryButton
+              label="Entendido"
+              onPress={() => setModalVisible(false)}
+              style={styles.modalButton}
+            />
+          </View>
+        </View>
+      </Modal>
     </FuturisticBackground>
   );
 };
+
+const DetailRow = ({ label, value }: { label: string; value: string }) => (
+  <View style={styles.detailRow}>
+    <Text style={styles.detailLabel}>{label}</Text>
+    <Text style={styles.detailValue}>{value}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
   screen: {
@@ -240,34 +332,99 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     justifyContent: "space-between",
+    flexWrap: "wrap",
   },
   operatorButton: {
-    flex: 1,
+    flexBasis: "31%",
+    maxWidth: 130,
+    flexGrow: 1,
   },
   operatorCard: {
-    borderRadius: 20,
+    borderRadius: 18,
     borderWidth: 2,
     paddingVertical: 18,
+    paddingHorizontal: 12,
     alignItems: "center",
-    backgroundColor: "rgba(10, 20, 40, 0.8)",
+    gap: 10,
+    backgroundColor: "rgba(10, 20, 40, 0.82)",
     shadowOffset: { width: 0, height: 12 },
-    shadowRadius: 20,
+    shadowRadius: 18,
+  },
+  operatorIconWrapper: {
+    width: 42,
+    height: 42,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
   },
   operatorLabel: {
     color: palette.textPrimary,
     fontWeight: "700",
-    fontSize: 16,
-    textTransform: "uppercase",
+    fontSize: 14,
+    letterSpacing: 0.3,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 8, 16, 0.78)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 420,
+    borderRadius: 26,
+    padding: 24,
+    gap: 20,
+    backgroundColor: "rgba(8, 14, 26, 0.96)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  modalHeader: {
+    alignItems: "center",
+    gap: 8,
+  },
+  modalTitle: {
+    color: palette.textPrimary,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  modalSubtitle: {
+    color: palette.textSecondary,
+    fontSize: 13,
+    textAlign: "center",
+  },
+  modalDetails: {
+    gap: 12,
+    borderRadius: 18,
+    padding: 16,
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+  },
+  modalButton: {
+    marginTop: 4,
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  detailLabel: {
+    color: palette.textSecondary,
+    fontSize: 13,
+  },
+  detailValue: {
+    color: palette.textPrimary,
+    fontSize: 15,
+    fontWeight: "600",
   },
   form: {
     gap: 18,
   },
   error: {
     color: palette.danger,
-    textAlign: "center",
-  },
-  feedback: {
-    color: palette.success,
     textAlign: "center",
   },
 });

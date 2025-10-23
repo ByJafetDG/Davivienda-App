@@ -8,7 +8,6 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
-import BottomNavigationBar from "@/components/BottomNavigationBar";
 import {
   useBankStore,
   type RechargeRecord,
@@ -198,7 +197,6 @@ const ProfileScreen = () => {
             </View>
           </MotiView>
         </ScrollView>
-        <BottomNavigationBar />
       </View>
     </FuturisticBackground>
   );
