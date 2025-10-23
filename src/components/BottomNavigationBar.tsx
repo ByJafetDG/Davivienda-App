@@ -4,8 +4,11 @@ import { usePathname, useRouter, useSegments } from "expo-router";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
+  Easing as AnimatedEasing,
   LayoutChangeEvent,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -108,6 +111,8 @@ let indicatorMemory = {
   flow: "right" as "right" | "left",
   ready: false,
 };
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 const BottomNavigationBar = () => {
   const router = useRouter();
@@ -275,14 +280,7 @@ const BottomNavigationBar = () => {
                     color={isActive ? palette.background : palette.textSecondary}
                   />
                 </View>
-                <Text
-                  style={[styles.label, isActive ? styles.labelActive : null]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.88}
-                >
-                  {item.label}
-                </Text>
+                <NavLabel text={item.label} isActive={isActive} />
               </Pressable>
             </View>
           );
@@ -374,19 +372,191 @@ const styles = StyleSheet.create({
   },
   label: {
     color: palette.textSecondary,
-    fontSize: 11,
+    fontSize: 10.2,
     fontWeight: "600",
-    lineHeight: 13.5,
-    letterSpacing: 0.12,
+    lineHeight: 12.6,
+    letterSpacing: 0.15,
     textAlign: "center",
     paddingHorizontal: 2,
+    flexShrink: 0,
   },
   labelActive: {
     color: palette.textPrimary,
     textShadowColor: "rgba(255,255,255,0.3)",
     textShadowRadius: 6,
   },
+  labelContainer: {
+    width: "100%",
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  labelOverflow: {
+    textAlign: "left",
+  },
+  labelContainerOverflow: {
+    alignItems: "flex-start",
+  },
+  labelScroll: {
+    width: "100%",
+  },
+  labelScrollContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "100%",
+  },
+  labelScrollOverflow: {
+    justifyContent: "flex-start",
+  },
 });
 
 export default BottomNavigationBar;
 export { items as bottomNavigationItems };
+
+const MARQUEE_GAP = 14;
+
+const NavLabel = ({
+  text,
+  isActive,
+}: {
+  text: string;
+  isActive: boolean;
+}) => {
+  const scrollAnim = useRef(new Animated.Value(0)).current;
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+  const scrollRef = useRef<ScrollView | null>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [labelWidth, setLabelWidth] = useState(0);
+
+  const overflow = containerWidth > 0 && labelWidth > containerWidth + 2;
+
+  useEffect(() => {
+    return () => {
+      animationRef.current?.stop();
+      scrollAnim.stopAnimation();
+    };
+  }, [scrollAnim]);
+
+  useEffect(() => {
+    const listenerId = scrollAnim.addListener(({ value }) => {
+      scrollRef.current?.scrollTo({ x: value, animated: false });
+    });
+
+    return () => {
+      scrollAnim.removeListener(listenerId);
+    };
+  }, [scrollAnim]);
+
+  useEffect(() => {
+    if (!overflow) {
+      animationRef.current?.stop();
+      animationRef.current = null;
+      scrollAnim.stopAnimation();
+      scrollAnim.setValue(0);
+      scrollRef.current?.scrollTo({ x: 0, animated: false });
+      return;
+    }
+
+    const travel = Math.max(0, labelWidth + MARQUEE_GAP);
+    if (travel === 0) {
+      return;
+    }
+
+    animationRef.current?.stop();
+    scrollAnim.stopAnimation();
+    scrollAnim.setValue(0);
+    scrollRef.current?.scrollTo({ x: 0, animated: false });
+
+    const duration = Math.min(7200, Math.max(2400, travel * 40));
+
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.delay(540),
+        Animated.timing(scrollAnim, {
+          toValue: travel,
+          duration,
+          easing: AnimatedEasing.linear,
+          useNativeDriver: false,
+        }),
+        Animated.delay(760),
+        Animated.timing(scrollAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: false,
+        }),
+      ])
+    );
+
+    animationRef.current = animation;
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
+  }, [overflow, labelWidth, scrollAnim]);
+
+  const labelStyles = [
+    styles.label,
+    isActive ? styles.labelActive : null,
+    overflow ? styles.labelOverflow : null,
+  ];
+
+  return (
+    <View
+      style={[
+        styles.labelContainer,
+        overflow ? styles.labelContainerOverflow : null,
+      ]}
+      onLayout={(event) => {
+        const width = event.nativeEvent.layout.width;
+        if (Math.abs(width - containerWidth) > 1) {
+          setContainerWidth(width);
+        }
+      }}
+    >
+      <AnimatedScrollView
+        ref={(node) => {
+          scrollRef.current = node as unknown as ScrollView | null;
+        }}
+        horizontal
+        scrollEnabled={false}
+        showsHorizontalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+        style={styles.labelScroll}
+        contentContainerStyle={[
+          styles.labelScrollContent,
+          overflow ? styles.labelScrollOverflow : null,
+          overflow ? { width: labelWidth * 2 + MARQUEE_GAP } : null,
+        ]}
+      >
+        <Text
+          style={labelStyles}
+          numberOfLines={1}
+          ellipsizeMode="clip"
+          onLayout={(event) => {
+            const width = event.nativeEvent.layout.width;
+            if (Math.abs(width - labelWidth) > 1) {
+              setLabelWidth(width);
+            }
+          }}
+        >
+          {text}
+        </Text>
+        {overflow ? (
+          <>
+            <View style={{ width: MARQUEE_GAP }} />
+            <Text
+              style={labelStyles}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+            >
+              {text}
+            </Text>
+          </>
+        ) : null}
+  </AnimatedScrollView>
+    </View>
+  );
+};

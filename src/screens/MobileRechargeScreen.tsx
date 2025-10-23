@@ -32,7 +32,7 @@ const OPERATORS = [
   {
     id: "claro",
     label: "Claro",
-    accent: "#FF3B6B",
+    accent: "#ff132eff",
     logo: require("../../assets/logo_claro.png"),
   },
   {
