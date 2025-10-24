@@ -85,7 +85,11 @@ const MarqueeText = ({
   };
 
   const handleContentLayout = (event: LayoutChangeEvent) => {
-    setContentWidth(event.nativeEvent.layout.width);
+    const width = event.nativeEvent.layout.width;
+    if (!Number.isFinite(width) || width <= 0) {
+      return;
+    }
+    setContentWidth((prev) => (Math.abs(prev - width) < 0.5 ? prev : width));
   };
 
   return (
@@ -100,11 +104,7 @@ const MarqueeText = ({
           shouldAnimate ? { transform: [{ translateX }] } : null,
         ]}
       >
-        <Text
-          style={[styles.text, textStyle]}
-          numberOfLines={1}
-          onLayout={handleContentLayout}
-        >
+        <Text style={[styles.text, textStyle]} numberOfLines={1}>
           {text}
         </Text>
         {shouldAnimate ? (
@@ -113,6 +113,15 @@ const MarqueeText = ({
           </Text>
         ) : null}
       </Animated.View>
+      <Text
+        style={[styles.text, textStyle, styles.measure]}
+        numberOfLines={1}
+        onLayout={handleContentLayout}
+        pointerEvents="none"
+        accessible={false}
+      >
+        {text}
+      </Text>
     </View>
   );
 };
@@ -130,6 +139,13 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 12,
     color: "#fff",
+  },
+  measure: {
+    position: "absolute",
+    opacity: 0,
+    left: 0,
+    top: 0,
+    flexShrink: 0,
   },
 });
 
