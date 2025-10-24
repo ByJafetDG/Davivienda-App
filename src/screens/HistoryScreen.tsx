@@ -16,6 +16,7 @@ import {
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
+import MarqueeText from "@/components/MarqueeText";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, TransferRecord, RechargeRecord } from "@/store/useBankStore";
@@ -137,6 +138,7 @@ const RangePickerModal = ({ visible, initialRange, onCancel, onApply }: RangePic
     return new Date(base.getFullYear(), base.getMonth(), 1);
   });
   const [draftRange, setDraftRange] = useState<DateRange>(initialRange);
+  const [yearPickerVisible, setYearPickerVisible] = useState(false);
 
   useEffect(() => {
     if (!visible) {
@@ -145,15 +147,31 @@ const RangePickerModal = ({ visible, initialRange, onCancel, onApply }: RangePic
     const base = initialRange.start ? parseDateKey(initialRange.start) : new Date();
     setAnchorMonth(new Date(base.getFullYear(), base.getMonth(), 1));
     setDraftRange(initialRange);
+    setYearPickerVisible(false);
   }, [visible, initialRange]);
 
-  const months = useMemo(() => {
-    const first = new Date(anchorMonth.getFullYear(), anchorMonth.getMonth(), 1);
-    const second = new Date(first.getFullYear(), first.getMonth() + 1, 1);
-    return [first, second];
+  const monthMatrix = useMemo(
+    () => buildMonthMatrix(anchorMonth, todayKey),
+    [anchorMonth, todayKey],
+  );
+
+  const monthLabel = useMemo(
+    () =>
+      anchorMonth.toLocaleDateString("es-CR", {
+        month: "long",
+        year: "numeric",
+      }),
+    [anchorMonth],
+  );
+
+  const yearOptions = useMemo(() => {
+    const currentYear = anchorMonth.getFullYear();
+    const startYear = currentYear - 3;
+    return Array.from({ length: 7 }, (_, index) => startYear + index);
   }, [anchorMonth]);
 
   const handleNavigate = (direction: number) => {
+    setYearPickerVisible(false);
     setAnchorMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + direction, 1));
   };
 
@@ -170,6 +188,11 @@ const RangePickerModal = ({ visible, initialRange, onCancel, onApply }: RangePic
       return;
     }
     setDraftRange({ start: draftRange.start, end: dayKey });
+  };
+
+  const handleYearSelect = (year: number) => {
+    setAnchorMonth((prev) => new Date(year, prev.getMonth(), 1));
+    setYearPickerVisible(false);
   };
 
   const selectionSummary = useMemo(() => {
@@ -219,11 +242,19 @@ const RangePickerModal = ({ visible, initialRange, onCancel, onApply }: RangePic
                 color={palette.textSecondary}
               />
             </Pressable>
-            <Text style={styles.rangeModalNavLabel}>
-              {months[0].toLocaleDateString("es-CR", { month: "long", year: "numeric" })}
-              {" · "}
-              {months[1].toLocaleDateString("es-CR", { month: "long", year: "numeric" })}
-            </Text>
+            <Pressable
+              onPress={() => setYearPickerVisible((prev) => !prev)}
+              accessibilityRole="button"
+              accessibilityLabel="Seleccionar año"
+              style={styles.monthSelector}
+            >
+              <Text style={styles.rangeModalNavLabel}>{monthLabel}</Text>
+              <MaterialCommunityIcons
+                name={yearPickerVisible ? "chevron-up" : "chevron-down"}
+                size={18}
+                color={palette.textSecondary}
+              />
+            </Pressable>
             <Pressable
               onPress={() => handleNavigate(1)}
               accessibilityRole="button"
@@ -237,74 +268,89 @@ const RangePickerModal = ({ visible, initialRange, onCancel, onApply }: RangePic
             </Pressable>
           </View>
 
-          <View style={styles.calendarMonthsRow}>
-            {months.map((month) => {
-              const matrix = buildMonthMatrix(month, todayKey);
-              return (
-                <View key={`${month.getFullYear()}-${month.getMonth()}`} style={styles.calendarMonth}>
-                  <Text style={styles.calendarMonthLabel}>
-                    {month.toLocaleDateString("es-CR", { month: "long", year: "numeric" })}
-                  </Text>
-                  <View style={styles.calendarWeekRow}>
-                    {WEEKDAY_LABELS.map((day) => (
-                      <Text key={day} style={styles.calendarWeekday}>
-                        {day}
-                      </Text>
-                    ))}
-                  </View>
-                  {matrix.map((week) => (
-                    <View key={week[0].key} style={styles.calendarWeekRow}>
-                      {week.map((day) => {
-                        const isDisabled = day.date.getTime() > todayEnd;
-                        const isSelectedStart = draftRange.start === day.key;
-                        const isSelectedEnd = draftRange.end === day.key;
-                        const hasRange = draftRange.start && draftRange.end;
-                        const isBetween = Boolean(
-                          hasRange &&
-                            draftRange.start &&
-                            draftRange.end &&
-                            day.key > draftRange.start &&
-                            day.key < draftRange.end,
-                        );
-                        const dayStyles: StyleProp<ViewStyle>[] = [styles.calendarDay];
-                        const labelStyles: StyleProp<TextStyle>[] = [styles.calendarDayLabel];
-                        if (!day.inCurrentMonth) {
-                          dayStyles.push(styles.calendarDayOutside);
-                          labelStyles.push(styles.calendarDayOutsideLabel);
-                        }
-                        if (isBetween) {
-                          dayStyles.push(styles.calendarDayInRange);
-                        }
-                        if (isSelectedStart || isSelectedEnd) {
-                          dayStyles.push(styles.calendarDaySelected);
-                          labelStyles.push(styles.calendarDayLabelSelected);
-                        }
-                        if (day.isToday) {
-                          dayStyles.push(styles.calendarDayToday);
-                        }
-                        if (isDisabled) {
-                          dayStyles.push(styles.calendarDayDisabled);
-                          labelStyles.push(styles.calendarDayDisabledLabel);
-                        }
+          {yearPickerVisible ? (
+            <View style={styles.yearPicker}>
+              {yearOptions.map((year) => {
+                const isActive = year === anchorMonth.getFullYear();
+                return (
+                  <Pressable
+                    key={year}
+                    onPress={() => handleYearSelect(year)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Seleccionar año ${year}`}
+                    style={[styles.yearOption, isActive && styles.yearOptionActive]}
+                  >
+                    <Text
+                      style={[styles.yearOptionLabel, isActive && styles.yearOptionLabelActive]}
+                    >
+                      {year}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
 
-                        return (
-                          <Pressable
-                            key={day.key}
-                            onPress={() => handleSelectDay(day.key, isDisabled)}
-                            style={dayStyles as StyleProp<ViewStyle>}
-                            disabled={isDisabled}
-                            accessibilityRole="button"
-                            accessibilityLabel={`Seleccionar ${formatDisplayDate(day.date)}`}
-                          >
-                            <Text style={labelStyles as StyleProp<TextStyle>}>{day.date.getDate()}</Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  ))}
+          <View style={styles.calendarMonthsRow}>
+            <View style={styles.calendarMonth}>
+              <View style={styles.calendarWeekRow}>
+                {WEEKDAY_LABELS.map((day) => (
+                  <Text key={day} style={styles.calendarWeekday}>
+                    {day}
+                  </Text>
+                ))}
+              </View>
+              {monthMatrix.map((week) => (
+                <View key={week[0].key} style={styles.calendarWeekRow}>
+                  {week.map((day) => {
+                    const isDisabled = day.date.getTime() > todayEnd;
+                    const isSelectedStart = draftRange.start === day.key;
+                    const isSelectedEnd = draftRange.end === day.key;
+                    const hasRange = draftRange.start && draftRange.end;
+                    const isBetween = Boolean(
+                      hasRange &&
+                        draftRange.start &&
+                        draftRange.end &&
+                        day.key > draftRange.start &&
+                        day.key < draftRange.end,
+                    );
+                    const dayStyles: StyleProp<ViewStyle>[] = [styles.calendarDay];
+                    const labelStyles: StyleProp<TextStyle>[] = [styles.calendarDayLabel];
+                    if (!day.inCurrentMonth) {
+                      dayStyles.push(styles.calendarDayOutside);
+                      labelStyles.push(styles.calendarDayOutsideLabel);
+                    }
+                    if (isBetween) {
+                      dayStyles.push(styles.calendarDayInRange);
+                    }
+                    if (isSelectedStart || isSelectedEnd) {
+                      dayStyles.push(styles.calendarDaySelected);
+                      labelStyles.push(styles.calendarDayLabelSelected);
+                    }
+                    if (day.isToday) {
+                      dayStyles.push(styles.calendarDayToday);
+                    }
+                    if (isDisabled) {
+                      dayStyles.push(styles.calendarDayDisabled);
+                      labelStyles.push(styles.calendarDayDisabledLabel);
+                    }
+
+                    return (
+                      <Pressable
+                        key={day.key}
+                        onPress={() => handleSelectDay(day.key, isDisabled)}
+                        style={dayStyles as StyleProp<ViewStyle>}
+                        disabled={isDisabled}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Seleccionar ${formatDisplayDate(day.date)}`}
+                      >
+                        <Text style={labelStyles as StyleProp<TextStyle>}>{day.date.getDate()}</Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
-              );
-            })}
+              ))}
+            </View>
           </View>
 
           <View style={styles.rangeModalActions}>
@@ -334,6 +380,7 @@ const RangePickerModal = ({ visible, initialRange, onCancel, onApply }: RangePic
     </Modal>
   );
 };
+
 
 const HistoryScreen = () => {
   const router = useRouter();
@@ -442,7 +489,7 @@ const HistoryScreen = () => {
       if (customRange.start && customRange.end) {
         const startLabel = formatDisplayDate(parseDateKey(customRange.start));
         const endLabel = formatDisplayDate(parseDateKey(customRange.end));
-        return `Rango personalizado · ${startLabel} — ${endLabel}`;
+        return `${startLabel} — ${endLabel}`;
       }
       return "Selecciona un rango personalizado";
     }
@@ -678,9 +725,17 @@ const HistoryScreen = () => {
                   <GlassCard padding={24}>
                     <View style={styles.filterCard}>
                       <View style={styles.filterCardHeader}>
-                        <View>
+                        <View style={styles.filterCardCopy}>
                           <Text style={styles.filterCardTitle}>Filtra tus movimientos</Text>
-                          <Text style={styles.filterCardSubtitle}>{filterSummary}</Text>
+                          <MarqueeText
+                            text={filterSummary}
+                            textStyle={styles.filterCardSubtitle}
+                            containerStyle={styles.filterCardSubtitleMarquee}
+                            speedFactor={36}
+                            gap={20}
+                            delay={540}
+                            isActive={filtersApplied}
+                          />
                         </View>
                         {filtersApplied ? (
                           <Pressable
@@ -1032,15 +1087,26 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 12,
   },
+  filterCardCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
   filterCardTitle: {
     color: palette.textPrimary,
     fontSize: 16,
     fontWeight: "700",
   },
+  filterCardSubtitleMarquee: {
+    marginTop: 2,
+    minHeight: 18,
+    flex: 1,
+    minWidth: 0,
+    alignSelf: "stretch",
+    width: "100%",
+  },
   filterCardSubtitle: {
     color: palette.textSecondary,
     fontSize: 12,
-    marginTop: 2,
   },
   resetFiltersButton: {
     flexDirection: "row",
@@ -1321,14 +1387,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(4, 10, 22, 0.82)",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: 16,
   },
   rangeModalCard: {
     width: "100%",
-    borderRadius: 26,
+    maxWidth: 360,
+    borderRadius: 24,
     backgroundColor: "rgba(10, 18, 34, 0.95)",
-    padding: 22,
-    gap: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    gap: 16,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.06)",
   },
@@ -1357,54 +1425,63 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
     fontWeight: "600",
   },
-  rangeNavButton: {
-    width: 40,
-    height: 40,
+  monthSelector: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  rangeNavButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   calendarMonthsRow: {
     flexDirection: "row",
-    gap: 18,
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   calendarMonth: {
-    flex: 1,
-    minWidth: 260,
-    gap: 8,
+    flex: 0,
+    width: "100%",
+    maxWidth: 260,
+    gap: 6,
   },
   calendarMonthLabel: {
     color: palette.textPrimary,
     fontWeight: "600",
     textTransform: "capitalize",
-    fontSize: 15,
+    fontSize: 14,
   },
   calendarWeekRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 6,
+    gap: 4,
   },
   calendarWeekday: {
     flex: 1,
     textAlign: "center",
     color: palette.textSecondary,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
   },
   calendarDay: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(13, 22, 38, 0.65)",
+    backgroundColor: "rgba(13, 22, 38, 0.6)",
   },
   calendarDayLabel: {
     color: palette.textPrimary,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
   },
   calendarDayOutside: {
@@ -1433,6 +1510,40 @@ const styles = StyleSheet.create({
   },
   calendarDayDisabledLabel: {
     color: "rgba(255,255,255,0.25)",
+  },
+  yearPicker: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 6,
+    padding: 10,
+    borderRadius: 16,
+    backgroundColor: "rgba(12, 20, 36, 0.88)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+  },
+  yearOption: {
+    minWidth: 56,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  yearOptionActive: {
+    backgroundColor: "rgba(0, 240, 255, 0.22)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.6)",
+  },
+  yearOptionLabel: {
+    color: palette.textSecondary,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  yearOptionLabelActive: {
+    color: palette.textPrimary,
+    fontWeight: "700",
   },
   rangeModalActions: {
     flexDirection: "row",
