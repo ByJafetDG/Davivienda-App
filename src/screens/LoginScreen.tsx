@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import NeonSelectField from "@/components/NeonSelectField";
@@ -11,6 +11,78 @@ import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
+import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
+
+const bankLogo = require("../../assets/logo2.png");
+
+type IdFormatConfig = {
+  sanitize: (input: string) => string;
+  format: (raw: string) => string;
+  requiredLength: number;
+};
+
+const sanitizeDigits = (value: string) => value.replace(/\D/g, "");
+
+const sanitizeAlphanumericUpper = (value: string) =>
+  value.replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+
+const formatSegments = (raw: string, segments: number[]) => {
+  let cursor = 0;
+  const parts: string[] = [];
+  for (const segment of segments) {
+    if (cursor >= raw.length) {
+      break;
+    }
+    const slice = raw.slice(cursor, cursor + segment);
+    parts.push(slice);
+    cursor += slice.length;
+  }
+  if (cursor < raw.length) {
+    parts.push(raw.slice(cursor));
+  }
+  return parts.join("-");
+};
+
+const ID_FORMAT_CONFIG: Record<string, IdFormatConfig> = {
+  "cedula-persona": {
+    sanitize: (input) => sanitizeDigits(input).slice(0, 9),
+    format: (raw) => formatSegments(raw, [1, 4, 4]),
+    requiredLength: 9,
+  },
+  "cedula-juridica": {
+    sanitize: (input) => sanitizeDigits(input).slice(0, 10),
+    format: (raw) => formatSegments(raw, [1, 3, 6]),
+    requiredLength: 10,
+  },
+  pasaporte: {
+    sanitize: (input) => sanitizeAlphanumericUpper(input).slice(0, 9),
+    format: (raw) => raw,
+    requiredLength: 9,
+  },
+  dimex: {
+    sanitize: (input) => sanitizeDigits(input).slice(0, 12),
+    format: (raw) => raw,
+    requiredLength: 12,
+  },
+  didi: {
+    sanitize: (input) => sanitizeAlphanumericUpper(input).slice(0, 10),
+    format: (raw) => formatSegments(raw, [2, 4, 4]),
+    requiredLength: 10,
+  },
+};
+
+const sanitizeIdInput = (type: string, value: string) => {
+  const config = ID_FORMAT_CONFIG[type];
+  return config ? config.sanitize(value) : value.replace(/\s+/g, "");
+};
+
+const formatIdValue = (type: string, raw: string) => {
+  const config = ID_FORMAT_CONFIG[type];
+  return config ? config.format(raw) : raw;
+};
+
+const getIdRequiredLength = (type: string) =>
+  ID_FORMAT_CONFIG[type]?.requiredLength ?? 1;
 
 const ID_TYPE_OPTIONS = [
   {
@@ -45,6 +117,9 @@ const ID_TYPE_OPTIONS = [
   },
 ] as const;
 
+const resolveIdTypeValueFromLabel = (label: string) =>
+  ID_TYPE_OPTIONS.find((option) => option.label === label)?.value;
+
 const LoginScreen = () => {
   const router = useRouter();
   const {
@@ -57,8 +132,8 @@ const LoginScreen = () => {
     simulateBiometricValidation,
     registerBiometrics,
   } = useBankStore();
-  const [cedula, setCedula] = useState("");
-  const [phone, setPhone] = useState("");
+  const [idRaw, setIdRaw] = useState("");
+  const [phoneRaw, setPhoneRaw] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [idType, setIdType] = useState<string>(() => {
@@ -70,6 +145,31 @@ const LoginScreen = () => {
 
   const [biometricHint, setBiometricHint] = useState<string | null>(null);
   const [biometricLoading, setBiometricLoading] = useState(false);
+
+  const formattedId = useMemo(
+    () => formatIdValue(idType, idRaw),
+    [idType, idRaw],
+  );
+  const formattedPhone = useMemo(
+    () => formatPhoneNumber(phoneRaw),
+    [phoneRaw],
+  );
+  const idRequiredLength = useMemo(
+    () => getIdRequiredLength(idType),
+    [idType],
+  );
+  const normalizedError = useMemo(() => {
+    if (!error) {
+      return null;
+    }
+    return error.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }, [error]);
+  const idErrorMessage = normalizedError && !normalizedError.includes("telefono")
+    ? error ?? undefined
+    : undefined;
+  const phoneErrorMessage = normalizedError?.includes("telefono")
+    ? error ?? undefined
+    : undefined;
 
   useEffect(() => {
     const match = ID_TYPE_OPTIONS.find(
@@ -116,22 +216,45 @@ const LoginScreen = () => {
     return "Buenas noches";
   }, []);
 
+  const idKeyboardType = useMemo(
+    () => (idType === "pasaporte" || idType === "didi" ? "default" : "numbers-and-punctuation"),
+    [idType],
+  );
+
+  const handleIdTypeChange = (nextValue: string) => {
+    setIdType(nextValue);
+    setIdRaw("");
+    setError(null);
+  };
+
+  const handleIdChange = (text: string) => {
+    setError(null);
+    setIdRaw(sanitizeIdInput(idType, text));
+  };
+
+  const handlePhoneChange = (text: string) => {
+    setError(null);
+    setPhoneRaw(sanitizePhoneInput(text));
+  };
+
   const handleSubmit = () => {
     setError(null);
     setBiometricHint(null);
-    if (!cedula.trim() || cedula.length < 9) {
-      setError("Ingresa una cédula válida.");
+    if (!idRaw || idRaw.length < idRequiredLength) {
+      setError(`Ingresa un ${selectedIdType.label.toLowerCase()} válido.`);
       return;
     }
-    if (!phone.trim() || phone.length < 8) {
+    if (!phoneRaw || phoneRaw.length < PHONE_REQUIRED_LENGTH) {
       setError("Ingresa un número de teléfono válido.");
       return;
     }
+    const displayId = formatIdValue(idType, idRaw);
+    const displayPhone = formatPhoneNumber(phoneRaw);
     setLoading(true);
     setTimeout(() => {
       const success = login({
-        id: cedula,
-        phone,
+        id: displayId,
+        phone: displayPhone,
         idType: selectedIdType.label,
       });
       setLoading(false);
@@ -166,10 +289,20 @@ const LoginScreen = () => {
         setBiometricHint(`Intento biométrico fallido con ${deviceName}.`);
         return;
       }
-      setCedula(user.id);
-      setPhone(user.phone);
+      const resolvedType = resolveIdTypeValueFromLabel(user.idType) ?? idType;
+      if (resolvedType !== idType) {
+        setIdType(resolvedType);
+      }
+      const sanitizedId = sanitizeIdInput(resolvedType, user.id);
+      const sanitizedPhone = sanitizePhoneInput(user.phone);
+      setIdRaw(sanitizedId);
+      setPhoneRaw(sanitizedPhone);
       setBiometricHint(`Biometría validada en ${deviceName}. Ingresando...`);
-      const loggedIn = login({ id: user.id, phone: user.phone, idType: user.idType });
+      const loggedIn = login({
+        id: formatIdValue(resolvedType, sanitizedId),
+        phone: formatPhoneNumber(sanitizedPhone),
+        idType: user.idType,
+      });
       if (loggedIn) {
         router.replace("/(app)/home");
       }
@@ -201,10 +334,12 @@ const LoginScreen = () => {
             style={styles.header}
           >
             <View style={styles.logoBadge}>
-              <MaterialCommunityIcons
-                name="bank-transfer"
-                size={36}
-                color={palette.textPrimary}
+              <Image
+                source={bankLogo}
+                style={styles.logoImage}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="Logo Davivienda"
               />
             </View>
             <Text style={styles.greeting}>{welcomeMessage}</Text>
@@ -225,7 +360,7 @@ const LoginScreen = () => {
               <NeonSelectField
                 label="Tipo de identificación"
                 value={idType}
-                onValueChange={setIdType}
+                onValueChange={handleIdTypeChange}
                 options={ID_TYPE_OPTIONS.map((option) => ({
                   value: option.value,
                   label: option.label,
@@ -244,10 +379,10 @@ const LoginScreen = () => {
               <NeonTextField
                 label="Número de identificación"
                 placeholder={selectedIdType.placeholder}
-                value={cedula}
+                value={formattedId}
                 autoCapitalize="characters"
-                onChangeText={setCedula}
-                keyboardType="numbers-and-punctuation"
+                onChangeText={handleIdChange}
+                keyboardType={idKeyboardType}
                 icon={
                   <MaterialCommunityIcons
                     name="card-account-details-outline"
@@ -255,13 +390,14 @@ const LoginScreen = () => {
                     color={palette.accentCyan}
                   />
                 }
+                errorMessage={idErrorMessage}
               />
               <NeonTextField
                 label="Número telefónico"
                 placeholder={user.phone}
-                value={phone}
+                value={formattedPhone}
                 keyboardType="phone-pad"
-                onChangeText={setPhone}
+                onChangeText={handlePhoneChange}
                 allowOnlyNumeric
                 icon={
                   <MaterialCommunityIcons
@@ -270,7 +406,7 @@ const LoginScreen = () => {
                     color={palette.accentCyan}
                   />
                 }
-                errorMessage={error || undefined}
+                errorMessage={phoneErrorMessage}
               />
               <PrimaryButton
                 label="Ingresar"
@@ -389,6 +525,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  logoImage: {
+    width: 36,
+    height: 36,
   },
   greeting: {
     fontSize: 16,

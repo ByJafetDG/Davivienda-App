@@ -29,6 +29,87 @@ import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, Contact } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
+import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
+import MarqueeText from "@/components/MarqueeText";
+
+const sanitizeAmountInput = (value: string) => {
+  const cleaned = value.replace(/[^0-9.,]/g, "");
+  if (!cleaned) {
+    return "";
+  }
+
+  const dotCount = (cleaned.match(/\./g) ?? []).length;
+  const commaCount = (cleaned.match(/,/g) ?? []).length;
+  let decimalSeparator: "." | "," | null = null;
+
+  if (commaCount > 0 && dotCount > 0) {
+    const lastComma = cleaned.lastIndexOf(",");
+    const lastDot = cleaned.lastIndexOf(".");
+    if (lastComma > lastDot) {
+      const decimalsCount = cleaned.length - lastComma - 1;
+      if (decimalsCount > 0 && decimalsCount <= 2) {
+        decimalSeparator = ",";
+      }
+    }
+    if (!decimalSeparator) {
+      const decimalsCount = cleaned.length - lastDot - 1;
+      if (decimalsCount > 0 && decimalsCount <= 2) {
+        decimalSeparator = ".";
+      }
+    }
+  } else if (commaCount === 1) {
+    const lastComma = cleaned.lastIndexOf(",");
+    const decimalsCount = cleaned.length - lastComma - 1;
+    if (decimalsCount > 0 && decimalsCount <= 2) {
+      decimalSeparator = ",";
+    }
+  } else if (dotCount === 1) {
+    const lastDot = cleaned.lastIndexOf(".");
+    const decimalsCount = cleaned.length - lastDot - 1;
+    if (decimalsCount > 0 && decimalsCount <= 2) {
+      decimalSeparator = ".";
+    }
+  }
+
+  let normalized: string;
+  if (decimalSeparator === ",") {
+    normalized = cleaned.replace(/\./g, "").replace(/,/g, ".");
+  } else if (decimalSeparator === ".") {
+    normalized = cleaned.replace(/,/g, "");
+  } else {
+    normalized = cleaned.replace(/[.,]/g, "");
+  }
+
+  const [rawInteger = "", rawDecimals = ""] = normalized.split(".");
+  const integerDigits = rawInteger.replace(/^0+(?=\d)/, "");
+  const decimals = rawDecimals.slice(0, 2);
+  const hasDecimals = decimals.length > 0;
+  const integerPart = integerDigits || (hasDecimals ? "0" : "");
+
+  if (!integerPart && !hasDecimals) {
+    return "";
+  }
+
+  return hasDecimals ? `${integerPart}.${decimals}` : integerPart;
+};
+
+const formatAmountDisplay = (raw: string) => {
+  if (!raw) {
+    return "";
+  }
+  const [integerPartRaw, decimalsRaw] = raw.split(".");
+  const integerPart = integerPartRaw || "0";
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const decimals = decimalsRaw ? `,${decimalsRaw}` : "";
+  return `₡${formattedInteger}${decimals}`;
+};
+
+const parseAmountToNumber = (raw: string) => {
+  if (!raw) {
+    return NaN;
+  }
+  return Number(raw);
+};
 
 const MoneyTransferScreen = () => {
   const router = useRouter();
@@ -41,8 +122,8 @@ const MoneyTransferScreen = () => {
   const { contacts, balance, recordContactUsage } = useBankStore();
 
   const [contactName, setContactName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
+  const [phoneRaw, setPhoneRaw] = useState("");
+  const [amountRaw, setAmountRaw] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
@@ -54,6 +135,9 @@ const MoneyTransferScreen = () => {
   const [scanExpanded, setScanExpanded] = useState(false);
   const [requestingPermission, setRequestingPermission] = useState(false);
   const hasHandledScan = useRef(false);
+
+  const formattedPhone = useMemo(() => formatPhoneNumber(phoneRaw), [phoneRaw]);
+  const formattedAmount = useMemo(() => formatAmountDisplay(amountRaw), [amountRaw]);
 
   type ScannerModule = {
     BarCodeScanner: ComponentType<BarCodeScannerProps>;
@@ -110,10 +194,10 @@ const MoneyTransferScreen = () => {
       setContactName(params.contactName);
     }
     if (typeof params.phone === "string") {
-      setPhone(params.phone);
+      setPhoneRaw(sanitizePhoneInput(params.phone));
     }
     if (typeof params.amount === "string") {
-      setAmount(params.amount);
+      setAmountRaw(sanitizeAmountInput(params.amount));
     }
     if (typeof params.note === "string") {
       setNote(params.note);
@@ -216,14 +300,14 @@ const MoneyTransferScreen = () => {
     if (selectedContactId === contact.id) {
       setSelectedContactId(null);
       setContactName("");
-      setPhone("");
+      setPhoneRaw("");
       setShowRecipientField(false);
       return;
     }
 
     setSelectedContactId(contact.id);
     setContactName(contact.name);
-    setPhone(contact.phone);
+    setPhoneRaw(sanitizePhoneInput(contact.phone));
     setShowRecipientField(true);
     recordContactUsage(contact.phone, contact.name);
   };
@@ -239,12 +323,12 @@ const MoneyTransferScreen = () => {
       setShowRecipientField(true);
     }
     if (nextPhone) {
-      setPhone(nextPhone);
+      setPhoneRaw(sanitizePhoneInput(nextPhone));
     }
     if (typeof nextAmount === "number" && Number.isFinite(nextAmount)) {
-      setAmount(nextAmount.toString());
+      setAmountRaw(sanitizeAmountInput(nextAmount.toString()));
     } else if (typeof nextAmount === "string" && nextAmount.trim()) {
-      setAmount(nextAmount.trim());
+      setAmountRaw(sanitizeAmountInput(nextAmount.trim()));
     }
     if (nextNote) {
       setNote(nextNote);
@@ -343,15 +427,25 @@ const MoneyTransferScreen = () => {
     setScanExpanded((prev) => !prev);
   };
 
+  const handlePhoneChange = (text: string) => {
+    setError(null);
+    setPhoneRaw(sanitizePhoneInput(text));
+  };
+
+  const handleAmountChange = (text: string) => {
+    setError(null);
+    setAmountRaw(sanitizeAmountInput(text));
+  };
+
   const handleContinue = () => {
     setError(null);
-    const amountNumber = parseFloat(amount.replace(/,/g, "."));
-    const resolvedContactName = contactName.trim() || phone.trim();
+    const amountNumber = parseAmountToNumber(amountRaw);
+    const resolvedContactName = contactName.trim() || formattedPhone.trim();
     if (!resolvedContactName) {
       setError("Selecciona un destinatario o ingresa un número válido.");
       return;
     }
-    if (!phone.trim() || phone.length < 8) {
+    if (!phoneRaw || phoneRaw.length < PHONE_REQUIRED_LENGTH) {
       setError("Ingresa un número telefónico válido.");
       return;
     }
@@ -368,7 +462,7 @@ const MoneyTransferScreen = () => {
       pathname: "/(app)/confirm-transfer",
       params: {
         contactName: resolvedContactName,
-        phone,
+        phone: formattedPhone,
         amount: amountNumber.toString(),
         note,
       },
@@ -544,7 +638,7 @@ const MoneyTransferScreen = () => {
                 <Pressable
                   onPress={openScanner}
                   accessibilityRole="button"
-                  accessibilityLabel="Escanear código de barras"
+                  accessibilityLabel="Escanear código QR"
                   style={styles.scanActionWrapper}
                 >
                   {(state: PressableStateCallbackType) => (
@@ -578,7 +672,7 @@ const MoneyTransferScreen = () => {
                         transition={{ type: "timing", duration: 220, easing: Easing.out(Easing.cubic) }}
                       >
                         <MaterialCommunityIcons
-                          name="barcode-scan"
+                          name="qrcode-scan"
                           size={22}
                           color={palette.textPrimary}
                         />
@@ -592,10 +686,16 @@ const MoneyTransferScreen = () => {
                         }}
                         transition={{ type: "timing", duration: 220, easing: Easing.out(Easing.cubic) }}
                       >
-                        <Text style={styles.scanInlineTitle}>Escanear código</Text>
-                        <Text style={styles.scanInlineHint}>
-                          Rellena los campos con datos del código
-                        </Text>
+                        <Text style={styles.scanInlineTitle}>Escanear QR</Text>
+                        <MarqueeText
+                          text="Autocompleta la información del código QR de tu contacto"
+                          textStyle={styles.scanInlineHint}
+                          containerStyle={styles.scanInlineHintMarquee}
+                          speedFactor={42}
+                          gap={28}
+                          delay={680}
+                          isActive={scanExpanded}
+                        />
                       </MotiView>
                       {scanExpanded ? (
                         <MaterialCommunityIcons
@@ -610,7 +710,7 @@ const MoneyTransferScreen = () => {
                 <Pressable
                   onPress={toggleScanHint}
                   accessibilityRole="button"
-                  accessibilityLabel="Mostrar información del escáner"
+                  accessibilityLabel="Mostrar información del escáner QR"
                   style={styles.scanHelpButton}
                 >
                   {(state: PressableStateCallbackType) => (
@@ -625,7 +725,7 @@ const MoneyTransferScreen = () => {
                       }}
                       transition={{ type: "timing", duration: 220, easing: Easing.out(Easing.cubic) }}
                     >
-                      <Text style={styles.scanHelpLabel}>?</Text>
+                      <Text style={styles.scanHelpLabel}>➜</Text>
                     </MotiView>
                   )}
                 </Pressable>
@@ -647,9 +747,9 @@ const MoneyTransferScreen = () => {
               ) : null}
               <NeonTextField
                 label="Número telefónico"
-                placeholder="0000 0000"
-                value={phone}
-                onChangeText={setPhone}
+                placeholder="0000-0000"
+                value={formattedPhone}
+                onChangeText={handlePhoneChange}
                 allowOnlyNumeric
                 keyboardType="phone-pad"
                 icon={
@@ -663,8 +763,8 @@ const MoneyTransferScreen = () => {
               <NeonTextField
                 label="Monto a enviar"
                 placeholder="₡10,000"
-                value={amount}
-                onChangeText={setAmount}
+                value={formattedAmount}
+                onChangeText={handleAmountChange}
                 keyboardType="decimal-pad"
                 allowOnlyNumeric
                 icon={
@@ -705,7 +805,7 @@ const MoneyTransferScreen = () => {
         <View style={styles.scannerBackdrop}>
           <View style={styles.scannerCard}>
             <View style={styles.scannerHeader}>
-              <Text style={styles.scannerTitle}>Escanear código de barras</Text>
+              <Text style={styles.scannerTitle}>Escanear código QR</Text>
               <Pressable
                 onPress={closeScanner}
                 accessibilityRole="button"
@@ -939,6 +1039,9 @@ const styles = StyleSheet.create({
   scanInlineHint: {
     color: palette.textSecondary,
     fontSize: 12,
+  },
+  scanInlineHintMarquee: {
+    width: "100%",
   },
   scanHelpButton: {
     width: 48,

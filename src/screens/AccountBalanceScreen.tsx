@@ -171,6 +171,65 @@ const AccountBalanceScreen = () => {
               transition={{ type: "timing", duration: 420, delay: 60 }}
             >
               <GlassCard>
+                <View style={styles.historyHeader}>
+                  <View style={styles.historyTitleRow}>
+                    <Text style={styles.sectionTitle}>Actividad reciente</Text>
+                    <MaterialCommunityIcons
+                      name="clock-time-eight-outline"
+                      size={20}
+                      color={palette.textSecondary}
+                    />
+                  </View>
+                  <Pressable
+                    onPress={() => router.push("/(app)/history")}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.historyLink}>Ver todo</Text>
+                  </Pressable>
+                </View>
+                {timeline.length === 0 ? (
+                  <View style={styles.emptyState}>
+                    <MaterialCommunityIcons
+                      name="tray"
+                      size={42}
+                      color={palette.accentCyan}
+                    />
+                    <Text style={styles.emptyTitle}>Sin movimientos aún</Text>
+                    <Text style={styles.emptyCopy}>
+                      Envía dinero o realiza una recarga para ver el detalle aquí.
+                    </Text>
+                  </View>
+                ) : (
+                  timeline.slice(0, 6).map((item: ActivityItem) => (
+                    <View key={item.id} style={styles.historyItem}>
+                      <View style={styles.historyIconWrapper}>
+                        <MaterialCommunityIcons
+                          name={item.icon as any}
+                          size={22}
+                          color={item.color}
+                        />
+                      </View>
+                      <View style={styles.historyCopy}>
+                        <Text style={styles.historyTitle}>{item.title}</Text>
+                        <Text style={styles.historySubtitle}>{item.subtitle}</Text>
+                      </View>
+                      <Text
+                        style={[styles.historyAmount, { color: item.color }]}
+                      >
+                        {formatCurrency(item.amount)}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </GlassCard>
+            </MotiView>
+
+            <MotiView
+              from={{ opacity: 0, translateY: 18 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ type: "timing", duration: 420, delay: 120 }}
+            >
+              <GlassCard>
                 <View style={styles.envelopeHeader}>
                   <View style={styles.envelopeHeaderCopy}>
                     <Text style={styles.sectionTitle}>Sobres inteligentes</Text>
@@ -303,65 +362,6 @@ const AccountBalanceScreen = () => {
                       </View>
                     </View>
                   </>
-                )}
-              </GlassCard>
-            </MotiView>
-
-            <MotiView
-              from={{ opacity: 0, translateY: 18 }}
-              animate={{ opacity: 1, translateY: 0 }}
-              transition={{ type: "timing", duration: 420, delay: 120 }}
-            >
-              <GlassCard>
-                <View style={styles.historyHeader}>
-                  <View style={styles.historyTitleRow}>
-                    <Text style={styles.sectionTitle}>Actividad reciente</Text>
-                    <MaterialCommunityIcons
-                      name="clock-time-eight-outline"
-                      size={20}
-                      color={palette.textSecondary}
-                    />
-                  </View>
-                  <Pressable
-                    onPress={() => router.push("/(app)/history")}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.historyLink}>Ver todo</Text>
-                  </Pressable>
-                </View>
-                {timeline.length === 0 ? (
-                  <View style={styles.emptyState}>
-                    <MaterialCommunityIcons
-                      name="tray"
-                      size={42}
-                      color={palette.accentCyan}
-                    />
-                    <Text style={styles.emptyTitle}>Sin movimientos aún</Text>
-                    <Text style={styles.emptyCopy}>
-                      Envía dinero o realiza una recarga para ver el detalle aquí.
-                    </Text>
-                  </View>
-                ) : (
-                  timeline.slice(0, 6).map((item: ActivityItem) => (
-                    <View key={item.id} style={styles.historyItem}>
-                      <View style={styles.historyIconWrapper}>
-                        <MaterialCommunityIcons
-                          name={item.icon as any}
-                          size={22}
-                          color={item.color}
-                        />
-                      </View>
-                      <View style={styles.historyCopy}>
-                        <Text style={styles.historyTitle}>{item.title}</Text>
-                        <Text style={styles.historySubtitle}>{item.subtitle}</Text>
-                      </View>
-                      <Text
-                        style={[styles.historyAmount, { color: item.color }]}
-                      >
-                        {formatCurrency(item.amount)}
-                      </Text>
-                    </View>
-                  ))
                 )}
               </GlassCard>
             </MotiView>

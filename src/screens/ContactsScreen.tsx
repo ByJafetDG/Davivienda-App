@@ -23,6 +23,7 @@ import {
   ContactDraft,
 } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
+import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
 
 const ContactFormModal = ({
   visible,
@@ -41,6 +42,11 @@ const ContactFormModal = ({
   error: string | null;
   editing: boolean;
 }) => {
+  const formattedPhone = useMemo(
+    () => formatPhoneNumber(form.phone),
+    [form.phone],
+  );
+
   return (
     <Modal
       visible={visible}
@@ -74,8 +80,11 @@ const ContactFormModal = ({
           <NeonTextField
             label="Teléfono"
             placeholder="0000 0000"
-            value={form.phone}
-            onChangeText={(value) => setForm({ ...form, phone: value })}
+            value={formattedPhone}
+            onChangeText={(value) => {
+              const sanitized = sanitizePhoneInput(value);
+              setForm((prev) => ({ ...prev, phone: sanitized }));
+            }}
             keyboardType="phone-pad"
             allowOnlyNumeric
             icon={
@@ -99,6 +108,115 @@ const ContactFormModal = ({
         </MotiView>
       </View>
     </Modal>
+  );
+};
+
+type ContactCardProps = {
+  contact: Contact;
+  onToggleFavorite: () => void;
+  onTransfer: () => void;
+  onEdit: () => void;
+  onRemove: () => void;
+};
+
+const ContactCard = ({
+  contact,
+  onToggleFavorite,
+  onTransfer,
+  onEdit,
+  onRemove,
+}: ContactCardProps) => {
+  const actions = [
+    {
+      key: "send",
+      icon: "send",
+      label: "Enviar",
+      onPress: onTransfer,
+      buttonStyle: styles.contactActionPrimary,
+      labelStyle: styles.contactActionLabelPrimary,
+      iconColor: palette.textPrimary,
+    },
+    {
+      key: "edit",
+      icon: "pencil",
+      label: "Editar",
+      onPress: onEdit,
+      iconColor: palette.textSecondary,
+    },
+    {
+      key: "delete",
+      icon: "delete",
+      label: "Eliminar",
+      onPress: onRemove,
+      buttonStyle: styles.contactActionDanger,
+      labelStyle: styles.contactActionLabelDanger,
+      iconColor: palette.danger,
+    },
+  ];
+
+  return (
+    <GlassCard intensity={26} padding={0}>
+      <View style={styles.contactCard}>
+        <View style={styles.contactInfoRow}>
+          <View
+            style={[
+              styles.contactAvatarLarge,
+              { backgroundColor: contact.avatarColor },
+            ]}
+          >
+            <Text style={styles.contactAvatarText}>
+              {contact.name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.contactCopy}>
+            <Text style={styles.contactName} numberOfLines={1}>
+              {contact.name}
+            </Text>
+            <Text style={styles.contactPhone}>{contact.phone}</Text>
+          </View>
+          <Pressable
+            onPress={onToggleFavorite}
+            accessibilityRole="button"
+            accessibilityLabel={
+              contact.favorite
+                ? `Quitar a ${contact.name} de favoritos`
+                : `Agregar a ${contact.name} a favoritos`
+            }
+            style={[
+              styles.favoriteToggle,
+              contact.favorite && styles.favoriteToggleActive,
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={contact.favorite ? "star" : "star-outline"}
+              size={22}
+              color={contact.favorite ? palette.accentCyan : palette.textSecondary}
+            />
+          </Pressable>
+        </View>
+
+        <View style={styles.contactActionRow}>
+          {actions.map((action) => (
+            <Pressable
+              key={action.key}
+              onPress={action.onPress}
+              style={[styles.contactActionButton, action.buttonStyle]}
+              accessibilityRole="button"
+              accessibilityLabel={`${action.label} a ${contact.name}`}
+            >
+              <MaterialCommunityIcons
+                name={action.icon as any}
+                size={18}
+                color={action.iconColor}
+              />
+              <Text style={[styles.contactActionLabel, action.labelStyle]}>
+                {action.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    </GlassCard>
   );
 };
 
@@ -181,7 +299,7 @@ const ContactsScreen = () => {
   };
 
   const openEdit = (contact: Contact) => {
-    setForm({ name: contact.name, phone: contact.phone });
+    setForm({ name: contact.name, phone: sanitizePhoneInput(contact.phone) });
     setEditingContact(contact);
     setError(null);
     setFormVisible(true);
@@ -195,26 +313,30 @@ const ContactsScreen = () => {
   };
 
   const handleSubmit = () => {
-    if (!form.phone.trim()) {
+    const sanitizedPhone = sanitizePhoneInput(form.phone);
+
+    if (!sanitizedPhone) {
       setError("Ingresa un número telefónico válido.");
       return;
     }
-    if (!/^[0-9\s+-]{8,}$/.test(form.phone.trim())) {
+    if (sanitizedPhone.length < PHONE_REQUIRED_LENGTH) {
       setError("El número debe tener al menos 8 dígitos.");
       return;
     }
+
+    const displayPhone = formatPhoneNumber(sanitizedPhone);
 
     try {
       if (editingContact) {
         updateContact(editingContact.id, {
           name: form.name,
-          phone: form.phone,
+          phone: displayPhone,
           lastUsedAt: editingContact.lastUsedAt,
         });
       } else {
         addContact({
           name: form.name,
-          phone: form.phone,
+          phone: displayPhone,
         });
       }
       closeModal();
@@ -327,67 +449,14 @@ const ContactsScreen = () => {
                 <View style={styles.sectionBlock}>
                   <Text style={styles.sectionTitle}>Favoritos</Text>
                   {favorites.map((contact) => (
-                    <GlassCard key={contact.id}>
-                      <View style={styles.contactRow}>
-                        <View
-                          style={[styles.contactAvatarLarge, { backgroundColor: contact.avatarColor }]}
-                        >
-                          <Text style={styles.contactAvatarText}>
-                            {contact.name.charAt(0)}
-                          </Text>
-                        </View>
-                        <View style={styles.contactCopy}>
-                          <Text style={styles.contactName}>{contact.name}</Text>
-                          <Text style={styles.contactPhone}>{contact.phone}</Text>
-                        </View>
-                        <View style={styles.contactActions}>
-                          <Pressable
-                            onPress={() => toggleFavoriteContact(contact.id)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name={contact.favorite ? "star" : "star-outline"}
-                              size={22}
-                              color={palette.accentCyan}
-                            />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => handleTransfer(contact)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name="send"
-                              size={20}
-                              color={palette.textSecondary}
-                            />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => openEdit(contact)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name="pencil"
-                              size={20}
-                              color={palette.textSecondary}
-                            />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => handleRemove(contact)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name="delete"
-                              size={20}
-                              color={palette.danger}
-                            />
-                          </Pressable>
-                        </View>
-                      </View>
-                    </GlassCard>
+                    <ContactCard
+                      key={contact.id}
+                      contact={contact}
+                      onToggleFavorite={() => toggleFavoriteContact(contact.id)}
+                      onTransfer={() => handleTransfer(contact)}
+                      onEdit={() => openEdit(contact)}
+                      onRemove={() => handleRemove(contact)}
+                    />
                   ))}
                 </View>
               ) : null}
@@ -396,67 +465,14 @@ const ContactsScreen = () => {
                 <View style={styles.sectionBlock}>
                   <Text style={styles.sectionTitle}>Contactos</Text>
                   {others.map((contact) => (
-                    <GlassCard key={contact.id}>
-                      <View style={styles.contactRow}>
-                        <View
-                          style={[styles.contactAvatarLarge, { backgroundColor: contact.avatarColor }]}
-                        >
-                          <Text style={styles.contactAvatarText}>
-                            {contact.name.charAt(0)}
-                          </Text>
-                        </View>
-                        <View style={styles.contactCopy}>
-                          <Text style={styles.contactName}>{contact.name}</Text>
-                          <Text style={styles.contactPhone}>{contact.phone}</Text>
-                        </View>
-                        <View style={styles.contactActions}>
-                          <Pressable
-                            onPress={() => toggleFavoriteContact(contact.id)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name={contact.favorite ? "star" : "star-outline"}
-                              size={22}
-                              color={palette.textSecondary}
-                            />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => handleTransfer(contact)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name="send"
-                              size={20}
-                              color={palette.textSecondary}
-                            />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => openEdit(contact)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name="pencil"
-                              size={20}
-                              color={palette.textSecondary}
-                            />
-                          </Pressable>
-                          <Pressable
-                            onPress={() => handleRemove(contact)}
-                            style={styles.iconButton}
-                            accessibilityRole="button"
-                          >
-                            <MaterialCommunityIcons
-                              name="delete"
-                              size={20}
-                              color={palette.danger}
-                            />
-                          </Pressable>
-                        </View>
-                      </View>
-                    </GlassCard>
+                    <ContactCard
+                      key={contact.id}
+                      contact={contact}
+                      onToggleFavorite={() => toggleFavoriteContact(contact.id)}
+                      onTransfer={() => handleTransfer(contact)}
+                      onEdit={() => openEdit(contact)}
+                      onRemove={() => handleRemove(contact)}
+                    />
                   ))}
                 </View>
               ) : null}
@@ -561,24 +577,27 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginLeft: 6,
   },
-  contactRow: {
+  contactCard: {
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    gap: 16,
+  },
+  contactInfoRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 18,
     gap: 16,
   },
   contactAvatarLarge: {
-    width: 50,
-    height: 50,
+    width: 56,
+    height: 56,
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
   contactAvatarText: {
     color: palette.textPrimary,
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
   },
   contactCopy: {
     flex: 1,
@@ -586,25 +605,58 @@ const styles = StyleSheet.create({
   },
   contactName: {
     color: palette.textPrimary,
-    fontWeight: "600",
-    fontSize: 16,
+    fontWeight: "700",
+    fontSize: 18,
   },
   contactPhone: {
     color: palette.textSecondary,
     fontSize: 13,
   },
-  contactActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+  favoriteToggle: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  favoriteToggleActive: {
+    backgroundColor: "rgba(0, 240, 255, 0.16)",
+  },
+  contactActionRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    width: "100%",
+  },
+  contactActionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    gap: 8,
+    minWidth: 110,
+    flexGrow: 1,
+  },
+  contactActionPrimary: {
+    backgroundColor: "rgba(0, 240, 255, 0.18)",
+  },
+  contactActionDanger: {
+    backgroundColor: "rgba(255, 71, 87, 0.18)",
+  },
+  contactActionLabel: {
+    color: palette.textSecondary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  contactActionLabelPrimary: {
+    color: palette.textPrimary,
+  },
+  contactActionLabelDanger: {
+    color: palette.danger,
   },
   modalBackdrop: {
     flex: 1,
