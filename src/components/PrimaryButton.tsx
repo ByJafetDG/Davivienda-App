@@ -18,6 +18,7 @@ export type PrimaryButtonProps = {
   loading?: boolean;
   style?: ViewStyle;
   accessoryRight?: ReactNode;
+  variant?: "solid" | "ghost";
 };
 
 const PrimaryButton = ({
@@ -27,6 +28,7 @@ const PrimaryButton = ({
   loading,
   style,
   accessoryRight,
+  variant = "solid",
 }: PrimaryButtonProps) => {
   return (
     <Pressable
@@ -54,22 +56,40 @@ const PrimaryButton = ({
             transition={{ type: "timing", duration: 320 }}
           />
           <LinearGradient
-            colors={[palette.buttonGradientStart, palette.buttonGradientEnd]}
+            colors={
+              variant === "ghost"
+                ? ["rgba(255,255,255,0.12)", "rgba(255,255,255,0.06)"]
+                : [palette.buttonGradientStart, palette.buttonGradientEnd]
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.gradient}
+            style={[
+              styles.gradient,
+              variant === "ghost" && styles.gradientGhost,
+              disabled ? styles.gradientDisabled : null,
+            ]}
           >
-            <MotiView
-              pointerEvents="none"
-              style={styles.highlight}
-              from={{ translateX: -40, opacity: 0.15 }}
-              animate={{
-                translateX: state.pressed ? 10 : 40,
-                opacity: state.pressed ? 0.25 : 0.35,
-              }}
-              transition={{ type: "timing", duration: 520 }}
-            />
-            <Text style={styles.label}>{loading ? "Procesando…" : label}</Text>
+            {variant === "solid" ? (
+              <MotiView
+                pointerEvents="none"
+                style={styles.highlight}
+                from={{ translateX: -40, opacity: 0.15 }}
+                animate={{
+                  translateX: state.pressed ? 10 : 40,
+                  opacity: state.pressed ? 0.25 : 0.35,
+                }}
+                transition={{ type: "timing", duration: 520 }}
+              />
+            ) : null}
+            <Text
+              style={[
+                styles.label,
+                variant === "ghost" && styles.labelGhost,
+                disabled && variant === "ghost" && styles.labelGhostDisabled,
+              ]}
+            >
+              {loading ? "Procesando…" : label}
+            </Text>
             {accessoryRight}
           </LinearGradient>
         </MotiView>
@@ -96,6 +116,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
   },
+  gradientGhost: {
+    backgroundColor: "rgba(0,0,0,0)",
+  },
+  gradientDisabled: {
+    opacity: 0.85,
+  },
   glow: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 999,
@@ -116,6 +142,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     letterSpacing: 0.2,
+  },
+  labelGhost: {
+    color: palette.textSecondary,
+  },
+  labelGhostDisabled: {
+    color: "rgba(255,255,255,0.4)",
   },
 });
 
