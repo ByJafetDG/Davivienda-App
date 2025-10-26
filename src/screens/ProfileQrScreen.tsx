@@ -8,7 +8,6 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
-import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 
@@ -56,12 +55,7 @@ const ProfileQrScreen = () => {
                 />
               </Pressable>
               <Text style={styles.title}>Código QR de tu cuenta</Text>
-              <ProfileAvatarButton
-                size={40}
-                onPress={() => router.push("/(app)/profile")}
-                accessibilityLabel="Ir a tu perfil"
-                style={styles.profileShortcut}
-              />
+              <View style={styles.headerSpacer} />
             </View>
 
             <GlassCard>
@@ -77,7 +71,7 @@ const ProfileQrScreen = () => {
                     value={qrValue}
                     size={228}
                     color="#020617"
-                    backgroundColor="transparent"
+                    backgroundColor="#ffffff"
                     logo={bankLogo}
                     logoSize={60}
                     logoBackgroundColor="rgba(255,255,255,0.96)"
@@ -136,7 +130,7 @@ const ProfileQrScreen = () => {
 
             <View style={styles.actions}>
               <PrimaryButton
-                label="Compartir instrucciones"
+                label="Compartir"
                 onPress={() => router.push("/(app)/contacts")}
               />
               <View style={styles.infoBanner}>
@@ -180,17 +174,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
   },
-  profileShortcut: {
-    shadowColor: palette.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 4,
-  },
   title: {
     color: palette.textPrimary,
     fontSize: 20,
     fontWeight: "700",
+  },
+  headerSpacer: {
+    width: 40,
   },
   qrCard: {
     padding: 26,
@@ -214,9 +204,9 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(10, 18, 38, 0.85)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(0,0,0,0.06)",
     overflow: "hidden",
   },
   qrGlow: {

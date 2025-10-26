@@ -19,6 +19,7 @@ export type PrimaryButtonProps = {
   style?: ViewStyle;
   accessoryRight?: ReactNode;
   variant?: "solid" | "ghost";
+  compact?: boolean;
 };
 
 const PrimaryButton = ({
@@ -29,6 +30,7 @@ const PrimaryButton = ({
   style,
   accessoryRight,
   variant = "solid",
+  compact = false,
 }: PrimaryButtonProps) => {
   return (
     <Pressable
@@ -64,7 +66,7 @@ const PrimaryButton = ({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[
-              styles.gradient,
+              compact ? styles.gradientCompact : styles.gradient,
               variant === "ghost" && styles.gradientGhost,
               disabled ? styles.gradientDisabled : null,
             ]}
@@ -83,7 +85,7 @@ const PrimaryButton = ({
             ) : null}
             <Text
               style={[
-                styles.label,
+                compact ? styles.labelCompact : styles.label,
                 variant === "ghost" && styles.labelGhost,
                 disabled && variant === "ghost" && styles.labelGhostDisabled,
               ]}
@@ -116,6 +118,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
   },
+  gradientCompact: {
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
   gradientGhost: {
     backgroundColor: "rgba(0,0,0,0)",
   },
@@ -142,6 +153,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     letterSpacing: 0.2,
+  },
+  labelCompact: {
+    color: palette.textPrimary,
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: 0.1,
   },
   labelGhost: {
     color: palette.textSecondary,

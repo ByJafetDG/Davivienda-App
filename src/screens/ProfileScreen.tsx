@@ -81,7 +81,7 @@ const ProfileScreen = () => {
                 />
               </Pressable>
               <Text style={styles.title}>Tu perfil financiero</Text>
-              <View style={styles.backButton} />
+              <View style={styles.headerSpacer} />
             </View>
 
             <MotiView
@@ -129,6 +129,8 @@ const ProfileScreen = () => {
                   <PrimaryButton
                     label="Ver código"
                     onPress={() => router.push("/(app)/profile-qr")}
+                    style={styles.qrButton}
+                    compact
                   />
                 </View>
                 <View style={styles.qrMiniFrame}>
@@ -136,7 +138,7 @@ const ProfileScreen = () => {
                     value={qrPreviewValue}
                     size={96}
                     color="#020617"
-                    backgroundColor="transparent"
+                    backgroundColor="#ffffff"
                     logo={bankLogo}
                     logoSize={28}
                     logoBackgroundColor="rgba(255,255,255,0.95)"
@@ -252,6 +254,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
   },
+  headerSpacer: {
+    width: 40,
+  },
   title: {
     color: palette.textPrimary,
     fontSize: 20,
@@ -319,6 +324,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 10,
   },
+  qrButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minWidth: 0,
+    marginTop: 6,
+  },
   qrLabel: {
     color: palette.textPrimary,
     fontSize: 16,
@@ -335,9 +347,9 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(9, 18, 38, 0.75)",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.12)",
   },
   metricsGrid: {
     flexDirection: "row",
