@@ -4,11 +4,13 @@ import { MotiView } from "moti";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import {
   Alert,
+  Keyboard,
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -55,6 +57,9 @@ const ContactFormModal = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalBackdrop}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.modalDismissArea} />
+        </TouchableWithoutFeedback>
         <MotiView
           from={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -234,11 +239,35 @@ const ContactsScreen = () => {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [form, setForm] = useState<ContactDraft>({ name: "", phone: "" });
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const normalizedQuery = useMemo(
+    () => searchQuery.trim().toLowerCase(),
+    [searchQuery],
+  );
+  const digitsQuery = useMemo(() => sanitizePhoneInput(searchQuery), [searchQuery]);
+  const hasQuery = normalizedQuery.length > 0 || digitsQuery.length > 0;
+
+  const matchesQuery = useMemo<(contact: Contact) => boolean>(
+    () =>
+      (contact: Contact) => {
+        if (!hasQuery) {
+          return true;
+        }
+        const nameMatch = normalizedQuery.length > 0
+          ? contact.name.toLowerCase().includes(normalizedQuery)
+          : false;
+        const phoneDigits = sanitizePhoneInput(contact.phone);
+        const phoneMatch = digitsQuery.length > 0 ? phoneDigits.includes(digitsQuery) : false;
+        return nameMatch || phoneMatch;
+      },
+    [digitsQuery, hasQuery, normalizedQuery],
+  );
 
   const favorites = useMemo(
     () =>
       contacts
-        .filter((contact: Contact) => contact.favorite)
+        .filter((contact: Contact) => contact.favorite && matchesQuery(contact))
         .sort((a, b) => {
           const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0;
           const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0;
@@ -247,13 +276,13 @@ const ContactsScreen = () => {
           }
           return a.name.localeCompare(b.name, "es");
         }),
-    [contacts],
+    [contacts, matchesQuery],
   );
 
   const others = useMemo(
     () =>
       contacts
-        .filter((contact: Contact) => !contact.favorite)
+        .filter((contact: Contact) => !contact.favorite && matchesQuery(contact))
         .sort((a, b) => {
           const aTime = a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0;
           const bTime = b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0;
@@ -262,7 +291,7 @@ const ContactsScreen = () => {
           }
           return a.name.localeCompare(b.name, "es");
         }),
-    [contacts],
+    [contacts, matchesQuery],
   );
 
   const totalContacts = contacts.length;
@@ -370,6 +399,8 @@ const ContactsScreen = () => {
     });
   };
 
+  const noResults = hasQuery && favorites.length === 0 && others.length === 0;
+
   return (
     <FuturisticBackground>
       <ScrollView
@@ -428,6 +459,28 @@ const ContactsScreen = () => {
             </GlassCard>
           </MotiView>
 
+          <MotiView
+            from={{ opacity: 0, translateY: 16 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: "timing", duration: 320 }}
+            style={styles.searchWrapper}
+          >
+            <NeonTextField
+              label="Buscar"
+              placeholder="Nombre o teléfono"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              icon={
+                <MaterialCommunityIcons
+                  name="magnify"
+                  size={20}
+                  color={palette.accentCyan}
+                />
+              }
+              autoCapitalize="words"
+            />
+          </MotiView>
+
           {contacts.length === 0 ? (
             <GlassCard>
               <View style={styles.emptyState}>
@@ -441,6 +494,21 @@ const ContactsScreen = () => {
                   Cada transferencia que realices se guardará automáticamente aquí.
                 </Text>
                 <PrimaryButton label="Agregar manualmente" onPress={openCreate} />
+              </View>
+            </GlassCard>
+          ) : noResults ? (
+            <GlassCard>
+              <View style={styles.noResults}>
+                <MaterialCommunityIcons
+                  name="account-search"
+                  size={42}
+                  color={palette.accentCyan}
+                />
+                <Text style={styles.noResultsTitle}>Sin coincidencias</Text>
+                <Text style={styles.noResultsCopy}>
+                  No encontramos contactos que coincidan con "{searchQuery}".
+                  Verifica el nombre o número e inténtalo de nuevo.
+                </Text>
               </View>
             </GlassCard>
           ) : (
@@ -550,6 +618,9 @@ const styles = StyleSheet.create({
   summaryButton: {
     marginTop: 8,
   },
+  searchWrapper: {
+    marginTop: 12,
+  },
   emptyState: {
     padding: 28,
     alignItems: "center",
@@ -576,6 +647,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     marginLeft: 6,
+  },
+  noResults: {
+    padding: 28,
+    alignItems: "center",
+    gap: 14,
+  },
+  noResultsTitle: {
+    color: palette.textPrimary,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  noResultsCopy: {
+    color: palette.textSecondary,
+    fontSize: 14,
+    textAlign: "center",
   },
   contactCard: {
     paddingHorizontal: 22,
@@ -664,6 +750,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
+  },
+  modalDismissArea: {
+    ...StyleSheet.absoluteFillObject,
   },
   modalCard: {
     width: "100%",

@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Image,
   Modal,
@@ -21,6 +21,8 @@ import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { RechargeRecord, useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
+import { formatAmountDisplay, parseAmountToNumber, sanitizeAmountInput } from "@/utils/amount";
+import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
 
 const OPERATORS = [
   {
@@ -49,18 +51,31 @@ const MobileRechargeScreen = () => {
 
   const [operator, setOperator] =
     useState<(typeof OPERATORS)[number]["id"]>("claro");
-  const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
+  const [phoneRaw, setPhoneRaw] = useState("");
+  const [amountRaw, setAmountRaw] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [successRecord, setSuccessRecord] = useState<RechargeRecord | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const formattedPhone = useMemo(() => formatPhoneNumber(phoneRaw), [phoneRaw]);
+  const formattedAmount = useMemo(() => formatAmountDisplay(amountRaw), [amountRaw]);
+
+  const handlePhoneChange = (value: string) => {
+    setError(null);
+    setPhoneRaw(sanitizePhoneInput(value));
+  };
+
+  const handleAmountChange = (value: string) => {
+    setError(null);
+    setAmountRaw(sanitizeAmountInput(value));
+  };
+
   const handleSubmit = () => {
     setError(null);
     setSuccessRecord(null);
-    const parsedAmount = Number(amount);
-    if (!phone.trim() || phone.length < 8) {
+    const parsedAmount = parseAmountToNumber(amountRaw);
+    if (!phoneRaw || phoneRaw.length < PHONE_REQUIRED_LENGTH) {
       setError("Ingresa un número válido.");
       return;
     }
@@ -76,15 +91,16 @@ const MobileRechargeScreen = () => {
     setLoading(true);
     setTimeout(() => {
       try {
+        const displayPhone = formattedPhone || phoneRaw;
         const record = makeRecharge({
           provider: operator,
-          phone,
+          phone: displayPhone,
           amount: parsedAmount,
         });
         setSuccessRecord(record);
         setModalVisible(true);
-        setPhone("");
-        setAmount("");
+        setPhoneRaw("");
+        setAmountRaw("");
       } catch (err) {
         setError(
           err instanceof Error
@@ -196,9 +212,9 @@ const MobileRechargeScreen = () => {
           >
             <NeonTextField
               label="Número a recargar"
-              placeholder="0000 0000"
-              value={phone}
-              onChangeText={setPhone}
+              placeholder="0000-0000"
+              value={formattedPhone}
+              onChangeText={handlePhoneChange}
               keyboardType="phone-pad"
               allowOnlyNumeric
               icon={
@@ -212,8 +228,8 @@ const MobileRechargeScreen = () => {
             <NeonTextField
               label="Monto"
               placeholder="₡5,000"
-              value={amount}
-              onChangeText={setAmount}
+              value={formattedAmount}
+              onChangeText={handleAmountChange}
               keyboardType="decimal-pad"
               allowOnlyNumeric
               icon={

@@ -68,6 +68,10 @@ const ConfirmTransferScreen = () => {
     router.replace("/(app)/home");
   };
 
+  const handleViewHistory = () => {
+    router.replace("/(app)/history");
+  };
+
   const summaryItems = [
     {
       label: "Destinatario",
@@ -182,7 +186,19 @@ const ConfirmTransferScreen = () => {
                 Enviamos {formatCurrency(amountNumber)} a {params.contactName}.
                 Puedes ver el registro en tu historial local.
               </Text>
-              <PrimaryButton label="Volver al inicio" onPress={handleFinish} />
+              <View style={styles.successActions}>
+                <PrimaryButton
+                  label="Volver al inicio"
+                  onPress={handleFinish}
+                  style={styles.successButton}
+                />
+                <PrimaryButton
+                  label="Ver historial"
+                  onPress={handleViewHistory}
+                  variant="ghost"
+                  style={styles.successButton}
+                />
+              </View>
             </MotiView>
           )}
         </MotiView>
@@ -308,6 +324,13 @@ const styles = StyleSheet.create({
     color: palette.textSecondary,
     textAlign: "center",
     lineHeight: 20,
+  },
+  successActions: {
+    width: "100%",
+    gap: 12,
+  },
+  successButton: {
+    width: "100%",
   },
 });
 
