@@ -2,8 +2,19 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import QRCode from "react-native-qrcode-svg";
 import { MotiView } from "moti";
-import { useMemo } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useRef } from "react";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Share,
+  Alert,
+  Platform,
+} from "react-native";
+import * as FileSystem from "expo-file-system";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -26,6 +37,71 @@ const ProfileQrScreen = () => {
       id: user.id,
     });
   }, [user.id, user.idType, user.name, user.phone]);
+
+  const svgRef = useRef<any>(null);
+
+  const handleShare = async () => {
+    try {
+      if (svgRef.current && typeof svgRef.current.toDataURL === "function") {
+        // get base64 from svg
+        const base64: string = await new Promise((resolve, reject) => {
+          try {
+            svgRef.current.toDataURL((data: string) => resolve(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+        const dataUrl = `data:image/png;base64,${base64}`;
+
+        // Prefer saving to a temporary file if expo-file-system is available.
+        // Use casts to `any` to avoid depending on specific TS types in different expo-file-system versions.
+        const fsAny: any = FileSystem as any;
+        if (fsAny && typeof fsAny.writeAsStringAsync === "function" && typeof fsAny.cacheDirectory === "string") {
+          const filename = `sinpe-qr-${Date.now()}.png`;
+          const fileUri = `${fsAny.cacheDirectory}${filename}`;
+
+          // write base64 to temp file (use 'base64' encoding string for compatibility)
+          await fsAny.writeAsStringAsync(fileUri, base64, { encoding: "base64" });
+
+          // On Android the Share API may require the 'file://' prefix, expo FileSystem cacheDirectory includes it
+          await Share.share(
+            {
+              title: "Mi código SINPE",
+              message: "Comparte mi código SINPE para recibir pagos",
+              url: fileUri,
+            },
+            { dialogTitle: "Compartir código SINPE" },
+          );
+
+          // cleanup
+          try {
+            await fsAny.deleteAsync(fileUri, { idempotent: true });
+          } catch (e) {
+            // ignore cleanup errors
+          }
+        } else {
+          // Fallback: share as data URL (some platforms/apps accept this)
+          await Share.share({
+            title: "Mi código SINPE",
+            message: "Comparte mi código SINPE para recibir pagos",
+            url: dataUrl,
+          });
+        }
+      } else {
+        // Fallback: share text
+        await Share.share({
+          title: "Mi código SINPE",
+          message: `Comparte mi código SINPE: ${qrValue}`,
+        });
+      }
+    } catch (err) {
+      console.warn(err);
+      Alert.alert(
+        "Error",
+        "No se pudo abrir la interfaz de compartir. Prueba en un dispositivo físico o revisa que 'expo-file-system' esté instalado.",
+      );
+    }
+  };
 
   return (
     <FuturisticBackground>
@@ -68,6 +144,7 @@ const ProfileQrScreen = () => {
                 <View style={styles.qrFrame}>
                   <View style={styles.qrGlow} />
                   <QRCode
+                    getRef={(c) => (svgRef.current = c)}
                     value={qrValue}
                     size={228}
                     color="#020617"
@@ -129,10 +206,7 @@ const ProfileQrScreen = () => {
             </GlassCard>
 
             <View style={styles.actions}>
-              <PrimaryButton
-                label="Compartir"
-                onPress={() => router.push("/(app)/contacts")}
-              />
+              <PrimaryButton label="Compartir" onPress={handleShare} />
               <View style={styles.infoBanner}>
                 <Image source={bankLogo} style={styles.bannerLogo} />
                 <Text style={styles.bannerCopy}>
