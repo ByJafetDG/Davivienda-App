@@ -200,4 +200,4 @@ npm run lint
 
 ---
 
-¿Tienes preguntas o deseas profundizar en alguna sección? Abre un issue o contacta al equipo responsable del proyecto.
+

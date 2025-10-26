@@ -2,7 +2,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, Share } from "react-native";
+import MarqueeText from "@/components/MarqueeText";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -43,10 +44,10 @@ type MonthOption = {
   label: string;
 };
 
-const FREQUENCY_OPTIONS: Array<{ id: RecurringFrequency; label: string; description: string }> = [
-  { id: "weekly", label: "Semanal", description: "Cada 7 días" },
-  { id: "biweekly", label: "Quincenal", description: "Cada 14 días" },
-  { id: "monthly", label: "Mensual", description: "Cada mes" },
+const FREQUENCY_OPTIONS: Array<{ id: RecurringFrequency; label: string; description: string; icon: string }> = [
+  { id: "weekly", label: "Semanal", description: "Cada 7 días", icon: "calendar-week" },
+  { id: "biweekly", label: "Quincenal", description: "Cada 14 días", icon: "calendar-range" },
+  { id: "monthly", label: "Mensual", description: "Cada mes", icon: "calendar-month" },
 ];
 
 const monthFormatter = new Intl.DateTimeFormat("es-CR", { month: "long", year: "numeric" });
@@ -168,7 +169,7 @@ const computeOccurrences = (start: Date, frequency: RecurringFrequency, count: n
 
 const ChargesScreen = () => {
   const router = useRouter();
-  const { transfers, recharges } = useBankStore();
+  const { transfers, recharges, createEnvelope } = useBankStore();
 
   const [splitLabel, setSplitLabel] = useState("");
   const [participantsInput, setParticipantsInput] = useState("");
@@ -255,11 +256,27 @@ const ChargesScreen = () => {
     setSplitStatus("Reparto generado. Envía el enlace personalizado a cada participante.");
   };
 
-  const handleGenerateLinks = () => {
+  const handleGenerateLinks = async () => {
     if (!splitResult) {
       return;
     }
-    setSplitStatus("Listo. Los enlaces individuales se guardaron en tu bandeja de cobros.");
+    // Crear sobre en el store
+    const sobreDraft = {
+      name: splitResult.label,
+      description: `Sobre generado automáticamente para ${splitResult.participants.map(p => p.name).join(", ")}`,
+      targetAmount: splitResult.total,
+    };
+    const sobre = createEnvelope(sobreDraft);
+    // Simular link único
+    const link = `https://davivienda-app.com/sobre/${sobre.id}`;
+    // Mensaje para compartir
+    const message = `¡Aporta a nuestro sobre \"${sobre.name}\"! Participantes: ${splitResult.participants.map(p => p.name).join(", ")}. Ingresa aquí: ${link}`;
+    try {
+      await Share.share({ message });
+      setSplitStatus("Enlace a sobre generado y listo para compartir.");
+    } catch (error) {
+      setSplitStatus("No se pudo compartir el enlace. Intenta de nuevo.");
+    }
   };
 
   const handleRecurringLabelChange = (value: string) => {
@@ -366,14 +383,18 @@ const ChargesScreen = () => {
             </View>
 
             <GlassCard>
-              <View style={styles.cardHeader}>
-                <View>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardHeaderTextWrap}>
                   <Text style={styles.sectionTitle}>Dividir pagos</Text>
-                  <Text style={styles.cardHint}>
-                    Ingresa a tus participantes, reparte el monto automáticamente y genera enlaces individuales.
-                  </Text>
+                  <MarqueeText
+                    text="Ingresa a tus participantes, reparte el monto automáticamente y genera enlaces individuales."
+                    containerStyle={styles.cardHintContainer}
+                    textStyle={styles.cardHint}
+                  />
                 </View>
-                <MaterialCommunityIcons name="account-group" size={22} color={palette.accentCyan} />
+                <View style={styles.cardHeaderIconWrap}>
+                  <MaterialCommunityIcons name="account-group" size={22} color={palette.accentCyan} />
+                </View>
               </View>
 
               {splitStatus ? <Text style={styles.statusMessage}>{splitStatus}</Text> : null}
@@ -447,7 +468,7 @@ const ChargesScreen = () => {
                     </Text>
                   ) : null}
                   <PrimaryButton
-                    label="Generar enlaces individuales"
+                    label="Generar enlace a sobre"
                     onPress={handleGenerateLinks}
                     style={styles.secondaryButton}
                   />
@@ -456,14 +477,18 @@ const ChargesScreen = () => {
             </GlassCard>
 
             <GlassCard>
-              <View style={styles.cardHeader}>
-                <View>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardHeaderTextWrap}>
                   <Text style={styles.sectionTitle}>Cobros recurrentes</Text>
-                  <Text style={styles.cardHint}>
-                    Programa recordatorios automáticos para membresías, rentas o cobros periódicos.
-                  </Text>
+                  <MarqueeText
+                    text="Programa recordatorios automáticos para membresías, rentas o cobros periódicos."
+                    containerStyle={styles.cardHintContainer}
+                    textStyle={styles.cardHint}
+                  />
                 </View>
-                <MaterialCommunityIcons name="autorenew" size={22} color={palette.accentCyan} />
+                <View style={styles.cardHeaderIconWrap}>
+                  <MaterialCommunityIcons name="autorenew" size={22} color={palette.accentCyan} />
+                </View>
               </View>
 
               {recurringStatus ? <Text style={styles.statusMessage}>{recurringStatus}</Text> : null}
@@ -561,14 +586,18 @@ const ChargesScreen = () => {
             </GlassCard>
 
             <GlassCard>
-              <View style={styles.cardHeader}>
-                <View>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.cardHeaderTextWrap}>
                   <Text style={styles.sectionTitle}>Liquidaciones automáticas</Text>
-                  <Text style={styles.cardHint}>
-                    Genera un resumen mensual de tus ingresos y egresos listo para compartir con contabilidad.
-                  </Text>
+                  <MarqueeText
+                    text="Genera un resumen mensual de tus ingresos y egresos listo para compartir con contabilidad."
+                    containerStyle={styles.cardHintContainer}
+                    textStyle={styles.cardHint}
+                  />
                 </View>
-                <MaterialCommunityIcons name="file-chart-outline" size={22} color={palette.accentCyan} />
+                <View style={styles.cardHeaderIconWrap}>
+                  <MaterialCommunityIcons name="file-chart-outline" size={22} color={palette.accentCyan} />
+                </View>
               </View>
 
               <View style={styles.monthSelector}>
@@ -687,6 +716,71 @@ const ChargesScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  chipRowRedesigned: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  chipRedesigned: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: palette.surface,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 6,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    minWidth: 0,
+    maxWidth: 110,
+  },
+  chipRedesignedActive: {
+    backgroundColor: palette.accentCyan,
+    shadowOpacity: 0.18,
+  },
+  chipIcon: {
+    marginRight: 6,
+  },
+  chipLabelRedesigned: {
+    color: palette.textPrimary,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  chipLabelRedesignedActive: {
+    color: '#fff',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 8,
+    marginBottom: 4,
+    width: '100%',
+  },
+  cardHeaderTextWrap: {
+    flexShrink: 1,
+    flexGrow: 1,
+    minWidth: 0,
+    maxWidth: '82%',
+  },
+  cardHeaderIconWrap: {
+    flexShrink: 0,
+    paddingLeft: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+  },
+  cardHintContainer: {
+    maxWidth: '100%',
+    marginTop: 2,
+    marginBottom: 2,
+  },
   screen: {
     flex: 1,
     position: "relative",
