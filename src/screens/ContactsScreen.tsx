@@ -425,8 +425,8 @@ const ContactsScreen = () => {
             <Text style={styles.title}>Contactos frecuentes</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/profile")}
-              accessibilityLabel="Ir a tu perfil"
+              onPress={() => router.push("/(app)/notifications")}
+              accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />
           </View>

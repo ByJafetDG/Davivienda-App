@@ -2,7 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, Share } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View, Share, Platform } from "react-native";
+import * as Print from "expo-print";
+import * as FileSystem from "expo-file-system";
 import MarqueeText from "@/components/MarqueeText";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
@@ -52,6 +54,13 @@ const FREQUENCY_OPTIONS: Array<{ id: RecurringFrequency; label: string; descript
 
 const monthFormatter = new Intl.DateTimeFormat("es-CR", { month: "long", year: "numeric" });
 const dateFormatter = new Intl.DateTimeFormat("es-CR", { day: "numeric", month: "short" });
+const dateTimeFormatter = new Intl.DateTimeFormat("es-CR", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
 
 const buildMonthOptions = (count = 6): MonthOption[] => {
   const now = new Date();
@@ -165,6 +174,301 @@ const computeOccurrences = (start: Date, frequency: RecurringFrequency, count: n
     }
   }
   return occurrences;
+};
+
+type SettlementSummary = ReturnType<typeof computeMonthlySummary>;
+
+const escapeHtml = (value: string | number | null | undefined) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const buildSettlementReportHtml = (options: {
+  monthLabel: string;
+  summary: SettlementSummary;
+  generatedAt: Date;
+}) => {
+  const { monthLabel, summary, generatedAt } = options;
+  const generatedLabel = dateTimeFormatter.format(generatedAt);
+  const netFlowTone = summary.netFlow > 0 ? "positive" : summary.netFlow < 0 ? "negative" : "neutral";
+  const netFlowLabel = summary.netFlow > 0 ? "Superávit neto" : summary.netFlow < 0 ? "Déficit neto" : "Flujo equilibrado";
+
+  const inboundList = summary.topInbound.length
+    ? summary.topInbound
+        .map(
+          (item, index) => `
+            <li class="list-item">
+              <span class="badge">${index + 1}</span>
+              <div class="list-text">
+                <strong>${escapeHtml(item.name)}</strong>
+                <small>${formatCurrency(item.amount)} recibidos</small>
+              </div>
+            </li>
+          `,
+        )
+        .join("")
+    : '<li class="list-item empty">Sin ingresos relevantes durante este periodo.</li>';
+
+  const outboundList = summary.topOutbound.length
+    ? summary.topOutbound
+        .map(
+          (item, index) => `
+            <li class="list-item">
+              <span class="badge">${index + 1}</span>
+              <div class="list-text">
+                <strong>${escapeHtml(item.name)}</strong>
+                <small>${formatCurrency(item.amount)} enviados</small>
+              </div>
+            </li>
+          `,
+        )
+        .join("")
+    : '<li class="list-item empty">No se registraron egresos destacados.</li>';
+
+  return `<!DOCTYPE html>
+  <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <title>Liquidación ${escapeHtml(monthLabel)}</title>
+      <style>
+        :root {
+          color-scheme: dark;
+        }
+        body {
+          font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+          margin: 0;
+          padding: 32px 16px;
+          background: linear-gradient(135deg, #030712, #12172b);
+          color: #f5f7ff;
+        }
+        .wrapper {
+          max-width: 760px;
+          margin: 0 auto;
+          background: rgba(10, 16, 28, 0.88);
+          border-radius: 28px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          overflow: hidden;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+        header {
+          padding: 32px 36px 24px;
+          background: linear-gradient(120deg, rgba(0, 240, 255, 0.18), rgba(114, 89, 255, 0.15));
+        }
+        header h1 {
+          margin: 0;
+          font-size: 26px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+        }
+        header p {
+          margin: 8px 0 0;
+          color: rgba(245, 247, 255, 0.8);
+          font-size: 14px;
+        }
+        .badge-flow {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin-top: 18px;
+          padding: 10px 18px;
+          border-radius: 999px;
+          font-size: 14px;
+          font-weight: 600;
+          background: rgba(255, 255, 255, 0.12);
+        }
+        .badge-flow.positive { background: rgba(0, 240, 200, 0.12); color: #00f6a2; }
+        .badge-flow.negative { background: rgba(255, 94, 91, 0.14); color: #ff6c8c; }
+        .badge-flow.neutral { background: rgba(255, 255, 255, 0.12); color: #f5f7ff; }
+        main {
+          padding: 28px 36px 36px;
+        }
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 18px;
+          margin-bottom: 28px;
+        }
+        .metric-card {
+          background: rgba(8, 12, 24, 0.92);
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          border-radius: 20px;
+          padding: 18px 20px;
+        }
+        .metric-label {
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: rgba(245, 247, 255, 0.64);
+        }
+        .metric-value {
+          display: block;
+          margin-top: 12px;
+          font-size: 22px;
+          font-weight: 700;
+        }
+        .metric-sub {
+          margin-top: 6px;
+          font-size: 12px;
+          color: rgba(245, 247, 255, 0.6);
+        }
+        .section {
+          margin-bottom: 32px;
+        }
+        .section h2 {
+          margin: 0 0 12px;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          background: rgba(6, 10, 22, 0.9);
+          border-radius: 18px;
+          overflow: hidden;
+        }
+        th, td {
+          padding: 14px 18px;
+          text-align: left;
+        }
+        th {
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: rgba(245, 247, 255, 0.6);
+          background: rgba(255, 255, 255, 0.05);
+        }
+        tr:nth-child(even) td { background: rgba(255, 255, 255, 0.03); }
+        .list {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          background: rgba(6, 10, 22, 0.9);
+          border-radius: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .list-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 18px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .list-item:last-child { border-bottom: none; }
+        .badge {
+          width: 28px;
+          height: 28px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0, 240, 255, 0.18);
+          color: #00f6ff;
+          font-weight: 700;
+          font-size: 13px;
+        }
+        .list-text strong {
+          display: block;
+          font-size: 15px;
+        }
+        .list-text small {
+          display: block;
+          margin-top: 2px;
+          color: rgba(245, 247, 255, 0.64);
+        }
+        .list-item.empty {
+          justify-content: center;
+          color: rgba(245, 247, 255, 0.55);
+          font-style: italic;
+        }
+        footer {
+          padding: 24px 36px 32px;
+          font-size: 12px;
+          color: rgba(245, 247, 255, 0.58);
+          background: rgba(0, 0, 0, 0.28);
+        }
+      </style>
+    </head>
+    <body>
+      <div class="wrapper">
+        <header>
+          <h1>Liquidación mensual · ${escapeHtml(monthLabel)}</h1>
+          <p>Resumen automático de cobros SINPE Móvil. Usa este documento como respaldo o compártelo con tu equipo.</p>
+          <span class="badge-flow ${netFlowTone}">${netFlowLabel}: ${formatCurrency(summary.netFlow)}</span>
+        </header>
+        <main>
+          <section class="grid">
+            <article class="metric-card">
+              <span class="metric-label">Ingresos recibidos</span>
+              <span class="metric-value">${formatCurrency(summary.inboundTotal)}</span>
+              <span class="metric-sub">${summary.inboundCount} movimientos</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Transferencias emitidas</span>
+              <span class="metric-value">${formatCurrency(summary.outboundTotal)}</span>
+              <span class="metric-sub">${summary.outboundCount} movimientos</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Recargas móviles</span>
+              <span class="metric-value">${formatCurrency(summary.rechargeTotal)}</span>
+              <span class="metric-sub">${summary.rechargeCount} operaciones</span>
+            </article>
+          </section>
+
+          <section class="section">
+            <h2>Resumen detallado</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Monto</th>
+                  <th>Movimientos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Entradas de dinero</td>
+                  <td>${formatCurrency(summary.inboundTotal)}</td>
+                  <td>${summary.inboundCount}</td>
+                </tr>
+                <tr>
+                  <td>Egresos por transferencias</td>
+                  <td>${formatCurrency(summary.outboundTotal)}</td>
+                  <td>${summary.outboundCount}</td>
+                </tr>
+                <tr>
+                  <td>Egresos por recargas</td>
+                  <td>${formatCurrency(summary.rechargeTotal)}</td>
+                  <td>${summary.rechargeCount}</td>
+                </tr>
+                <tr>
+                  <td>Flujo neto</td>
+                  <td>${formatCurrency(summary.netFlow)}</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="section">
+            <h2>Principales ingresos</h2>
+            <ul class="list">${inboundList}</ul>
+          </section>
+
+          <section class="section">
+            <h2>Principales egresos</h2>
+            <ul class="list">${outboundList}</ul>
+          </section>
+        </main>
+        <footer>
+          Generado automáticamente el ${escapeHtml(generatedLabel)} · Davivienda SINPE Mobile
+        </footer>
+      </div>
+    </body>
+  </html>`;
 };
 
 const ChargesScreen = () => {
@@ -347,9 +651,63 @@ const ChargesScreen = () => {
     setSelectedMonthKey(key);
   };
 
-  const handleGenerateSettlement = () => {
-    const monthLabel = selectedMonth?.label ?? "este periodo";
-    setSettlementStatus(`Liquidación de ${monthLabel} generada. La encontrarás en tu bandeja de documentos.`);
+  const handleGenerateSettlement = async () => {
+    const monthLabel = selectedMonth?.label ?? monthFormatter.format(new Date());
+    setSettlementStatus("Generando PDF de liquidación…");
+
+    try {
+      const html = buildSettlementReportHtml({
+        monthLabel,
+        summary: settlementSummary,
+        generatedAt: new Date(),
+      });
+
+      const { uri, base64 } = await Print.printToFileAsync({ html, base64: true });
+      const sanitizedLabel = monthLabel.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
+      const fileName = `Liquidacion_${sanitizedLabel || "mes"}_${Date.now()}.pdf`;
+      let fileUri = uri;
+
+      const fileSystemModule = FileSystem as unknown as {
+        cacheDirectory?: string | null;
+        documentDirectory?: string | null;
+      };
+
+      const baseDir = fileSystemModule.cacheDirectory ?? fileSystemModule.documentDirectory ?? undefined;
+
+      if (base64 && baseDir) {
+        const targetPath = `${baseDir}${fileName}`;
+        await FileSystem.writeAsStringAsync(targetPath, base64, {
+          encoding: "base64" as any,
+        });
+        fileUri = targetPath;
+      } else if (baseDir) {
+        const targetPath = `${baseDir}${fileName}`;
+        await FileSystem.copyAsync({ from: uri, to: targetPath });
+        fileUri = targetPath;
+      }
+
+      if (Platform.OS === "web") {
+        setSettlementStatus(`Liquidación generada. Descarga el PDF desde ${fileUri}.`);
+        return;
+      }
+
+      const shareResult = await Share.share(
+        {
+          url: fileUri,
+          message: `Liquidación ${monthLabel}`,
+        },
+        { dialogTitle: "Compartir liquidación" },
+      );
+
+      if (shareResult.action === Share.sharedAction) {
+        setSettlementStatus("Liquidación generada y compartida correctamente.");
+      } else {
+        setSettlementStatus("Liquidación generada en PDF. Puedes compartirla más tarde desde tu gestor de archivos.");
+      }
+    } catch (error) {
+      console.error("Error generating settlement PDF", error);
+      setSettlementStatus("No se pudo generar el PDF. Intenta de nuevo en unos segundos.");
+    }
   };
 
   return (
@@ -376,8 +734,8 @@ const ChargesScreen = () => {
               </View>
               <ProfileAvatarButton
                 size={40}
-                onPress={() => router.push("/(app)/profile")}
-                accessibilityLabel="Ir a tu perfil"
+                onPress={() => router.push("/(app)/notifications")}
+                accessibilityLabel="Ver notificaciones"
                 style={styles.profileShortcut}
               />
             </View>

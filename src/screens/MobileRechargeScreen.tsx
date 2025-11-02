@@ -138,8 +138,8 @@ const MobileRechargeScreen = () => {
             <Text style={styles.title}>Recarga móvil</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/profile")}
-              accessibilityLabel="Ir a tu perfil"
+              onPress={() => router.push("/(app)/notifications")}
+              accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />
           </View>

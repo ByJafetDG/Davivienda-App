@@ -345,7 +345,7 @@ const LoginScreen = () => {
             <Text style={styles.greeting}>{welcomeMessage}</Text>
             <Text style={styles.title}>Bienvenido de nuevo</Text>
             <Text style={styles.subtitle}>
-              Gestiona tu SINPE Móvil con una experiencia futurista y segura.
+              Gestiona tu SINPE Móvil con una experiencia nueva y segura.
             </Text>
           </MotiView>
 
@@ -492,7 +492,7 @@ const LoginScreen = () => {
                 </View>
               </View>
               <Text style={styles.helper}>
-                Tus datos se quedan en tu dispositivo. Sin conexiones externas.
+                Davivienda 
               </Text>
             </MotiView>
           </View>

@@ -119,6 +119,11 @@ const BottomNavigationBar = () => {
   const pathname = usePathname();
   const segments = useSegments();
   const insets = useSafeAreaInsets();
+  
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
+  const isNavigatingRef = useRef(false);
+  const disabledRoutesRef = useRef<Set<string>>(new Set());
 
   const routeSegment = useMemo(() => {
     const reversed = [...segments].reverse();
@@ -196,6 +201,53 @@ const BottomNavigationBar = () => {
     }
   }, [activeLayout, indicatorReady]);
 
+  // Reset navigation state when route changes
+  useEffect(() => {
+    isNavigatingRef.current = false;
+    setIsNavigating(false);
+
+    setDisabledRoutes(() => {
+      const cleared = new Set<string>();
+      disabledRoutesRef.current = cleared;
+      return cleared;
+    });
+  }, [pathname, disabledRoutesRef, isNavigatingRef]);
+
+  const handleNavigation = (item: BottomNavItem) => {
+    // Prevent navigation if already navigating or route is disabled
+    if (isNavigatingRef.current || disabledRoutesRef.current.has(item.route)) {
+      return;
+    }
+
+    // Check if we're not already on this route
+    if (!pathname.startsWith(item.route)) {
+      isNavigatingRef.current = true;
+      setIsNavigating(true);
+
+      setDisabledRoutes((prev) => {
+        const updated = new Set(prev);
+        updated.add(item.route);
+        disabledRoutesRef.current = updated;
+        return updated;
+      });
+
+      router.replace(item.route);
+
+      // Re-enable after a short delay
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+        setIsNavigating(false);
+
+        setDisabledRoutes((prev) => {
+          const updated = new Set(prev);
+          updated.delete(item.route);
+          disabledRoutesRef.current = updated;
+          return updated;
+        });
+      }, 500);
+    }
+  };
+
   const targetLayout = activeLayout ?? lastLayoutRef.current;
 
   const gradientOrientation = indicatorFlow === "right"
@@ -243,6 +295,8 @@ const BottomNavigationBar = () => {
         </MotiView>
         {items.map((item) => {
           const isActive = item.key === activeKey;
+          const isDisabled = isNavigating || disabledRoutes.has(item.route);
+          
           return (
             <View
               key={item.key}
@@ -252,14 +306,12 @@ const BottomNavigationBar = () => {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
-                onPress={() => {
-                  if (!pathname.startsWith(item.route)) {
-                    router.replace(item.route);
-                  }
-                }}
+                disabled={isDisabled}
+                onPress={() => handleNavigation(item)}
                 style={({ pressed }) => [
                   styles.button,
                   pressed && !isActive ? styles.buttonPressed : null,
+                  isDisabled && styles.buttonDisabled,
                 ]}
               >
                 <View
@@ -272,15 +324,22 @@ const BottomNavigationBar = () => {
                         borderColor: `${item.accent}66`,
                       },
                     ],
+                    isDisabled && styles.iconWrapperDisabled,
                   ]}
                 >
                   <MaterialCommunityIcons
                     name={item.icon as any}
                     size={22}
-                    color={isActive ? palette.background : palette.textSecondary}
+                    color={
+                      isDisabled 
+                        ? palette.textMuted
+                        : isActive 
+                        ? palette.background 
+                        : palette.textSecondary
+                    }
                   />
                 </View>
-                <NavLabel text={item.label} isActive={isActive} />
+                <NavLabel text={item.label} isActive={isActive} isDisabled={isDisabled} />
               </Pressable>
             </View>
           );
@@ -353,6 +412,9 @@ const styles = StyleSheet.create({
   buttonPressed: {
     opacity: 0.7,
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
   iconWrapper: {
     width: 44,
     height: 44,
@@ -370,6 +432,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.34,
     shadowRadius: 22,
   },
+  iconWrapperDisabled: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderColor: "rgba(255,255,255,0.04)",
+  },
   label: {
     color: palette.textSecondary,
     fontSize: 10.2,
@@ -384,6 +450,10 @@ const styles = StyleSheet.create({
     color: palette.textPrimary,
     textShadowColor: "rgba(255,255,255,0.3)",
     textShadowRadius: 6,
+  },
+  labelDisabled: {
+    color: palette.textSecondary,
+    opacity: 0.4,
   },
   labelContainer: {
     width: "100%",
@@ -419,9 +489,11 @@ const MARQUEE_GAP = 14;
 const NavLabel = ({
   text,
   isActive,
+  isDisabled = false,
 }: {
   text: string;
   isActive: boolean;
+  isDisabled?: boolean;
 }) => {
   const scrollAnim = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -499,6 +571,7 @@ const NavLabel = ({
   const labelStyles = [
     styles.label,
     isActive ? styles.labelActive : null,
+    isDisabled ? styles.labelDisabled : null,
     overflow ? styles.labelOverflow : null,
   ];
 

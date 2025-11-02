@@ -55,6 +55,11 @@ const AccountBalanceScreen = () => {
     [envelopes],
   );
 
+  const availableBalance = useMemo(
+    () => balance - totalEnvelopeBalance,
+    [balance, totalEnvelopeBalance],
+  );
+
   const activeAutomations = useMemo(
     () => automations.filter((rule) => rule.active).length,
     [automations],
@@ -129,8 +134,8 @@ const AccountBalanceScreen = () => {
               </View>
               <ProfileAvatarButton
                 size={40}
-                onPress={() => router.push("/(app)/profile")}
-                accessibilityLabel="Ver perfil"
+                onPress={() => router.push("/(app)/notifications")}
+                accessibilityLabel="Ver notificaciones"
               />
             </View>
 
@@ -145,9 +150,9 @@ const AccountBalanceScreen = () => {
               >
                 <View style={styles.balanceGlow} />
                 <Text style={styles.balanceLabel}>Saldo disponible</Text>
-                <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
+                <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
                 <Text style={styles.balanceHint}>
-                  Actualizado hace 1 min - Cuentas conectadas
+                  Actualizado hace 1 min{totalEnvelopeBalance > 0 ? ` · ${formatCurrency(totalEnvelopeBalance)} en sobres` : ''}
                 </Text>
                 <View style={styles.balanceActions}>
                   <PrimaryButton
@@ -238,7 +243,7 @@ const AccountBalanceScreen = () => {
                         ? "Organiza tus ingresos en sobres para visualizar objetivos claros."
                         : `Tienes ${envelopes.length} ${
                             envelopes.length === 1 ? "sobre" : "sobres"
-                          } con ${formatCurrency(totalEnvelopeBalance)} reservados.`}
+                          } con ${formatCurrency(totalEnvelopeBalance)} reservados de ${formatCurrency(balance)} totales.`}
                     </Text>
                   </View>
                   <Pressable

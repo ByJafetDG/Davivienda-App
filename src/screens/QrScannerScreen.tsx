@@ -202,8 +202,8 @@ const QrScannerScreen = () => {
             <Text style={styles.title}>Escanear código QR</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/profile")}
-              accessibilityLabel="Ir a tu perfil"
+              onPress={() => router.push("/(app)/notifications")}
+              accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />
           </View>

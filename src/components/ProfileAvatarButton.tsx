@@ -27,7 +27,7 @@ const ProfileAvatarButton = ({
   onPress,
   size = 52,
   style,
-  accessibilityLabel = "Abrir perfil",
+  accessibilityLabel = "Abrir notificaciones",
   initials,
 }: ProfileAvatarButtonProps) => {
   const { user } = useBankStore();
@@ -85,10 +85,10 @@ const ProfileAvatarButton = ({
             end={{ x: 0.8, y: 0.9 }}
             style={[styles.gloss, { borderRadius: innerRadius }]}
           />
-          {/* Modern profile icon */}
+          {/* Notification shortcut icon */}
           <View style={styles.iconWrap}>
             <MaterialCommunityIcons
-              name="account-circle-outline"
+              name="bell-outline"
               size={Math.round(innerDiameter * 0.56)}
               color={palette.textPrimary}
             />
