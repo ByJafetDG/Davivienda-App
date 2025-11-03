@@ -41,7 +41,7 @@ const MoneyTransferScreen = () => {
     amount?: string;
     note?: string;
   }>();
-  const { contacts, balance, recordContactUsage } = useBankStore();
+  const { contacts, balance, envelopes, recordContactUsage } = useBankStore();
 
   const [contactName, setContactName] = useState("");
   const [phoneRaw, setPhoneRaw] = useState("");
@@ -217,6 +217,19 @@ const MoneyTransferScreen = () => {
       })
       .slice(0, 6);
   }, [contacts]);
+
+  const totalEnvelopeBalance = useMemo(
+    () =>
+      envelopes.reduce((accumulator, envelope) => {
+        return accumulator + envelope.balance;
+      }, 0),
+    [envelopes],
+  );
+
+  const availableBalance = useMemo(
+    () => balance - totalEnvelopeBalance,
+    [balance, totalEnvelopeBalance],
+  );
 
   const handleSelectContact = (contact: Contact) => {
     if (selectedContactId === contact.id) {
@@ -468,9 +481,12 @@ const MoneyTransferScreen = () => {
               style={styles.balanceSummary}
             >
               <Text style={styles.balanceCaption}>Saldo disponible</Text>
-              <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
+              <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
               <Text style={styles.balanceHint}>
-                Recuerda que todo queda almacenado localmente.
+                Actualizado hace 1 min
+                {totalEnvelopeBalance > 0
+                  ? ` · ${formatCurrency(totalEnvelopeBalance)} en sobres`
+                  : ""}
               </Text>
             </MotiView>
 

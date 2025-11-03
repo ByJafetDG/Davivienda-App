@@ -12,6 +12,8 @@ import GlassCard from "@/components/GlassCard";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
+import SingleDatePickerModal, { DateKey, parseDateKey, toDateKey } from "@/components/SingleDatePickerModal";
+import SettlementRangePickerModal from "../components/SettlementRangePickerModal";
 import { RechargeRecord, TransferRecord, useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
@@ -39,13 +41,6 @@ type RecurringChargeView = {
   createdAt: string;
 };
 
-type MonthOption = {
-  key: string;
-  year: number;
-  monthIndex: number;
-  label: string;
-};
-
 const FREQUENCY_OPTIONS: Array<{ id: RecurringFrequency; label: string; description: string; icon: string }> = [
   { id: "weekly", label: "Semanal", description: "Cada 7 días", icon: "calendar-week" },
   { id: "biweekly", label: "Quincenal", description: "Cada 14 días", icon: "calendar-range" },
@@ -61,41 +56,57 @@ const dateTimeFormatter = new Intl.DateTimeFormat("es-CR", {
   hour: "2-digit",
   minute: "2-digit",
 });
+const fullDateFormatter = new Intl.DateTimeFormat("es-CR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
 
-const buildMonthOptions = (count = 6): MonthOption[] => {
-  const now = new Date();
-  return Array.from({ length: count }, (_item, index) => {
-    const date = new Date(now.getFullYear(), now.getMonth() - index, 1);
-    return {
-      key: `${date.getFullYear()}-${date.getMonth()}`,
-      year: date.getFullYear(),
-      monthIndex: date.getMonth(),
-      label: monthFormatter.format(date),
-    };
-  });
+type DateRangeKeys = { start: DateKey | null; end: DateKey | null };
+type SummaryEntry = { name: string; amount: number };
+type SettlementSummary = {
+  inboundTotal: number;
+  inboundCount: number;
+  outboundTotal: number;
+  outboundCount: number;
+  rechargeTotal: number;
+  rechargeCount: number;
+  netFlow: number;
+  topInbound: SummaryEntry[];
+  topOutbound: SummaryEntry[];
 };
 
-const computeMonthlySummary = (
-  option: MonthOption | undefined,
+const EMPTY_SETTLEMENT_SUMMARY: SettlementSummary = {
+  inboundTotal: 0,
+  inboundCount: 0,
+  outboundTotal: 0,
+  outboundCount: 0,
+  rechargeTotal: 0,
+  rechargeCount: 0,
+  netFlow: 0,
+  topInbound: [],
+  topOutbound: [],
+};
+
+const toStartOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const toEndOfDay = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+
+const computeSettlementSummary = (
+  range: DateRangeKeys,
   transfers: TransferRecord[],
   recharges: RechargeRecord[],
-) => {
-  if (!option) {
-    return {
-      inboundTotal: 0,
-      inboundCount: 0,
-      outboundTotal: 0,
-      outboundCount: 0,
-      rechargeTotal: 0,
-      rechargeCount: 0,
-      netFlow: 0,
-      topInbound: [] as Array<{ name: string; amount: number }>,
-      topOutbound: [] as Array<{ name: string; amount: number }>,
-    };
+): SettlementSummary => {
+  if (!range.start || !range.end) {
+    return { ...EMPTY_SETTLEMENT_SUMMARY };
   }
 
-  const start = new Date(option.year, option.monthIndex, 1);
-  const end = new Date(option.year, option.monthIndex + 1, 1);
+  const rangeStart = toStartOfDay(parseDateKey(range.start));
+  const rangeEnd = toEndOfDay(parseDateKey(range.end));
+
+  if (rangeEnd < rangeStart) {
+    return { ...EMPTY_SETTLEMENT_SUMMARY };
+  }
 
   let inboundTotal = 0;
   let inboundCount = 0;
@@ -107,18 +118,17 @@ const computeMonthlySummary = (
 
   transfers.forEach((transfer: TransferRecord) => {
     const date = new Date(transfer.createdAt);
-    if (Number.isNaN(date.getTime()) || date < start || date >= end) {
+    if (Number.isNaN(date.getTime()) || date < rangeStart || date > rangeEnd) {
       return;
     }
+    const key = transfer.contactName || transfer.phone;
     if (transfer.direction === "inbound") {
       inboundTotal += transfer.amount;
       inboundCount += 1;
-      const key = transfer.contactName || transfer.phone;
       inboundByContact.set(key, (inboundByContact.get(key) ?? 0) + transfer.amount);
     } else {
       outboundTotal += transfer.amount;
       outboundCount += 1;
-      const key = transfer.contactName || transfer.phone;
       outboundByContact.set(key, (outboundByContact.get(key) ?? 0) + transfer.amount);
     }
   });
@@ -128,7 +138,7 @@ const computeMonthlySummary = (
 
   recharges.forEach((recharge: RechargeRecord) => {
     const date = new Date(recharge.createdAt);
-    if (Number.isNaN(date.getTime()) || date < start || date >= end) {
+    if (Number.isNaN(date.getTime()) || date < rangeStart || date > rangeEnd) {
       return;
     }
     rechargeTotal += recharge.amount;
@@ -137,12 +147,12 @@ const computeMonthlySummary = (
 
   const netFlow = inboundTotal - (outboundTotal + rechargeTotal);
 
-  const topInbound = Array.from(inboundByContact.entries())
+  const topInbound: SummaryEntry[] = Array.from(inboundByContact.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([name, amount]) => ({ name, amount }));
 
-  const topOutbound = Array.from(outboundByContact.entries())
+  const topOutbound: SummaryEntry[] = Array.from(outboundByContact.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([name, amount]) => ({ name, amount }));
@@ -176,8 +186,6 @@ const computeOccurrences = (start: Date, frequency: RecurringFrequency, count: n
   return occurrences;
 };
 
-type SettlementSummary = ReturnType<typeof computeMonthlySummary>;
-
 const escapeHtml = (value: string | number | null | undefined) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -199,7 +207,7 @@ const buildSettlementReportHtml = (options: {
   const inboundList = summary.topInbound.length
     ? summary.topInbound
         .map(
-          (item, index) => `
+          (item: SummaryEntry, index: number) => `
             <li class="list-item">
               <span class="badge">${index + 1}</span>
               <div class="list-text">
@@ -215,7 +223,7 @@ const buildSettlementReportHtml = (options: {
   const outboundList = summary.topOutbound.length
     ? summary.topOutbound
         .map(
-          (item, index) => `
+          (item: SummaryEntry, index: number) => `
             <li class="list-item">
               <span class="badge">${index + 1}</span>
               <div class="list-text">
@@ -489,14 +497,54 @@ const ChargesScreen = () => {
   const [recurringCharges, setRecurringCharges] = useState<RecurringChargeView[]>([]);
   const [recurringError, setRecurringError] = useState<string | null>(null);
   const [recurringStatus, setRecurringStatus] = useState<string | null>(null);
+  const [startDatePickerVisible, setStartDatePickerVisible] = useState(false);
 
-  const monthOptions = useMemo(() => buildMonthOptions(), []);
-  const [selectedMonthKey, setSelectedMonthKey] = useState(() => monthOptions[0]?.key ?? "");
-  const selectedMonth = monthOptions.find((option) => option.key === selectedMonthKey) ?? monthOptions[0];
+  const [settlementRange, setSettlementRange] = useState<DateRangeKeys>(() => {
+    const now = new Date();
+    const start = toDateKey(new Date(now.getFullYear(), now.getMonth(), 1));
+    const end = toDateKey(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+    return { start, end };
+  });
+  const [settlementRangePickerVisible, setSettlementRangePickerVisible] = useState(false);
   const settlementSummary = useMemo(
-    () => computeMonthlySummary(selectedMonth, transfers, recharges),
-    [selectedMonth, transfers, recharges],
+    () => computeSettlementSummary(settlementRange, transfers, recharges),
+    [settlementRange, transfers, recharges],
   );
+  const settlementRangeLabel = useMemo(() => {
+    if (!settlementRange.start || !settlementRange.end) {
+      return "Selecciona un periodo";
+    }
+    const startDate = parseDateKey(settlementRange.start);
+    const endDate = parseDateKey(settlementRange.end);
+    const sameMonth =
+      startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth();
+    const monthLastDay = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
+    const isFullMonth = sameMonth && startDate.getDate() === 1 && endDate.getDate() === monthLastDay;
+    if (isFullMonth) {
+      return monthFormatter.format(startDate);
+    }
+    const startLabel = startDate.toLocaleDateString("es-CR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const endLabel = endDate.toLocaleDateString("es-CR", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    return `${startLabel} — ${endLabel}`;
+  }, [settlementRange]);
+  const recurringStartDateDisplay = useMemo(() => {
+    if (!recurringStartDate) {
+      return "";
+    }
+    const parsed = parseDateKey(recurringStartDate);
+    if (Number.isNaN(parsed.getTime())) {
+      return "";
+    }
+    return fullDateFormatter.format(parsed);
+  }, [recurringStartDate]);
   const [settlementStatus, setSettlementStatus] = useState<string | null>(null);
 
   const handleSplitLabelChange = (value: string) => {
@@ -601,6 +649,20 @@ const ChargesScreen = () => {
     setRecurringStartDate(value);
   };
 
+  const handleOpenRecurringStartDatePicker = () => {
+    setRecurringError(null);
+    setRecurringStatus(null);
+    if (startDatePickerVisible) {
+      return;
+    }
+    setStartDatePickerVisible(true);
+  };
+
+  const handleRecurringStartDateConfirm = (value: string) => {
+    handleRecurringStartDateChange(value);
+    setStartDatePickerVisible(false);
+  };
+
   const handleFrequencySelect = (value: RecurringFrequency) => {
     setRecurringError(null);
     setRecurringStatus(null);
@@ -612,7 +674,7 @@ const ChargesScreen = () => {
 
     const label = recurringLabel.trim();
     const amount = parseAmountToNumber(recurringAmountRaw);
-    const start = new Date(recurringStartDate);
+    const start = parseDateKey(recurringStartDate);
 
     if (!label) {
       setRecurringError("Asigna un nombre al cobro recurrente.");
@@ -623,7 +685,7 @@ const ChargesScreen = () => {
       return;
     }
     if (Number.isNaN(start.getTime())) {
-      setRecurringError("Selecciona una fecha de inicio válida (AAAA-MM-DD).");
+      setRecurringError("Selecciona una fecha de inicio válida.");
       return;
     }
 
@@ -646,24 +708,37 @@ const ChargesScreen = () => {
     setRecurringAmountRaw("");
   };
 
-  const handleSelectMonth = (key: string) => {
+  const handleOpenSettlementRangePicker = () => {
     setSettlementStatus(null);
-    setSelectedMonthKey(key);
+    setSettlementRangePickerVisible(true);
+  };
+
+  const handleSettlementRangeApply = (range: { start: DateKey; end: DateKey }) => {
+    setSettlementRange(range);
+    setSettlementRangePickerVisible(false);
+    setSettlementStatus(null);
+  };
+
+  const handleSettlementRangeCancel = () => {
+    setSettlementRangePickerVisible(false);
   };
 
   const handleGenerateSettlement = async () => {
-    const monthLabel = selectedMonth?.label ?? monthFormatter.format(new Date());
+    const periodLabel =
+      settlementRange.start && settlementRange.end
+        ? settlementRangeLabel
+        : monthFormatter.format(new Date());
     setSettlementStatus("Generando PDF de liquidación…");
 
     try {
       const html = buildSettlementReportHtml({
-        monthLabel,
+        monthLabel: periodLabel,
         summary: settlementSummary,
         generatedAt: new Date(),
       });
 
       const { uri, base64 } = await Print.printToFileAsync({ html, base64: true });
-      const sanitizedLabel = monthLabel.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
+      const sanitizedLabel = periodLabel.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
       const fileName = `Liquidacion_${sanitizedLabel || "mes"}_${Date.now()}.pdf`;
       let fileUri = uri;
 
@@ -694,7 +769,7 @@ const ChargesScreen = () => {
       const shareResult = await Share.share(
         {
           url: fileUri,
-          message: `Liquidación ${monthLabel}`,
+          message: `Liquidación ${periodLabel}`,
         },
         { dialogTitle: "Compartir liquidación" },
       );
@@ -839,7 +914,7 @@ const ChargesScreen = () => {
                 <View style={styles.cardHeaderTextWrap}>
                   <Text style={styles.sectionTitle}>Cobros recurrentes</Text>
                   <MarqueeText
-                    text="Programa recordatorios automáticos para membresías, rentas o cobros periódicos."
+                    text="Programa recordatorios automáticos para cobros periódicos."
                     containerStyle={styles.cardHintContainer}
                     textStyle={styles.cardHint}
                   />
@@ -873,17 +948,26 @@ const ChargesScreen = () => {
                     <MaterialCommunityIcons name="cash-sync" size={20} color={palette.accentCyan} />
                   }
                 />
-                <NeonTextField
-                  label="Fecha de inicio"
-                  placeholder="2025-10-15"
-                  value={recurringStartDate}
-                  onChangeText={handleRecurringStartDateChange}
-                  keyboardType="numbers-and-punctuation"
-                  helpText="Formato AAAA-MM-DD"
-                  icon={
-                    <MaterialCommunityIcons name="calendar" size={20} color={palette.accentCyan} />
-                  }
-                />
+                <View style={styles.datePickerFieldWrapper}>
+                  <NeonTextField
+                    label="Fecha de inicio"
+                    placeholder="Selecciona una fecha"
+                    value={recurringStartDateDisplay}
+                    editable={false}
+                    caretHidden
+                    showSoftInputOnFocus={false}
+                    selectTextOnFocus={false}
+                    icon={
+                      <MaterialCommunityIcons name="calendar" size={20} color={palette.accentCyan} />
+                    }
+                  />
+                  <Pressable
+                    style={styles.datePickerOverlay}
+                    accessibilityRole="button"
+                    accessibilityLabel="Seleccionar fecha de inicio"
+                    onPress={handleOpenRecurringStartDatePicker}
+                  />
+                </View>
               </View>
 
               <View style={styles.chipRow}>
@@ -958,26 +1042,25 @@ const ChargesScreen = () => {
                 </View>
               </View>
 
-              <View style={styles.monthSelector}>
-                {monthOptions.map((option) => (
-                  <Pressable
-                    key={option.key}
-                    onPress={() => handleSelectMonth(option.key)}
-                    style={[
-                      styles.monthChip,
-                      selectedMonthKey === option.key && styles.monthChipActive,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.monthChipLabel,
-                        selectedMonthKey === option.key && styles.monthChipLabelActive,
-                      ]}
-                    >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                ))}
+              <View style={styles.datePickerFieldWrapper}>
+                <NeonTextField
+                  label="Periodo analizado"
+                  placeholder="Selecciona un periodo"
+                  value={settlementRangeLabel}
+                  editable={false}
+                  caretHidden
+                  showSoftInputOnFocus={false}
+                  selectTextOnFocus={false}
+                  icon={
+                    <MaterialCommunityIcons name="calendar-range" size={20} color={palette.accentCyan} />
+                  }
+                />
+                <Pressable
+                  style={styles.datePickerOverlay}
+                  accessibilityRole="button"
+                  accessibilityLabel="Seleccionar periodo para la liquidación"
+                  onPress={handleOpenSettlementRangePicker}
+                />
               </View>
 
               <View style={styles.summaryGrid}>
@@ -1019,7 +1102,7 @@ const ChargesScreen = () => {
               <View style={styles.topContacts}>
                 <Text style={styles.topContactsTitle}>Destinos destacados</Text>
                 {settlementSummary.topOutbound.length > 0 ? (
-                  settlementSummary.topOutbound.map((item) => (
+                  settlementSummary.topOutbound.map((item: SummaryEntry) => (
                     <View key={item.name} style={styles.topContactRow}>
                       <View style={styles.topContactBadge}>
                         <MaterialCommunityIcons
@@ -1040,7 +1123,7 @@ const ChargesScreen = () => {
               <View style={styles.topContacts}>
                 <Text style={styles.topContactsTitle}>Remitentes destacados</Text>
                 {settlementSummary.topInbound.length > 0 ? (
-                  settlementSummary.topInbound.map((item) => (
+                  settlementSummary.topInbound.map((item: SummaryEntry) => (
                     <View key={item.name} style={styles.topContactRow}>
                       <View style={styles.topContactBadge}>
                         <MaterialCommunityIcons
@@ -1069,6 +1152,20 @@ const ChargesScreen = () => {
           </MotiView>
         </ScrollView>
       </View>
+      <SingleDatePickerModal
+        visible={startDatePickerVisible}
+        initialDate={recurringStartDate || null}
+        onCancel={() => setStartDatePickerVisible(false)}
+        onConfirm={handleRecurringStartDateConfirm}
+        title="Selecciona la fecha de inicio"
+        confirmLabel="Guardar"
+      />
+      <SettlementRangePickerModal
+        visible={settlementRangePickerVisible}
+        initialRange={settlementRange}
+        onCancel={handleSettlementRangeCancel}
+        onApply={handleSettlementRangeApply}
+      />
     </FuturisticBackground>
   );
 };
@@ -1138,6 +1235,18 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     marginTop: 2,
     marginBottom: 2,
+  },
+  datePickerFieldWrapper: {
+    position: "relative",
+  },
+  datePickerOverlay: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: 20,
+    zIndex: 1,
   },
   screen: {
     flex: 1,
@@ -1288,13 +1397,16 @@ const styles = StyleSheet.create({
   },
   chipRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
+    alignItems: "stretch",
+    gap: 12,
     marginBottom: 12,
   },
   chip: {
+    flex: 1,
+    minWidth: 0,
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+    gap: 6,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
@@ -1307,6 +1419,7 @@ const styles = StyleSheet.create({
   chipLabel: {
     color: palette.textSecondary,
     fontWeight: "700",
+    textAlign: "center",
   },
   chipLabelActive: {
     color: palette.textPrimary,
@@ -1315,6 +1428,7 @@ const styles = StyleSheet.create({
     color: palette.textSecondary,
     fontSize: 11,
     marginTop: 4,
+    textAlign: "center",
   },
   recurringList: {
     marginTop: 12,
@@ -1369,33 +1483,6 @@ const styles = StyleSheet.create({
     color: palette.textSecondary,
     fontSize: 12,
     marginTop: 12,
-  },
-  monthSelector: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 18,
-  },
-  monthChip: {
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  monthChipActive: {
-    borderColor: palette.accentCyan,
-    backgroundColor: "rgba(0, 240, 255, 0.16)",
-  },
-  monthChipLabel: {
-    color: palette.textSecondary,
-    fontSize: 13,
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-  monthChipLabelActive: {
-    color: palette.textPrimary,
   },
   summaryGrid: {
     flexDirection: "row",

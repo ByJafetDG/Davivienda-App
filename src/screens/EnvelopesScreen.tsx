@@ -11,6 +11,7 @@ import {
   Alert,
   Keyboard,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -419,13 +420,15 @@ const EnvelopesScreen = () => {
 
   return (
     <FuturisticBackground>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.touchableContainer}>
-          <ScrollView
-            contentContainerStyle={styles.scroll}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+      <View style={styles.touchableContainer}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          onScrollBeginDrag={Keyboard.dismiss}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.container}>
               <View style={styles.header}>
                 <Pressable
@@ -758,9 +761,9 @@ const EnvelopesScreen = () => {
                 </GlassCard>
               </MotiView>
             </View>
-          </ScrollView>
-        </View>
-      </TouchableWithoutFeedback>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </View>
 
       <EnvelopeFormModal
         visible={envelopeModalVisible}
@@ -918,16 +921,18 @@ const EnvelopeFormModal = ({
             </View>
             {error ? <Text style={styles.modalError}>{error}</Text> : null}
             <View style={styles.modalActions}>
-              <Pressable
+              <PrimaryButton
+                label="Cancelar"
                 onPress={onClose}
-                style={styles.modalSecondaryButton}
-                accessibilityRole="button"
-              >
-                <Text style={styles.modalSecondaryLabel}>Cancelar</Text>
-              </Pressable>
+                variant="ghost"
+                compact
+                style={styles.modalPrimaryButton}
+              />
               <PrimaryButton
                 label={mode === "create" ? "Crear" : "Guardar"}
                 onPress={onSubmit}
+                style={styles.modalPrimaryButton}
+                compact
               />
             </View>
           </MotiView>
@@ -1029,14 +1034,19 @@ const AllocationModal = ({
             />
             {error ? <Text style={styles.modalError}>{error}</Text> : null}
             <View style={styles.modalActions}>
-              <Pressable
+              <PrimaryButton
+                label="Cancelar"
                 onPress={onClose}
-                style={styles.modalSecondaryButton}
-                accessibilityRole="button"
-              >
-                <Text style={styles.modalSecondaryLabel}>Cancelar</Text>
-              </Pressable>
-              <PrimaryButton label="Guardar" onPress={onSubmit} />
+                variant="ghost"
+                compact
+                style={styles.modalPrimaryButton}
+              />
+              <PrimaryButton
+                label="Guardar"
+                onPress={onSubmit}
+                style={styles.modalPrimaryButton}
+                compact
+              />
             </View>
           </MotiView>
         </View>
@@ -1175,25 +1185,29 @@ const AutomationFormModal = ({
             </View>
             {error ? <Text style={styles.modalError}>{error}</Text> : null}
             <View style={styles.modalActions}>
-              <Pressable
+              <PrimaryButton
+                label="Cancelar"
                 onPress={onClose}
-                style={styles.modalSecondaryButton}
-                accessibilityRole="button"
-              >
-                <Text style={styles.modalSecondaryLabel}>Cancelar</Text>
-              </Pressable>
+                variant="ghost"
+                compact
+                style={styles.modalPrimaryButton}
+              />
               {onRemove ? (
-                <Pressable
-                  onPress={onRemove}
-                  style={[styles.modalSecondaryButton, styles.modalDangerButton]}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.modalDangerLabel}>Eliminar</Text>
-                </Pressable>
+                <View style={styles.modalPrimaryButton}>
+                  <Pressable
+                    onPress={onRemove}
+                    style={styles.modalDangerPressable}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.modalDangerLabel}>Eliminar</Text>
+                  </Pressable>
+                </View>
               ) : null}
               <PrimaryButton
                 label={mode === "create" ? "Crear" : "Guardar"}
                 onPress={onSubmit}
+                style={styles.modalPrimaryButton}
+                compact
               />
             </View>
           </MotiView>
@@ -1370,16 +1384,21 @@ const styles = StyleSheet.create({
   },
   envelopeActionsRow: {
     flexDirection: "row",
-    gap: 8,
+    flexWrap: "wrap",
+    gap: 10,
+    justifyContent: "space-between",
   },
   chipButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.06)",
+    flexGrow: 0,
+    width: "48%",
   },
   chipDanger: {
     backgroundColor: "rgba(255, 68, 68, 0.1)",
@@ -1470,11 +1489,14 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 8,
+    alignItems: "stretch",
+    gap: 10,
+    marginTop: 16,
   },
   modalSecondaryButton: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 0,
+    minWidth: 0,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 18,
@@ -1490,7 +1512,31 @@ const styles = StyleSheet.create({
   },
   modalDangerLabel: {
     color: palette.danger,
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 14,
+    lineHeight: 16,
+    textAlign: "center",
+    textAlignVertical: "center",
+  },
+  modalDangerPressable: {
+    flex: 1,
+    width: "100%",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: "rgba(255, 68, 68, 0.14)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 68, 68, 0.4)",
+    shadowColor: palette.danger,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  modalPrimaryButton: {
+    flexGrow: 1,
+    flexBasis: 0,
+    minWidth: 0,
   },
   swatchGrid: {
     flexDirection: "row",
