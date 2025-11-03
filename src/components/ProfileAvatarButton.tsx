@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleProp,
   StyleSheet,
+  Text,
   View,
   ViewStyle,
 } from "react-native";
@@ -30,9 +31,20 @@ const ProfileAvatarButton = ({
   accessibilityLabel = "Abrir notificaciones",
   initials,
 }: ProfileAvatarButtonProps) => {
-  const { user } = useBankStore();
+  const { user, notifications } = useBankStore();
   // keep initials prop for possible future use but we render a modern icon instead
   const displayName = useMemo(() => initials ?? user?.name ?? "", [initials, user?.name]);
+  const unreadCount = useMemo(
+    () => notifications.filter((notification) => !notification.read).length,
+    [notifications],
+  );
+  const badgeLabel = useMemo(() => {
+    if (unreadCount > 99) {
+      return "99+";
+    }
+    return String(unreadCount);
+  }, [unreadCount]);
+  const showBadge = unreadCount > 0;
 
   const radius = size / 2;
   const ringThickness = Math.max(2, size * 0.12);
@@ -60,6 +72,24 @@ const ProfileAvatarButton = ({
       ]}
       hitSlop={8}
     >
+      {showBadge ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.badge,
+            {
+              minWidth: Math.max(18, size * 0.34),
+              height: Math.max(18, size * 0.34),
+              borderRadius: Math.max(9, size * 0.17),
+              top: Math.max(-4, -size * 0.1),
+              right: Math.max(-2, -size * 0.08),
+              paddingHorizontal: Math.max(4, size * 0.08),
+            },
+          ]}
+        >
+          <Text style={styles.badgeLabel}>{badgeLabel}</Text>
+        </View>
+      ) : null}
       <LinearGradient
         colors={OUTER_GRADIENT}
         start={{ x: 0, y: 0 }}
@@ -106,6 +136,7 @@ const styles = StyleSheet.create({
     shadowColor: "#7A2BFF",
     elevation: 8,
     backgroundColor: "transparent",
+    position: "relative",
   },
   gradient: {
     flex: 1,
@@ -131,6 +162,24 @@ const styles = StyleSheet.create({
   iconWrap: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  badge: {
+    position: "absolute",
+    zIndex: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderWidth: 1,
+    borderColor: "rgba(122, 43, 255, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  badgeLabel: {
+    color: palette.primary,
+    fontSize: 11,
+    fontWeight: "700",
   },
 });
 
