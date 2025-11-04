@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, cloneElement, isValidElement, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -73,17 +73,25 @@ const NeonTextField = ({
         transition={{ type: "timing", duration: 200 }}
       >
         <LinearGradient
-          colors={[palette.elevatedSurface, palette.surface]}
+          colors={[palette.cardGradientStart, palette.cardGradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
         >
           <View style={styles.fieldSurface}>
-            {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
+            {icon ? (
+              <View style={styles.iconContainer}>
+                {isValidElement(icon)
+                  ? cloneElement(icon as any, {
+                      color: palette.textPrimary,
+                    })
+                  : icon}
+              </View>
+            ) : null}
             <TextInput
               placeholderTextColor={palette.textMuted}
               style={[styles.input, style]}
-              selectionColor={palette.accentCyan}
+              selectionColor={palette.primary}
               onFocus={handleFocus}
               onBlur={handleBlur}
               {...inputProps}
@@ -150,10 +158,10 @@ const styles = StyleSheet.create({
   },
   animatedShell: {
     borderRadius: 24,
-    shadowColor: palette.accentCyan,
+    shadowColor: "rgba(240, 68, 44, 0.6)",
   },
   fieldSurface: {
-    backgroundColor: "rgba(7, 17, 31, 0.7)",
+    backgroundColor: "rgba(58, 10, 16, 0.78)",
     borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
@@ -167,7 +175,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   input: {
     flex: 1,
@@ -187,7 +195,7 @@ const styles = StyleSheet.create({
     left: 0,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.2)",
+    borderColor: "rgba(240, 68, 44, 0.28)",
   },
 });
 

@@ -145,10 +145,10 @@ const AccountBalanceScreen = () => {
               transition={{ type: "timing", duration: 480 }}
             >
               <LinearGradient
-                colors={["#0B1F3F", "#081027"]}
+                colors={["rgba(194, 61, 56, 0.82)", "rgba(122, 24, 28, 0.6)"]}
                 style={styles.balanceCard}
               >
-                <View style={styles.balanceGlow} />
+                <View style={styles.balanceVeil} />
                 <Text style={styles.balanceLabel}>Saldo disponible</Text>
                 <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
                 <Text style={styles.balanceHint}>
@@ -412,14 +412,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     gap: 22,
   },
-  balanceGlow: {
+  balanceVeil: {
     position: "absolute",
-    top: -80,
-    right: -80,
-    bottom: -80,
-    left: -80,
-    borderRadius: 400,
-    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    top: -60,
+    right: -60,
+    bottom: -60,
+    left: -60,
+    borderRadius: 360,
+    backgroundColor: "rgba(86, 86, 86, 0.48)",
   },
   balanceLabel: {
     color: palette.textMuted,

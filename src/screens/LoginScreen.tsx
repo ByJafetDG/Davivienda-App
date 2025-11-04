@@ -553,9 +553,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 28,
     padding: 24,
-    backgroundColor: "rgba(8, 16, 34, 0.75)",
+    backgroundColor: "rgba(86, 86, 86, 0.48)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: "rgba(255, 255, 255, 1)",
     gap: 20,
   },
   cardTitle: {

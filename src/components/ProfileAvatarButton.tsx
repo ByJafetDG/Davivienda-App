@@ -21,8 +21,8 @@ type ProfileAvatarButtonProps = {
   initials?: string;
 };
 
-const OUTER_GRADIENT = ["#00F6A2", "#7A2BFF", "#FF6CA8"] as const;
-const INNER_GRADIENT = ["#111C33", "#070E1C"] as const;
+const OUTER_GRADIENT = ["#F0442C", "#F2643C", "#F8991D"] as const;
+const INNER_GRADIENT = ["#3A0A10", "#4A1016"] as const;
 
 const ProfileAvatarButton = ({
   onPress,
@@ -110,7 +110,7 @@ const ProfileAvatarButton = ({
           ]}
         >
           <LinearGradient
-            colors={["rgba(255,255,255,0.18)", "transparent"]}
+            colors={["rgba(240, 68, 44, 0.24)", "transparent"]}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 0.8, y: 0.9 }}
             style={[styles.gloss, { borderRadius: innerRadius }]}
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#7A2BFF",
+    shadowColor: "rgba(240, 68, 44, 0.45)",
     elevation: 8,
     backgroundColor: "transparent",
     position: "relative",
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255, 205, 180, 0.18)",
     overflow: "hidden",
   },
   gloss: {
@@ -166,9 +166,9 @@ const styles = StyleSheet.create({
   badge: {
     position: "absolute",
     zIndex: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: "rgba(255, 247, 245, 0.96)",
     borderWidth: 1,
-    borderColor: "rgba(122, 43, 255, 0.4)",
+    borderColor: "rgba(221, 20, 29, 0.3)",
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",

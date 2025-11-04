@@ -28,36 +28,36 @@ type AuroraConfig = {
 
 const ORBS: OrbConfig[] = [
   {
-    size: 320,
-    position: { top: -140, left: -100 },
-    colors: ["rgba(76, 234, 247, 0.32)", "rgba(13, 24, 60, 0.1)"],
-    translate: { x: 70, y: 90 },
-    duration: 14000,
+    size: 360,
+    position: { top: -160, left: -120 },
+    colors: ["rgba(248, 92, 47, 0.32)", "rgba(221, 20, 29, 0.1)"],
+    translate: { x: 60, y: 80 },
+    duration: 13800,
     delay: 0,
   },
   {
-    size: 260,
-    position: { top: 160, right: -90 },
-    colors: ["rgba(141, 132, 255, 0.3)", "rgba(21, 13, 52, 0.1)"],
-    translate: { x: -80, y: -70 },
-    duration: 11800,
-    delay: 800,
+    size: 280,
+    position: { top: 120, right: -80 },
+    colors: ["rgba(240, 68, 44, 0.28)", "rgba(255, 225, 28, 0.12)"],
+    translate: { x: -70, y: -60 },
+    duration: 11600,
+    delay: 600,
   },
   {
-    size: 220,
-    position: { bottom: -110, left: 20 },
-    colors: ["rgba(255, 134, 232, 0.28)", "rgba(25, 14, 46, 0.12)"],
-    translate: { x: 40, y: -60 },
-    duration: 12600,
+    size: 240,
+    position: { bottom: -120, left: 10 },
+    colors: ["rgba(221, 20, 29, 0.3)", "rgba(89, 19, 29, 0.12)"],
+    translate: { x: 50, y: -70 },
+    duration: 12400,
     delay: 400,
   },
   {
-    size: 180,
-    position: { top: 80, left: 110 },
-    colors: ["rgba(33, 245, 193, 0.24)", "rgba(10, 20, 32, 0.08)"],
-    translate: { x: -40, y: 70 },
-    duration: 10200,
-    delay: 1200,
+    size: 200,
+    position: { top: 80, left: 120 },
+    colors: ["rgba(255, 199, 37, 0.24)", "rgba(240, 67, 44, 0.1)"],
+    translate: { x: -50, y: 60 },
+    duration: 10400,
+    delay: 1100,
   },
 ];
 
@@ -65,9 +65,9 @@ const AURORAS: AuroraConfig[] = [
   {
     width: 420,
     height: 280,
-    position: { top: -80, right: -120 },
+    position: { top: -60, right: -120 },
     rotation: "18deg",
-    colors: ["rgba(141, 132, 255, 0.22)", "rgba(0, 0, 0, 0)"],
+    colors: ["rgba(240, 67, 44, 0.26)", "rgba(221, 20, 29, 0)"],
     opacity: 0.45,
     duration: 12000,
     delay: 0,
@@ -75,21 +75,21 @@ const AURORAS: AuroraConfig[] = [
   {
     width: 360,
     height: 260,
-    position: { bottom: -100, left: -60 },
+    position: { bottom: -120, left: -60 },
     rotation: "-24deg",
-    colors: ["rgba(76, 234, 247, 0.2)", "rgba(0, 0, 0, 0)"],
-    opacity: 0.4,
-    duration: 10800,
-    delay: 600,
+    colors: ["rgba(255, 193, 37, 0.22)", "rgba(221, 20, 29, 0)"],
+    opacity: 0.42,
+    duration: 11000,
+    delay: 500,
   },
   {
     width: 320,
     height: 220,
     position: { top: 140, left: 40 },
     rotation: "12deg",
-    colors: ["rgba(255, 134, 232, 0.18)", "rgba(0, 0, 0, 0)"],
+    colors: ["rgba(248, 107, 36, 0.2)", "rgba(221, 20, 29, 0)"],
     opacity: 0.36,
-    duration: 13500,
+    duration: 13200,
     delay: 900,
   },
 ];
@@ -98,7 +98,7 @@ const FuturisticBackground = ({ children }: PropsWithChildren) => {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={[palette.background, "#061028", "#090b1f"]}
+        colors={[palette.background, "#410707ff", "#7C131D"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -111,7 +111,7 @@ const FuturisticBackground = ({ children }: PropsWithChildren) => {
         transition={{ loop: true, type: "timing", duration: 9000 }}
       >
         <LinearGradient
-          colors={["rgba(0, 240, 255, 0.12)", "transparent"]}
+          colors={["rgba(255, 37, 37, 0.12)", "transparent"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   noiseLayer: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.08,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255, 220, 210, 0.12)",
   },
   auroraLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     opacity: 0.4,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.04)",
+    borderColor: "rgba(255, 255, 255, 0.05)",
   },
   orbLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
   },
   orbHighlight: {
     position: "absolute",
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: 999,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    backgroundColor: "rgba(255, 180, 150, 0.18)",
     opacity: 0.3,
   },
 });

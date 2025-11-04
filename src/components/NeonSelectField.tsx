@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { AnimatePresence, MotiView } from "moti";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, cloneElement, isValidElement, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 import { palette } from "@/theme/colors";
@@ -75,7 +75,7 @@ const NeonSelectField = ({
         transition={{ type: "timing", duration: 200 }}
       >
         <LinearGradient
-          colors={[palette.elevatedSurface, palette.surface]}
+          colors={[palette.cardGradientStart, palette.cardGradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -87,7 +87,15 @@ const NeonSelectField = ({
             disabled={disabled}
             style={[styles.fieldSurface, disabled && styles.fieldDisabled]}
           >
-            {icon ? <View style={styles.iconContainer}>{icon}</View> : null}
+            {icon ? (
+              <View style={styles.iconContainer}>
+                {isValidElement(icon)
+                  ? cloneElement(icon as any, {
+                      color: palette.textPrimary,
+                    })
+                  : icon}
+              </View>
+            ) : null}
             <Text
               style={[
                 styles.valueText,
@@ -173,10 +181,10 @@ const styles = StyleSheet.create({
   },
   animatedShell: {
     borderRadius: 24,
-    shadowColor: palette.accentCyan,
+    shadowColor: "rgba(240, 68, 44, 0.6)",
   },
   fieldSurface: {
-    backgroundColor: "rgba(7, 17, 31, 0.7)",
+    backgroundColor: "rgba(58, 10, 16, 0.78)",
     borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
@@ -193,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   valueText: {
     flex: 1,
@@ -213,14 +221,14 @@ const styles = StyleSheet.create({
     left: 0,
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.2)",
+    borderColor: "rgba(240, 68, 44, 0.35)",
   },
   optionsWrapper: {
     marginTop: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-    backgroundColor: "rgba(8, 16, 34, 0.85)",
+    borderColor: "rgba(255, 205, 180, 0.16)",
+    backgroundColor: "rgba(58, 10, 16, 0.94)",
     overflow: "hidden",
   },
   optionRow: {
@@ -228,10 +236,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     gap: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255, 255, 255, 0.06)",
+    borderColor: "rgba(255, 205, 180, 0.12)",
   },
   optionSelected: {
-    backgroundColor: "rgba(0, 240, 255, 0.08)",
+    backgroundColor: "rgba(240, 68, 44, 0.18)",
   },
   optionLabel: {
     color: palette.textPrimary,

@@ -32,42 +32,42 @@ const items: BottomNavItem[] = [
     label: "Saldo",
     icon: "wallet",
     route: "/(app)/home",
-    accent: "#63F7B0",
+    accent: "#F0442C",
   },
   {
     key: "transfer",
     label: "Transferir",
     icon: "bank-transfer",
     route: "/(app)/transfer",
-    accent: "#FF86E8",
+    accent: "#F8991D",
   },
   {
     key: "history",
     label: "Historial",
     icon: "history",
     route: "/(app)/history",
-    accent: "#8D84FF",
+    accent: "#DD141D",
   },
   {
     key: "recharge",
     label: "Recarga",
     icon: "cellphone-nfc",
     route: "/(app)/mobile-recharge",
-    accent: "#4CEAF7",
+    accent: "#FFE01C",
   },
   {
     key: "charges",
     label: "Cobros",
     icon: "hand-coin-outline",
     route: "/(app)/charges",
-    accent: "#FFB786",
+    accent: "#F58220",
   },
   {
     key: "profile",
     label: "Perfil",
     icon: "account-circle",
     route: "/(app)/profile",
-    accent: "#21F5C1",
+    accent: "#0082C4",
   },
 ];
 
@@ -79,12 +79,12 @@ type ItemLayout = {
 };
 
 const indicatorGradients: Record<string, [string, string]> = {
-  balance: ["#63F7B0", "#1B3D69"],
-  transfer: ["#FF86E8", "#3E1B5D"],
-  history: ["#8D84FF", "#2A2981"],
-  recharge: ["#4CEAF7", "#144E72"],
-  charges: ["#FFB786", "#56321F"],
-  profile: ["#21F5C1", "#174D45"],
+  balance: ["#F0442C", "#7C131D"],
+  transfer: ["#F8991D", "#C12A14"],
+  history: ["#DD141D", "#550A12"],
+  recharge: ["#FFE01C", "#F0442C"],
+  charges: ["#F58220", "#7A1A0F"],
+  profile: ["#0082C4", "#0B3A52"],
 };
 
 const segmentToKey: Record<string, BottomNavItem["key"]> = {
@@ -262,7 +262,7 @@ const BottomNavigationBar = () => {
         { paddingBottom: Math.max(insets.bottom, 10) + 18 },
       ]}
     >
-  <View style={styles.bar}>
+      <View style={styles.bar}>
         <MotiView
           pointerEvents="none"
           style={styles.indicator}
@@ -367,10 +367,10 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     paddingHorizontal: 12,
     paddingVertical: 14,
-    backgroundColor: "rgba(8, 13, 26, 0.92)",
+    backgroundColor: "rgba(42, 4, 7, 0.94)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-    shadowColor: "#040621",
+    borderColor: "rgba(255, 205, 180, 0.14)",
+    shadowColor: "rgba(221, 20, 29, 0.45)",
     shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.25,
     shadowRadius: 32,
@@ -387,9 +387,9 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     borderRadius: 26,
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
     overflow: "hidden",
-    shadowColor: "rgba(0,0,0,0.45)",
+    shadowColor: "rgba(240, 68, 44, 0.32)",
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.28,
     shadowRadius: 26,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(240, 68, 44, 0.24)",
   },
   button: {
     flex: 1,
@@ -421,20 +421,20 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(255, 224, 28, 0.08)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(240, 68, 44, 0.16)",
   },
   iconWrapperActive: {
-    backgroundColor: "rgba(255,255,255,0.95)",
+    backgroundColor: "rgba(255, 247, 245, 0.96)",
     borderColor: "transparent",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.34,
+    shadowOpacity: 0.36,
     shadowRadius: 22,
   },
   iconWrapperDisabled: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderColor: "rgba(255,255,255,0.04)",
+    backgroundColor: "rgba(255, 224, 28, 0.04)",
+    borderColor: "rgba(240, 68, 44, 0.08)",
   },
   label: {
     color: palette.textSecondary,
@@ -447,8 +447,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   labelActive: {
-    color: palette.textPrimary,
-    textShadowColor: "rgba(255,255,255,0.3)",
+    color: palette.brandYellow,
+    textShadowColor: "rgba(240, 68, 44, 0.35)",
     textShadowRadius: 6,
   },
   labelDisabled: {
@@ -629,7 +629,7 @@ const NavLabel = ({
             </Text>
           </>
         ) : null}
-  </AnimatedScrollView>
+      </AnimatedScrollView>
     </View>
   );
 };
