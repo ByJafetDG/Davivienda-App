@@ -314,12 +314,26 @@ const Motif = ({ motif, strokeColor }: { motif: MotifConfig; strokeColor: string
 };
 
 const FuturisticBackground = ({ children }: PropsWithChildren) => {
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
   const palette = theme.palette;
+  
+  // Colores específicos por tema
+  const gradientColors: [string, string, string] = themeName === "aurora" 
+    ? [palette.background, "#001a17", "#003d36"]
+    : [palette.background, "#410707ff", "#7C131D"];
+    
+  const accentGradient: [string, string] = themeName === "aurora"
+    ? ["rgba(0, 160, 148, 0.15)", "transparent"]
+    : ["rgba(255, 37, 37, 0.12)", "transparent"];
+    
+  const noiseColor = themeName === "aurora"
+    ? "rgba(0, 240, 255, 0.04)"
+    : "rgba(255, 220, 210, 0.12)";
+  
   return (
     <View style={[styles.root, { backgroundColor: palette.background }]}>
       <LinearGradient
-        colors={[palette.background, "#410707ff", "#7C131D"]}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -332,88 +346,104 @@ const FuturisticBackground = ({ children }: PropsWithChildren) => {
         transition={{ loop: true, type: "timing", duration: 9000 }}
       >
         <LinearGradient
-          colors={["rgba(255, 37, 37, 0.12)", "transparent"]}
+          colors={accentGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
       </MotiView>
-      <View style={styles.noiseLayer} />
+      <View style={[styles.noiseLayer, { backgroundColor: noiseColor }]} />
       <View pointerEvents="none" style={styles.auroraLayer}>
-        {AURORAS.map((aurora, index) => (
-          <MotiView
-            key={`aurora-${index}`}
-            style={[
-              styles.aurora,
-              {
-                width: aurora.width,
-                height: aurora.height,
-                borderRadius: Math.max(aurora.width, aurora.height) / 1.8,
-                ...aurora.position,
-                transform: [{ rotate: aurora.rotation }],
-              },
-            ]}
-            from={{ opacity: aurora.opacity * 0.6, scale: 0.92 }}
-            animate={{ opacity: aurora.opacity, scale: 1.05 }}
-            transition={{
-              loop: true,
-              type: "timing",
-              duration: aurora.duration,
-              delay: aurora.delay,
-              easing: Easing.inOut(Easing.quad),
-            }}
-          >
-            <LinearGradient
-              colors={aurora.colors}
-              start={{ x: 0.1, y: 0 }}
-              end={{ x: 0.9, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </MotiView>
-        ))}
+        {AURORAS.map((aurora, index) => {
+          const auroraColors: [string, string] = themeName === "aurora"
+            ? ["rgba(0, 160, 148, 0.20)", "rgba(0, 240, 255, 0)"]
+            : aurora.colors;
+          
+          return (
+            <MotiView
+              key={`aurora-${index}`}
+              style={[
+                styles.aurora,
+                {
+                  width: aurora.width,
+                  height: aurora.height,
+                  borderRadius: Math.max(aurora.width, aurora.height) / 1.8,
+                  ...aurora.position,
+                  transform: [{ rotate: aurora.rotation }],
+                },
+              ]}
+              from={{ opacity: aurora.opacity * 0.6, scale: 0.92 }}
+              animate={{ opacity: aurora.opacity, scale: 1.05 }}
+              transition={{
+                loop: true,
+                type: "timing",
+                duration: aurora.duration,
+                delay: aurora.delay,
+                easing: Easing.inOut(Easing.quad),
+              }}
+            >
+              <LinearGradient
+                colors={auroraColors}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 0.9, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+            </MotiView>
+          );
+        })}
       </View>
       <View pointerEvents="none" style={styles.orbLayer}>
-        {ORBS.map((orb, index) => (
-          <MotiView
-            key={index}
-            style={[
-              styles.orb,
-              {
-                width: orb.size,
-                height: orb.size,
-                borderRadius: orb.size / 2,
-                ...orb.position,
-              },
-            ]}
-            from={{
-              opacity: 0.2,
-              translateX: 0,
-              translateY: 0,
-              scale: 0.9,
-            }}
-            animate={{
-              opacity: 0.48,
-              translateX: orb.translate.x,
-              translateY: orb.translate.y,
-              scale: 1.05,
-            }}
-            transition={{
-              loop: true,
-              type: "timing",
-              duration: orb.duration,
-              delay: orb.delay,
-              easing: Easing.inOut(Easing.quad),
-            }}
-          >
-            <LinearGradient
-              colors={orb.colors}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.orbHighlight} />
-          </MotiView>
-        ))}
+        {ORBS.map((orb, index) => {
+          const orbColors: [string, string] = themeName === "aurora"
+            ? ["rgba(0, 160, 148, 0.25)", "rgba(0, 201, 184, 0.08)"]
+            : orb.colors;
+            
+          const highlightColor = themeName === "aurora"
+            ? "rgba(0, 240, 255, 0.15)"
+            : "rgba(255, 180, 150, 0.18)";
+          
+          return (
+            <MotiView
+              key={index}
+              style={[
+                styles.orb,
+                {
+                  width: orb.size,
+                  height: orb.size,
+                  borderRadius: orb.size / 2,
+                  ...orb.position,
+                },
+              ]}
+              from={{
+                opacity: 0.2,
+                translateX: 0,
+                translateY: 0,
+                scale: 0.9,
+              }}
+              animate={{
+                opacity: 0.48,
+                translateX: orb.translate.x,
+                translateY: orb.translate.y,
+                scale: 1.05,
+              }}
+              transition={{
+                loop: true,
+                type: "timing",
+                duration: orb.duration,
+                delay: orb.delay,
+                easing: Easing.inOut(Easing.quad),
+              }}
+            >
+              <LinearGradient
+                colors={orbColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={[styles.orbHighlight, { backgroundColor: highlightColor }]} />
+            </MotiView>
+          );
+        })}
       </View>
       {children}
     </View>
@@ -428,7 +458,6 @@ const styles = StyleSheet.create({
   noiseLayer: {
     ...StyleSheet.absoluteFillObject,
     opacity: 0.08,
-    backgroundColor: "rgba(255, 220, 210, 0.12)",
   },
   auroraLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -456,7 +485,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: 999,
-    backgroundColor: "rgba(255, 180, 150, 0.18)",
     opacity: 0.3,
   },
   motifLayer: {

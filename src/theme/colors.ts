@@ -164,11 +164,96 @@ const pioneroComponents: ComponentTokens = {
   },
 };
 
+const auroraPalette: Palette = {
+  background: "#000000",
+  surface: "#0A0A0A",
+  elevatedSurface: "#151515",
+  overlay: "rgba(0, 0, 0, 0.85)",
+  primary: "#00a094",
+  primaryAlt: "#00c9b8",
+  accentCyan: "#00F0FF",
+  accentPurple: "#8F6BFF",
+  accentBlue: "#1B9CFF",
+  softPink: "#ffc3c3ff",
+  brandOrange: "#F8991D",
+  brandBlue: "#0082C4",
+  brandSilver: "#D9D6CE",
+  buttonGradientStart: "#00a094",
+  buttonGradientEnd: "#00c9b8",
+  buttonGlow: "rgba(0, 160, 148, 0.5)",
+  cardGradientStart: "rgba(255,255,255,0.08)",
+  cardGradientEnd: "rgba(0, 160, 148, 0.15)",
+  textPrimary: "#FFFFFF",
+  textSecondary: "rgba(255, 255, 255, 0.78)",
+  textMuted: "rgba(255, 255, 255, 0.52)",
+  success: "#2FD67B",
+  warning: "#FFB648",
+  danger: "#F0442C",
+  border: "rgba(255, 255, 255, 0.12)",
+};
+
+const auroraComponents: ComponentTokens = {
+  card: {
+    background: "rgba(20, 20, 20, 0.60)",
+    border: "rgba(255, 255, 255, 0.15)",
+    borderWidth: 1,
+    shadowColor: "rgba(0, 160, 148, 0.25)",
+    gradient: ["rgba(255,255,255,0.06)", "rgba(0, 160, 148, 0.12)"],
+    overlay: "rgba(255, 255, 255, 0.04)",
+  },
+  glassCard: {
+    gradient: ["rgba(0, 160, 148, 0.25)", "rgba(0, 201, 184, 0.15)"],
+    background: "rgba(20, 20, 20, 0.60)",
+    border: "rgba(255, 255, 255, 0.18)",
+    veil: "rgba(255, 255, 255, 0.06)",
+    innerBorder: "rgba(0, 240, 255, 0.08)",
+  },
+  input: {
+    gradient: ["rgba(0, 160, 148, 0)", "rgba(0, 201, 184, 0)"],
+    background: "rgba(10, 10, 10, 0.90)",
+    iconBackground: "rgba(0, 160, 148, 0.15)",
+    focusGlow: "rgba(0, 240, 255, 1)",
+    border: "rgba(0, 160, 148, 0.8)",
+    placeholder: "rgba(255, 255, 255, 0.4)",
+  },
+  button: {
+    primaryGradient: ["#00a094", "#00c9b8"],
+    primaryGlow: "rgba(0, 160, 148, 0.5)",
+    primaryHighlight: "rgba(255, 255, 255, 0.25)",
+    textPrimary: "#FFFFFF",
+    textGhost: "rgba(255, 255, 255, 0.85)",
+    textGhostDisabled: "rgba(255, 255, 255, 0.35)",
+    ghostGradient: ["rgba(0, 160, 148, 0.15)", "rgba(0, 201, 184, 0.08)"],
+  },
+  icon: {
+    primary: "#FFFFFF",
+    accent: "#00F0FF",
+    muted: "rgba(255, 255, 255, 0.5)",
+  },
+  nav: {
+    background: "rgba(0, 0, 0, 0.95)",
+    border: "rgba(255, 255, 255, 0.08)",
+    indicator: "#00a094",
+    iconActive: "#FFFFFF",
+    iconInactive: "rgba(255, 255, 255, 0.5)",
+    label: "#FFFFFF",
+  },
+  status: {
+    successBackground: "rgba(47, 214, 123, 0.18)",
+    warningBackground: "rgba(255, 182, 72, 0.18)",
+  },
+};
+
 export const themes = {
   pionero: {
     name: "Pionero",
     palette: pioneroPalette,
     components: pioneroComponents,
+  },
+  aurora: {
+    name: "Aurora",
+    palette: auroraPalette,
+    components: auroraComponents,
   },
 } as const;
 

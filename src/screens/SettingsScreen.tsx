@@ -17,6 +17,7 @@ import { themes, type ThemeName } from "@/theme/colors";
 
 const themeCopy: Record<ThemeName, string> = {
   pionero: "Tema original de la aplicación, inspirado en la estética futurista.",
+  aurora: "Tema oscuro minimalista con acentos turquesa elegantes.",
 };
 
 const SettingsScreen = () => {

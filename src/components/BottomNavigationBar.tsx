@@ -27,52 +27,48 @@ export type BottomNavItem = {
   accent: string;
 };
 
-const PRIMARY_ACCENT = themes.pionero.palette.primary;
-const PRIMARY_ACCENT_SOFT = "rgba(221, 20, 29, 0.64)";
-const PRIMARY_ACCENT_FADE = "rgba(221, 20, 29, 0.08)";
-
 const items: BottomNavItem[] = [
   {
     key: "balance",
     label: "Saldo",
     icon: "wallet",
     route: "/(app)/home",
-    accent: PRIMARY_ACCENT,
+    accent: "",
   },
   {
     key: "transfer",
     label: "Transferir",
     icon: "bank-transfer",
     route: "/(app)/transfer",
-    accent: PRIMARY_ACCENT,
+    accent: "",
   },
   {
     key: "history",
     label: "Historial",
     icon: "history",
     route: "/(app)/history",
-    accent: PRIMARY_ACCENT,
+    accent: "",
   },
   {
     key: "recharge",
     label: "Recarga",
     icon: "cellphone-nfc",
     route: "/(app)/mobile-recharge",
-    accent: PRIMARY_ACCENT,
+    accent: "",
   },
   {
     key: "charges",
     label: "Cobros",
     icon: "hand-coin-outline",
     route: "/(app)/charges",
-    accent: PRIMARY_ACCENT,
+    accent: "",
   },
   {
     key: "profile",
     label: "Perfil",
     icon: "account-circle",
     route: "/(app)/profile",
-    accent: PRIMARY_ACCENT,
+    accent: "",
   },
 ];
 
@@ -81,15 +77,6 @@ type ItemLayout = {
   y: number;
   width: number;
   height: number;
-};
-
-const indicatorGradients: Record<string, [string, string]> = {
-  balance: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
-  transfer: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
-  history: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
-  recharge: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
-  charges: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
-  profile: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
 };
 
 const segmentToKey: Record<string, BottomNavItem["key"]> = {
@@ -124,7 +111,7 @@ const BottomNavigationBar = () => {
   const pathname = usePathname();
   const segments = useSegments();
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   
   const [isNavigating, setIsNavigating] = useState(false);
@@ -178,7 +165,29 @@ const BottomNavigationBar = () => {
   };
 
   const activeLayout = layouts[activeKey];
-  const indicatorColors = indicatorGradients[activeKey] ?? indicatorGradients.balance;
+  
+  // Colores dinámicos del indicador según el tema
+  const indicatorColors = useMemo<[string, string]>(() => {
+    const primarySoft = themeName === "aurora" 
+      ? "rgba(0, 160, 148, 0.64)" 
+      : "rgba(221, 20, 29, 0.64)";
+    const primaryFade = themeName === "aurora"
+      ? "rgba(0, 160, 148, 0.08)"
+      : "rgba(221, 20, 29, 0.08)";
+    return [primarySoft, primaryFade];
+  }, [themeName]);
+  
+  const indicatorGlowColor = useMemo(() => {
+    return themeName === "aurora" 
+      ? "rgba(0, 160, 148, 0.22)" 
+      : "rgba(221, 20, 29, 0.22)";
+  }, [themeName]);
+  
+  const iconWrapperActiveStyle = useMemo(() => ({
+    shadowColor: indicatorGlowColor,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    backgroundColor: "rgba(255, 255, 255, 0.32)",
+  }), [indicatorGlowColor]);
 
   useEffect(() => {
     if (!activeLayout) {
@@ -297,6 +306,7 @@ const BottomNavigationBar = () => {
           <View
             style={[
               styles.indicatorGlow,
+              { backgroundColor: indicatorGlowColor },
             ]}
           />
         </MotiView>
@@ -326,11 +336,7 @@ const BottomNavigationBar = () => {
                     styles.iconWrapper,
                     isActive && [
                       styles.iconWrapperActive,
-                      {
-                        shadowColor: "rgba(221, 20, 29, 0.22)",
-                        borderColor: "rgba(255, 255, 255, 0.35)",
-                        backgroundColor: "rgba(255, 255, 255, 0.32)",
-                      },
+                      iconWrapperActiveStyle,
                     ],
                     isDisabled && styles.iconWrapperDisabled,
                   ]}
@@ -405,7 +411,6 @@ const createStyles = (theme: Theme) =>
     },
     indicatorGlow: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: "rgba(221, 20, 29, 0.22)",
     },
     button: {
       flex: 1,
@@ -455,7 +460,7 @@ const createNavLabelStyles = (theme: Theme) =>
       flexShrink: 0,
     },
     labelActive: {
-      color: theme.palette.softPink,
+      color: theme.palette.textPrimary,
       textShadowColor: theme.components.nav.indicator,
       textShadowRadius: 6,
     },
