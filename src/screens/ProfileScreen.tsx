@@ -115,6 +115,28 @@ const ProfileScreen = () => {
                 </View>
               </View>
             </GlassCard>
+            <GlassCard>
+              <View style={styles.educationCard}>
+                <View style={styles.educationCopy}>
+                  <Text style={styles.educationLabel}>Laboratorio educativo</Text>
+                  <Text style={styles.educationDescription}>
+                    Explora cápsulas interactivas y practica con trivias
+                    express para dominar tus hábitos financieros.
+                  </Text>
+                  <PrimaryButton
+                    label="Educación financiera"
+                    onPress={() => router.push("/(app)/financial-education")}
+                    style={styles.educationButton}
+                    compact
+                  />
+                </View>
+                <MaterialCommunityIcons
+                  name="flash-alert"
+                  size={38}
+                  color={palette.primary}
+                />
+              </View>
+            </GlassCard>
             <View style={styles.actions}>
               <PrimaryButton
                 label="Ajustes"
@@ -246,6 +268,32 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: "#1B2C49",
+  },
+  educationCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 18,
+    padding: 22,
+  },
+  educationCopy: {
+    flex: 1,
+    gap: 10,
+  },
+  educationLabel: {
+    color: palette.textPrimary,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  educationDescription: {
+    color: palette.textSecondary,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  educationButton: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 16,
+    marginTop: 6,
   },
 });
 
