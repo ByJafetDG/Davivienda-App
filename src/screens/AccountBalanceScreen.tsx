@@ -12,6 +12,7 @@ import {
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import PrimaryButton from "@/components/PrimaryButton";
+import LeitmotivBadge from "@/components/LeitmotivBadge";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
@@ -173,6 +174,11 @@ const AccountBalanceScreen = () => {
             >
               <View style={styles.balanceCard}>
                 <View style={styles.balanceVeil} />
+                <LeitmotivBadge
+                  style={styles.leitmotivBadge}
+                  opacity={0.78}
+                  size={104}
+                />
                 <Text style={styles.balanceLabel}>Saldo disponible</Text>
                 <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
                 <Text style={styles.balanceHint}>
@@ -445,6 +451,7 @@ const createStyles = (theme: Theme) => {
       shadowOffset: { width: 0, height: 20 },
       shadowOpacity: 0.32,
       shadowRadius: 30,
+      position: "relative",
     },
     balanceVeil: {
       position: "absolute",
@@ -471,6 +478,11 @@ const createStyles = (theme: Theme) => {
     },
     balanceActions: {
       gap: 14,
+    },
+    leitmotivBadge: {
+      top: -15,
+      right: -15,
+      transform: [{ rotate: "8deg" }],
     },
     secondaryAction: {
       alignItems: "center",

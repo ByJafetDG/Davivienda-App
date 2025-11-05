@@ -162,7 +162,6 @@ const ConfirmTransferScreen = () => {
               <Text style={styles.helper}>
                 Antes de confirmar, asegúrate de que los datos sean correctos.
               </Text>
-              
             </>
           ) : (
             <MotiView

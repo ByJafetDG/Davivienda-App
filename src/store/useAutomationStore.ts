@@ -37,7 +37,10 @@ export type AutomationDraft = {
 export type AutomationState = {
   automations: Automation[];
   addAutomation: (draft: AutomationDraft) => Automation;
-  updateAutomation: (id: string, updates: Partial<Omit<Automation, "id" | "createdAt">>) => void;
+  updateAutomation: (
+    id: string,
+    updates: Partial<Omit<Automation, "id" | "createdAt">>,
+  ) => void;
   toggleAutomation: (id: string) => void;
   removeAutomation: (id: string) => void;
   resetAutomations: () => void;
@@ -57,7 +60,8 @@ const DEFAULT_AUTOMATIONS: Automation[] = [
   {
     id: createId("automation"),
     title: "Redondeo para metas",
-    description: "Envía el vuelto de cada transferencia a tu meta de emergencia.",
+    description:
+      "Envía el vuelto de cada transferencia a tu meta de emergencia.",
     type: "roundup",
     active: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
@@ -81,63 +85,73 @@ const DEFAULT_AUTOMATIONS: Automation[] = [
   },
 ];
 
-export const useAutomationStore = create<AutomationState>((set: SetState, get: GetState) => ({
-  automations: DEFAULT_AUTOMATIONS,
-  addAutomation: ({ title, description, type, config, active }: AutomationDraft) => {
-    const automation: Automation = {
-      id: createId("automation"),
-      title: title.trim(),
-      description: description.trim(),
+export const useAutomationStore = create<AutomationState>(
+  (set: SetState, get: GetState) => ({
+    automations: DEFAULT_AUTOMATIONS,
+    addAutomation: ({
+      title,
+      description,
       type,
-      active: Boolean(active),
-      createdAt: new Date().toISOString(),
-      config: config ? { ...config } : {},
-    };
-    set((state: AutomationState) => ({
-      automations: [automation, ...state.automations],
-    }));
-    return automation;
-  },
-  updateAutomation: (id: string, updates) => {
-    set((state: AutomationState) => ({
-      automations: state.automations.map((automation: Automation) =>
-        automation.id === id
-          ? {
-              ...automation,
-              ...updates,
-              title: updates.title ? updates.title.trim() : automation.title,
-              description: updates.description
-                ? updates.description.trim()
-                : automation.description,
-              config: updates.config
-                ? {
-                    ...automation.config,
-                    ...updates.config,
-                  }
-                : automation.config,
-            }
-          : automation,
-      ),
-    }));
-  },
-  toggleAutomation: (id: string) => {
-    set((state: AutomationState) => ({
-      automations: state.automations.map((automation: Automation) =>
-        automation.id === id
-          ? {
-              ...automation,
-              active: !automation.active,
-            }
-          : automation,
-      ),
-    }));
-  },
-  removeAutomation: (id: string) => {
-    set((state: AutomationState) => ({
-      automations: state.automations.filter((automation: Automation) => automation.id !== id),
-    }));
-  },
-  resetAutomations: () => {
-    set({ automations: DEFAULT_AUTOMATIONS });
-  },
-}));
+      config,
+      active,
+    }: AutomationDraft) => {
+      const automation: Automation = {
+        id: createId("automation"),
+        title: title.trim(),
+        description: description.trim(),
+        type,
+        active: Boolean(active),
+        createdAt: new Date().toISOString(),
+        config: config ? { ...config } : {},
+      };
+      set((state: AutomationState) => ({
+        automations: [automation, ...state.automations],
+      }));
+      return automation;
+    },
+    updateAutomation: (id: string, updates) => {
+      set((state: AutomationState) => ({
+        automations: state.automations.map((automation: Automation) =>
+          automation.id === id
+            ? {
+                ...automation,
+                ...updates,
+                title: updates.title ? updates.title.trim() : automation.title,
+                description: updates.description
+                  ? updates.description.trim()
+                  : automation.description,
+                config: updates.config
+                  ? {
+                      ...automation.config,
+                      ...updates.config,
+                    }
+                  : automation.config,
+              }
+            : automation,
+        ),
+      }));
+    },
+    toggleAutomation: (id: string) => {
+      set((state: AutomationState) => ({
+        automations: state.automations.map((automation: Automation) =>
+          automation.id === id
+            ? {
+                ...automation,
+                active: !automation.active,
+              }
+            : automation,
+        ),
+      }));
+    },
+    removeAutomation: (id: string) => {
+      set((state: AutomationState) => ({
+        automations: state.automations.filter(
+          (automation: Automation) => automation.id !== id,
+        ),
+      }));
+    },
+    resetAutomations: () => {
+      set({ automations: DEFAULT_AUTOMATIONS });
+    },
+  }),
+);

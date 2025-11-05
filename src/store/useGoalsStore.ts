@@ -67,76 +67,79 @@ export type GoalsState = {
   resetGoals: () => void;
 };
 
-export const useGoalsStore = create<GoalsState>((set: SetState, get: GetState) => ({
-  goals: DEFAULT_GOALS,
-  addGoal: ({ title, targetAmount, deadline, color }: GoalDraft) => {
-    const paletteColor = color || GOAL_COLORS[get().goals.length % GOAL_COLORS.length];
-    const goal: Goal = {
-      id: createId("goal"),
-      title: title.trim(),
-      targetAmount: Math.max(targetAmount, 0),
-      currentAmount: 0,
-      deadline,
-      createdAt: new Date().toISOString(),
-      color: paletteColor,
-      status: "active",
-    };
-    set((state: GoalsState) => ({ goals: [goal, ...state.goals] }));
-    return goal;
-  },
-  updateGoal: (id: string, updates: Partial<Goal>) => {
-    set((state: GoalsState) => ({
-      goals: state.goals.map((goal: Goal) =>
-        goal.id === id
-          ? {
-              ...goal,
-              ...updates,
-              title: updates.title ? updates.title.trim() : goal.title,
-            }
-          : goal,
-      ),
-    }));
-  },
-  recordContribution: (id: string, amount: number) => {
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return;
-    }
-    set((state: GoalsState) => ({
-      goals: state.goals.map((goal: Goal) => {
-        if (goal.id !== id) {
-          return goal;
-        }
-        const updatedAmount = Math.min(
-          goal.targetAmount,
-          goal.currentAmount + amount,
-        );
-        const status =
-          updatedAmount >= goal.targetAmount ? "completed" : goal.status;
-        return {
-          ...goal,
-          currentAmount: updatedAmount,
-          status,
-        };
-      }),
-    }));
-  },
-  markGoalCompleted: (id: string) => {
-    set((state: GoalsState) => ({
-      goals: state.goals.map((goal: Goal) =>
-        goal.id === id
-          ? {
-              ...goal,
-              currentAmount: goal.targetAmount,
-              status: "completed",
-            }
-          : goal,
-      ),
-    }));
-  },
-  deleteGoal: (id: string) => {
-    set((state: GoalsState) => ({
-      goals: state.goals.filter((goal: Goal) => goal.id !== id),
-    }));
-  },
-  resetGoals: () => set({ goals: DEFAULT_GOALS }),
-}));
+export const useGoalsStore = create<GoalsState>(
+  (set: SetState, get: GetState) => ({
+    goals: DEFAULT_GOALS,
+    addGoal: ({ title, targetAmount, deadline, color }: GoalDraft) => {
+      const paletteColor =
+        color || GOAL_COLORS[get().goals.length % GOAL_COLORS.length];
+      const goal: Goal = {
+        id: createId("goal"),
+        title: title.trim(),
+        targetAmount: Math.max(targetAmount, 0),
+        currentAmount: 0,
+        deadline,
+        createdAt: new Date().toISOString(),
+        color: paletteColor,
+        status: "active",
+      };
+      set((state: GoalsState) => ({ goals: [goal, ...state.goals] }));
+      return goal;
+    },
+    updateGoal: (id: string, updates: Partial<Goal>) => {
+      set((state: GoalsState) => ({
+        goals: state.goals.map((goal: Goal) =>
+          goal.id === id
+            ? {
+                ...goal,
+                ...updates,
+                title: updates.title ? updates.title.trim() : goal.title,
+              }
+            : goal,
+        ),
+      }));
+    },
+    recordContribution: (id: string, amount: number) => {
+      if (!Number.isFinite(amount) || amount <= 0) {
+        return;
+      }
+      set((state: GoalsState) => ({
+        goals: state.goals.map((goal: Goal) => {
+          if (goal.id !== id) {
+            return goal;
+          }
+          const updatedAmount = Math.min(
+            goal.targetAmount,
+            goal.currentAmount + amount,
+          );
+          const status =
+            updatedAmount >= goal.targetAmount ? "completed" : goal.status;
+          return {
+            ...goal,
+            currentAmount: updatedAmount,
+            status,
+          };
+        }),
+      }));
+    },
+    markGoalCompleted: (id: string) => {
+      set((state: GoalsState) => ({
+        goals: state.goals.map((goal: Goal) =>
+          goal.id === id
+            ? {
+                ...goal,
+                currentAmount: goal.targetAmount,
+                status: "completed",
+              }
+            : goal,
+        ),
+      }));
+    },
+    deleteGoal: (id: string) => {
+      set((state: GoalsState) => ({
+        goals: state.goals.filter((goal: Goal) => goal.id !== id),
+      }));
+    },
+    resetGoals: () => set({ goals: DEFAULT_GOALS }),
+  }),
+);

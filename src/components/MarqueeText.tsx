@@ -108,7 +108,10 @@ const MarqueeText = ({
           {text}
         </Text>
         {shouldAnimate ? (
-          <Text style={[styles.text, textStyle, { marginLeft: gap }]} numberOfLines={1}>
+          <Text
+            style={[styles.text, textStyle, { marginLeft: gap }]}
+            numberOfLines={1}
+          >
             {text}
           </Text>
         ) : null}
