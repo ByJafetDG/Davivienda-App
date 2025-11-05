@@ -189,13 +189,6 @@ const AccountBalanceScreen = () => {
                     label="Enviar dinero ahora"
                     onPress={() => router.push("/(app)/transfer")}
                   />
-                  <Pressable
-                    style={styles.secondaryAction}
-                    onPress={() => router.push("/(app)/history")}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.secondaryActionLabel}>Ver historial</Text>
-                  </Pressable>
                 </View>
               </View>
             </MotiView>
