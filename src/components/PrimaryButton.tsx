@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import {
   Pressable,
   PressableStateCallbackType,
@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { palette } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 
 export type PrimaryButtonProps = {
   label: string;
@@ -32,6 +32,14 @@ const PrimaryButton = ({
   variant = "solid",
   compact = false,
 }: PrimaryButtonProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+
+  const gradientColors =
+    variant === "ghost"
+      ? theme.components.button.ghostGradient
+      : theme.components.button.primaryGradient;
+
   return (
     <Pressable
       onPress={onPress}
@@ -58,11 +66,7 @@ const PrimaryButton = ({
             transition={{ type: "timing", duration: 320 }}
           />
           <LinearGradient
-            colors={
-              variant === "ghost"
-                ? ["rgba(255,255,255,0.12)", "rgba(255,255,255,0.06)"]
-                : [palette.buttonGradientStart, palette.buttonGradientEnd]
-            }
+            colors={gradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[
@@ -100,72 +104,73 @@ const PrimaryButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 999,
-    overflow: "hidden",
-  },
-  motiWrapper: {
-    borderRadius: 999,
-    position: "relative",
-  },
-  gradient: {
-    borderRadius: 999,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 12,
-  },
-  gradientCompact: {
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  gradientGhost: {
-    backgroundColor: "rgba(0,0,0,0)",
-  },
-  gradientDisabled: {
-    opacity: 0.85,
-  },
-  glow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 999,
-    backgroundColor: palette.buttonGlow,
-  },
-  highlight: {
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: "40%",
-    backgroundColor: "rgba(255, 255, 255, 0.18)",
-    borderTopLeftRadius: 999,
-    borderBottomLeftRadius: 999,
-  },
-  label: {
-    color: palette.textPrimary,
-    fontSize: 18,
-    fontWeight: "700",
-    letterSpacing: 0.2,
-  },
-  labelCompact: {
-    color: palette.textPrimary,
-    fontSize: 14,
-    fontWeight: "700",
-    letterSpacing: 0.1,
-  },
-  labelGhost: {
-    color: palette.textSecondary,
-  },
-  labelGhostDisabled: {
-    color: "rgba(255,255,255,0.4)",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      borderRadius: theme.radii.full,
+      overflow: "hidden",
+    },
+    motiWrapper: {
+      borderRadius: theme.radii.full,
+      position: "relative",
+    },
+    gradient: {
+      borderRadius: theme.radii.full,
+      paddingVertical: 18,
+      paddingHorizontal: 24,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: 12,
+    },
+    gradientCompact: {
+      borderRadius: theme.radii.full,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      alignItems: "center",
+      justifyContent: "center",
+      flexDirection: "row",
+      gap: 8,
+    },
+    gradientGhost: {
+      backgroundColor: "rgba(0,0,0,0)",
+    },
+    gradientDisabled: {
+      opacity: 0.85,
+    },
+    glow: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: theme.radii.full,
+      backgroundColor: theme.components.button.primaryGlow,
+    },
+    highlight: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      width: "40%",
+      backgroundColor: theme.components.button.primaryHighlight,
+      borderTopLeftRadius: theme.radii.full,
+      borderBottomLeftRadius: theme.radii.full,
+    },
+    label: {
+      color: theme.components.button.textPrimary,
+      fontSize: 18,
+      fontWeight: "700",
+      letterSpacing: 0.2,
+    },
+    labelCompact: {
+      color: theme.components.button.textPrimary,
+      fontSize: 14,
+      fontWeight: "700",
+      letterSpacing: 0.1,
+    },
+    labelGhost: {
+      color: theme.components.button.textGhost,
+    },
+    labelGhostDisabled: {
+      color: theme.components.button.textGhostDisabled,
+    },
+  });
 
 export default PrimaryButton;

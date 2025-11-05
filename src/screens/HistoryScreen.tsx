@@ -20,7 +20,7 @@ import MarqueeText from "@/components/MarqueeText";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, TransferRecord, RechargeRecord } from "@/store/useBankStore";
-import { palette } from "@/theme/colors";
+import { palette, themes } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
 
 const FILTERS = [
@@ -40,6 +40,8 @@ const DATE_FILTERS = [
   { id: "month", label: "Este mes", icon: "calendar-month" },
   { id: "range", label: "Rango", icon: "calendar-range" },
 ] as const;
+
+const cardTokens = themes.pionero.components.card;
 
 type DateFilterId = (typeof DATE_FILTERS)[number]["id"];
 type DateKey = string;
@@ -1146,8 +1148,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(9, 17, 32, 0.6)",
+    borderColor: cardTokens.border,
+    backgroundColor: cardTokens.background,
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
@@ -1162,7 +1164,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   iconFilterButtonPressed: {
-    backgroundColor: "rgba(255,255,255,0.08)",
+    backgroundColor: cardTokens.overlay,
   },
   iconFilterLabel: {
     color: palette.textSecondary,
@@ -1184,8 +1186,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(9, 18, 34, 0.7)",
+    borderColor: cardTokens.border,
+    backgroundColor: cardTokens.background,
   },
   filterToggleButtonPressed: {
     backgroundColor: "rgba(0, 240, 255, 0.18)",

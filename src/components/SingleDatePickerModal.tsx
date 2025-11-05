@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 import PrimaryButton from "./PrimaryButton";
-import { palette } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 
 type DateKey = string;
 
@@ -39,6 +39,32 @@ type SingleDatePickerModalProps = {
 
 const MS_IN_DAY = 24 * 60 * 60 * 1000;
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
+
+const withOpacity = (color: string, alpha: number) => {
+  if (color.startsWith("#")) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex
+        .split("")
+        .map((char) => char + char)
+        .join("");
+    }
+    if (hex.length === 6) {
+      const num = Number.parseInt(hex, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+  const rgbaMatch = color.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbaMatch) {
+    const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+    const [r = "0", g = "0", b = "0"] = parts;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
+};
 
 const toDateKey = (date: Date): DateKey => {
   const year = date.getFullYear();
@@ -93,6 +119,9 @@ const SingleDatePickerModal = ({
   maxDate = null,
   minDate = null,
 }: SingleDatePickerModalProps) => {
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const todayKey = useMemo(() => toDateKey(new Date()), []);
   const [anchorMonth, setAnchorMonth] = useState(() => {
     const base = initialDate ? parseDateKey(initialDate) : new Date();
@@ -323,163 +352,169 @@ const SingleDatePickerModal = ({
   );
 };
 
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(1, 4, 12, 0.82)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 18,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: 28,
-    backgroundColor: "rgba(5, 12, 24, 0.95)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.09)",
-    paddingVertical: 22,
-    paddingHorizontal: 24,
-    gap: 22,
-  },
-  header: {
-    gap: 6,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: palette.textPrimary,
-    letterSpacing: 0.2,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: palette.textSecondary,
-  },
-  nav: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  navButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 18,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  monthSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
-  },
-  navLabel: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: palette.textPrimary,
-    textTransform: "capitalize",
-  },
-  calendar: {
-    gap: 8,
-  },
-  weekRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
-  },
-  weekdayLabel: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 13,
-    fontWeight: "600",
-    color: palette.textMuted,
-  },
-  dayCell: {
-    flex: 1,
-    aspectRatio: 1,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-  },
-  dayLabel: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: palette.textPrimary,
-  },
-  dayOutside: {
-    opacity: 0.4,
-  },
-  dayOutsideLabel: {
-    color: palette.textSecondary,
-  },
-  daySelected: {
-    backgroundColor: "rgba(0, 240, 255, 0.16)",
-    borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.45)",
-  },
-  dayLabelSelected: {
-    color: palette.textPrimary,
-  },
-  dayToday: {
-    borderWidth: 1,
-    borderColor: "rgba(114, 89, 255, 0.6)",
-  },
-  dayDisabled: {
-    opacity: 0.3,
-  },
-  dayDisabledLabel: {
-    color: palette.textMuted,
-  },
-  yearPicker: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    padding: 12,
-    borderRadius: 18,
-    backgroundColor: "rgba(8, 12, 24, 0.92)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
-  },
-  yearOption: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-  },
-  yearOptionActive: {
-    backgroundColor: "rgba(0, 240, 255, 0.14)",
-  },
-  yearOptionLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: palette.textSecondary,
-  },
-  yearOptionLabelActive: {
-    color: palette.textPrimary,
-  },
-  actions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: 16,
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: palette.textSecondary,
-  },
-  confirmButton: {
-    minWidth: 120,
-  },
-});
+const createStyles = (theme: Theme) => {
+  const { palette, components } = theme;
+  const inputTokens = components.input;
+  const accentCyan = palette.accentCyan;
+  const accentPurple = palette.accentPurple;
+  return StyleSheet.create({
+    backdrop: {
+      flex: 1,
+      backgroundColor: withOpacity(palette.overlay, 0.82),
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: 18,
+    },
+    card: {
+      width: "100%",
+      maxWidth: 420,
+      borderRadius: 28,
+      backgroundColor: palette.elevatedSurface,
+      borderWidth: 1,
+      borderColor: palette.border,
+      paddingVertical: 22,
+      paddingHorizontal: 24,
+      gap: 22,
+    },
+    header: {
+      gap: 6,
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: palette.textPrimary,
+      letterSpacing: 0.2,
+    },
+    subtitle: {
+      fontSize: 13,
+      color: palette.textSecondary,
+    },
+    nav: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+    navButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 18,
+      backgroundColor: inputTokens.iconBackground,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    monthSelector: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 18,
+      borderRadius: 18,
+      backgroundColor: inputTokens.iconBackground,
+    },
+    navLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: palette.textPrimary,
+      textTransform: "capitalize",
+    },
+    calendar: {
+      gap: 8,
+    },
+    weekRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 8,
+    },
+    weekdayLabel: {
+      flex: 1,
+      textAlign: "center",
+      fontSize: 13,
+      fontWeight: "600",
+      color: palette.textMuted,
+    },
+    dayCell: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: withOpacity(palette.textPrimary, 0.05),
+    },
+    dayLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: palette.textPrimary,
+    },
+    dayOutside: {
+      opacity: 0.4,
+    },
+    dayOutsideLabel: {
+      color: palette.textSecondary,
+    },
+    daySelected: {
+      backgroundColor: withOpacity(accentCyan, 0.18),
+      borderWidth: 1,
+      borderColor: withOpacity(accentCyan, 0.45),
+    },
+    dayLabelSelected: {
+      color: palette.textPrimary,
+    },
+    dayToday: {
+      borderWidth: 1,
+      borderColor: withOpacity(accentPurple, 0.6),
+    },
+    dayDisabled: {
+      opacity: 0.3,
+    },
+    dayDisabledLabel: {
+      color: palette.textMuted,
+    },
+    yearPicker: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+      padding: 12,
+      borderRadius: 18,
+      backgroundColor: withOpacity(palette.overlay, 0.9),
+      borderWidth: 1,
+      borderColor: palette.border,
+    },
+    yearOption: {
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 14,
+      backgroundColor: withOpacity(palette.textPrimary, 0.05),
+    },
+    yearOptionActive: {
+      backgroundColor: withOpacity(accentCyan, 0.14),
+    },
+    yearOptionLabel: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: palette.textSecondary,
+    },
+    yearOptionLabelActive: {
+      color: palette.textPrimary,
+    },
+    actions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      gap: 16,
+    },
+    actionText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: palette.textSecondary,
+    },
+    confirmButton: {
+      minWidth: 120,
+    },
+  });
+};
 
 export { parseDateKey, toDateKey };
 export type { DateKey };

@@ -160,9 +160,9 @@ const ConfirmTransferScreen = () => {
                 loading={processing}
               />
               <Text style={styles.helper}>
-                La operación se realizará completamente offline y se guardará
-                solo en esta app.
+                Antes de confirmar, asegúrate de que los datos sean correctos.
               </Text>
+              
             </>
           ) : (
             <MotiView
@@ -172,7 +172,7 @@ const ConfirmTransferScreen = () => {
               style={styles.successState}
             >
               <LinearGradient
-                colors={["#00F0FF", "#7A2BFF"]}
+                colors={["#ff1c1cff", "#ffffff77"]}
                 style={styles.successBadge}
               >
                 <MaterialCommunityIcons

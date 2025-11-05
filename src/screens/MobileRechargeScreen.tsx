@@ -19,7 +19,7 @@ import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { RechargeRecord, useBankStore } from "@/store/useBankStore";
-import { palette } from "@/theme/colors";
+import { palette, themes } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
 import { formatAmountDisplay, parseAmountToNumber, sanitizeAmountInput } from "@/utils/amount";
 import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
@@ -44,6 +44,8 @@ const OPERATORS = [
     logo: require("../../assets/logo_liberty.png"),
   },
 ] as const;
+
+const cardTokens = themes.pionero.components.card;
 
 const MobileRechargeScreen = () => {
   const router = useRouter();
@@ -161,12 +163,12 @@ const MobileRechargeScreen = () => {
                           borderColor:
                             operator === item.id
                               ? `${item.accent}`
-                              : "rgba(255, 255, 255, 0.08)",
+                              : cardTokens.border,
                           shadowOpacity: operator === item.id ? 0.45 : 0,
                           backgroundColor:
                             operator === item.id
-                              ? "rgba(255, 255, 255, 0.12)"
-                              : "rgba(10, 20, 40, 0.85)",
+                              ? "rgba(255,255,255,0.12)"
+                              : cardTokens.background,
                         }}
                         transition={{ type: "timing", duration: 160 }}
                         style={[
@@ -181,11 +183,11 @@ const MobileRechargeScreen = () => {
                               borderColor:
                                 operator === item.id
                                   ? `${item.accent}55`
-                                  : "rgba(255,255,255,0.12)",
+                                  : cardTokens.border,
                               backgroundColor:
                                 operator === item.id
-                                  ? "rgba(0, 8, 16, 0.45)"
-                                  : "rgba(0,0,0,0.15)",
+                                  ? "rgba(255,255,255,0.08)"
+                                  : cardTokens.overlay,
                             },
                           ]}
                         >
@@ -363,7 +365,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     alignItems: "center",
     gap: 6,
-    backgroundColor: "rgba(10, 20, 40, 0.82)",
+    backgroundColor: cardTokens.background,
+    borderColor: cardTokens.border,
+    shadowColor: cardTokens.shadowColor,
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 18,
   },
@@ -374,6 +378,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
+    borderColor: cardTokens.border,
   },
   operatorLabel: {
     color: palette.textPrimary,
@@ -399,9 +404,10 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     padding: 24,
     gap: 20,
-    backgroundColor: "rgba(8, 14, 26, 0.96)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: cardTokens.background,
+    borderWidth: cardTokens.borderWidth,
+    borderColor: cardTokens.border,
+    shadowColor: cardTokens.shadowColor,
   },
   modalHeader: {
     alignItems: "center",
@@ -421,9 +427,9 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: 18,
     padding: 16,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
+    backgroundColor: cardTokens.overlay,
+    borderWidth: cardTokens.borderWidth,
+    borderColor: cardTokens.border,
   },
   modalButton: {
     marginTop: 4,

@@ -1,10 +1,15 @@
-import { PropsWithChildren, createContext, useContext, useMemo } from "react";
+import {
+  PropsWithChildren,
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { palette, Palette } from "./colors";
+import { themes, ThemeDefinition, ThemeName } from "./colors";
 
-export type Theme = {
-  palette: Palette;
+export type Theme = ThemeDefinition & {
   radii: {
     xs: number;
     sm: number;
@@ -20,12 +25,22 @@ export type Theme = {
   };
 };
 
-const ThemeContext = createContext<Theme | undefined>(undefined);
+type ThemeContextValue = {
+  theme: Theme;
+  themeName: ThemeName;
+  setTheme: (name: ThemeName) => void;
+  availableThemes: ThemeName[];
+};
+
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
-  const value = useMemo<Theme>(
-    () => ({
-      palette,
+  const [themeName, setThemeName] = useState<ThemeName>("pionero");
+
+  const theme = useMemo<Theme>(() => {
+    const definition = themes[themeName];
+    return {
+      ...definition,
       radii: {
         xs: 6,
         sm: 10,
@@ -39,8 +54,17 @@ export const ThemeProvider = ({ children }: PropsWithChildren) => {
         family: "System",
         headings: "System",
       },
+    };
+  }, [themeName]);
+
+  const value = useMemo<ThemeContextValue>(
+    () => ({
+      theme,
+      themeName,
+      setTheme: setThemeName,
+      availableThemes: Object.keys(themes) as ThemeName[],
     }),
-    [],
+    [theme, themeName],
   );
 
   return (

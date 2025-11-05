@@ -11,7 +11,7 @@ import {
 } from "react-native";
 
 import { useBankStore } from "@/store/useBankStore";
-import { palette } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 
 type ProfileAvatarButtonProps = {
   onPress?: () => void;
@@ -21,34 +21,36 @@ type ProfileAvatarButtonProps = {
   initials?: string;
 };
 
-const OUTER_GRADIENT = ["#F0442C", "#F2643C", "#F8991D"] as const;
-const INNER_GRADIENT = ["#3A0A10", "#4A1016"] as const;
-
 const ProfileAvatarButton = ({
   onPress,
   size = 52,
   style,
   accessibilityLabel = "Abrir notificaciones",
-  initials,
 }: ProfileAvatarButtonProps) => {
-  const { user, notifications } = useBankStore();
-  // keep initials prop for possible future use but we render a modern icon instead
-  const displayName = useMemo(() => initials ?? user?.name ?? "", [initials, user?.name]);
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const gradients = useMemo(
+    () => ({
+      outer: [
+        theme.components.button.primaryGradient[0],
+        theme.components.button.primaryGradient[1],
+        theme.palette.softPink,
+      ] as const,
+      inner: [theme.palette.surface, theme.palette.elevatedSurface] as const,
+      gloss: [theme.components.button.primaryGlow, "transparent"] as const,
+    }),
+    [theme],
+  );
+  const { notifications } = useBankStore();
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.read).length,
     [notifications],
   );
-  const badgeLabel = useMemo(() => {
-    if (unreadCount > 99) {
-      return "99+";
-    }
-    return String(unreadCount);
-  }, [unreadCount]);
+  const badgeLabel = unreadCount > 99 ? "99+" : String(unreadCount);
   const showBadge = unreadCount > 0;
 
   const radius = size / 2;
   const ringThickness = Math.max(2, size * 0.12);
-  // innerDiameter is the visible inner circle diameter (inside the gradient ring)
   const innerDiameter = Math.max(size - ringThickness * 2, size * 0.5);
   const innerRadius = innerDiameter / 2;
 
@@ -57,6 +59,7 @@ const ProfileAvatarButton = ({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
+      hitSlop={8}
       style={({ pressed }) => [
         styles.button,
         {
@@ -70,7 +73,6 @@ const ProfileAvatarButton = ({
         },
         style,
       ]}
-      hitSlop={8}
     >
       {showBadge ? (
         <View
@@ -91,13 +93,13 @@ const ProfileAvatarButton = ({
         </View>
       ) : null}
       <LinearGradient
-        colors={OUTER_GRADIENT}
+        colors={gradients.outer}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.gradient, { borderRadius: radius, padding: ringThickness }]}
       >
         <LinearGradient
-          colors={INNER_GRADIENT}
+          colors={gradients.inner}
           start={{ x: 0.15, y: 0 }}
           end={{ x: 0.85, y: 1 }}
           style={[
@@ -110,17 +112,16 @@ const ProfileAvatarButton = ({
           ]}
         >
           <LinearGradient
-            colors={["rgba(240, 68, 44, 0.24)", "transparent"]}
+            colors={gradients.gloss}
             start={{ x: 0.1, y: 0 }}
             end={{ x: 0.8, y: 0.9 }}
             style={[styles.gloss, { borderRadius: innerRadius }]}
           />
-          {/* Notification shortcut icon */}
           <View style={styles.iconWrap}>
             <MaterialCommunityIcons
               name="bell-outline"
               size={Math.round(innerDiameter * 0.56)}
-              color={palette.textPrimary}
+              color={theme.components.icon.primary}
             />
           </View>
         </LinearGradient>
@@ -129,58 +130,59 @@ const ProfileAvatarButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "rgba(240, 68, 44, 0.45)",
-    elevation: 8,
-    backgroundColor: "transparent",
-    position: "relative",
-  },
-  gradient: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  innerGradient: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 205, 180, 0.18)",
-    overflow: "hidden",
-  },
-  gloss: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  initials: {
-    color: palette.textPrimary,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-  iconWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badge: {
-    position: "absolute",
-    zIndex: 2,
-    backgroundColor: "rgba(255, 247, 245, 0.96)",
-    borderWidth: 1,
-    borderColor: "rgba(221, 20, 29, 0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  badgeLabel: {
-    color: palette.primary,
-    fontSize: 11,
-    fontWeight: "700",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    button: {
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: theme.components.button.primaryGlow,
+      elevation: 8,
+      backgroundColor: "transparent",
+      position: "relative",
+    },
+    gradient: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    innerGradient: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: theme.palette.border,
+      overflow: "hidden",
+    },
+    gloss: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    initials: {
+      color: theme.palette.textPrimary,
+      fontWeight: "800",
+      letterSpacing: 1,
+    },
+    iconWrap: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    badge: {
+      position: "absolute",
+      zIndex: 2,
+      backgroundColor: theme.palette.textPrimary,
+      borderWidth: 1,
+      borderColor: theme.palette.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: theme.components.card.shadowColor,
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      shadowOffset: { width: 0, height: 1 },
+    },
+    badgeLabel: {
+      color: theme.palette.primary,
+      fontSize: 11,
+      fontWeight: "700",
+    },
+  });
 
 export default ProfileAvatarButton;

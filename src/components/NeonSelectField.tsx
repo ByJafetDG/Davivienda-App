@@ -1,10 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { AnimatePresence, MotiView } from "moti";
 import { ReactNode, cloneElement, isValidElement, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
 
-import { palette } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 
 type Option = {
   label: string;
@@ -38,6 +37,8 @@ const NeonSelectField = ({
   disabled,
   style,
 }: NeonSelectFieldProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedOption = useMemo(
@@ -46,7 +47,7 @@ const NeonSelectField = ({
   );
 
   const hint = errorMessage || helpText;
-  const hintColor = errorMessage ? palette.danger : palette.textMuted;
+  const hintColor = errorMessage ? theme.palette.danger : theme.palette.textMuted;
   const isActive = isOpen || Boolean(selectedOption);
 
   const toggleOpen = () => {
@@ -74,53 +75,46 @@ const NeonSelectField = ({
         }}
         transition={{ type: "timing", duration: 200 }}
       >
-        <LinearGradient
-          colors={[palette.cardGradientStart, palette.cardGradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
+        <MotiView
+          pointerEvents="none"
+          style={styles.glow}
+          animate={{
+            opacity: isOpen ? 0.42 : 0,
+            scale: isOpen ? 1.01 : 0.97,
+          }}
+          transition={{ type: "timing", duration: 240 }}
+        />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          onPress={toggleOpen}
+          disabled={disabled}
+          style={[styles.fieldSurface, disabled && styles.fieldDisabled]}
         >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={label}
-            onPress={toggleOpen}
-            disabled={disabled}
-            style={[styles.fieldSurface, disabled && styles.fieldDisabled]}
+          {icon ? (
+            <View style={styles.iconContainer}>
+              {isValidElement(icon)
+                ? cloneElement(icon as any, {
+                    color: theme.components.icon.primary,
+                  })
+                : icon}
+            </View>
+          ) : null}
+          <Text
+            style={[
+              styles.valueText,
+              !selectedOption && styles.placeholderText,
+            ]}
+            numberOfLines={1}
           >
-            {icon ? (
-              <View style={styles.iconContainer}>
-                {isValidElement(icon)
-                  ? cloneElement(icon as any, {
-                      color: palette.textPrimary,
-                    })
-                  : icon}
-              </View>
-            ) : null}
-            <Text
-              style={[
-                styles.valueText,
-                !selectedOption && styles.placeholderText,
-              ]}
-              numberOfLines={1}
-            >
-              {selectedOption?.label ?? placeholder ?? "Selecciona"}
-            </Text>
-            <MaterialCommunityIcons
-              name={isOpen ? "chevron-up" : "chevron-down"}
-              size={22}
-              color={palette.textPrimary}
-            />
-          </Pressable>
-          <MotiView
-            pointerEvents="none"
-            style={styles.glow}
-            animate={{
-              opacity: isOpen ? 0.5 : 0.2,
-              scale: isOpen ? 1.05 : 1,
-            }}
-            transition={{ type: "timing", duration: 220 }}
+            {selectedOption?.label ?? placeholder ?? "Selecciona"}
+          </Text>
+          <MaterialCommunityIcons
+            name={isOpen ? "chevron-up" : "chevron-down"}
+            size={22}
+            color={theme.components.icon.primary}
           />
-        </LinearGradient>
+        </Pressable>
       </MotiView>
 
       <AnimatePresence>
@@ -164,97 +158,95 @@ const NeonSelectField = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: palette.textSecondary,
-    letterSpacing: 0.4,
-  },
-  gradient: {
-    borderRadius: 22,
-    padding: 2,
-    position: "relative",
-  },
-  animatedShell: {
-    borderRadius: 24,
-    shadowColor: "rgba(240, 68, 44, 0.6)",
-  },
-  fieldSurface: {
-    backgroundColor: "rgba(58, 10, 16, 0.78)",
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    gap: 12,
-  },
-  fieldDisabled: {
-    opacity: 0.6,
-  },
-  iconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-  },
-  valueText: {
-    flex: 1,
-    color: palette.textPrimary,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  placeholderText: {
-    color: palette.textMuted,
-    fontWeight: "500",
-  },
-  glow: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: "rgba(240, 68, 44, 0.35)",
-  },
-  optionsWrapper: {
-    marginTop: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 205, 180, 0.16)",
-    backgroundColor: "rgba(58, 10, 16, 0.94)",
-    overflow: "hidden",
-  },
-  optionRow: {
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    gap: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255, 205, 180, 0.12)",
-  },
-  optionSelected: {
-    backgroundColor: "rgba(240, 68, 44, 0.18)",
-  },
-  optionLabel: {
-    color: palette.textPrimary,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  optionDescription: {
-    color: palette.textSecondary,
-    fontSize: 13,
-  },
-  hint: {
-    fontSize: 12,
-    marginLeft: 6,
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      gap: 8,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: theme.palette.textSecondary,
+      letterSpacing: 0.4,
+    },
+    animatedShell: {
+      borderRadius: theme.radii.xl,
+      shadowColor: theme.components.input.focusGlow,
+      position: "relative",
+      overflow: "visible",
+    },
+    fieldSurface: {
+      backgroundColor: theme.components.input.background,
+      borderRadius: theme.radii.xl,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+      gap: 12,
+    },
+    fieldDisabled: {
+      opacity: 0.6,
+    },
+    iconContainer: {
+      width: 28,
+      height: 28,
+      borderRadius: theme.radii.full,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.components.input.iconBackground,
+    },
+    valueText: {
+      flex: 1,
+      color: theme.palette.textPrimary,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    placeholderText: {
+      color: theme.components.input.placeholder,
+      fontWeight: "500",
+    },
+    glow: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: theme.radii.xl,
+      backgroundColor: theme.components.input.focusGlow,
+      shadowColor: theme.components.input.focusGlow,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.35,
+      shadowRadius: 22,
+      zIndex: -1,
+    },
+    optionsWrapper: {
+      marginTop: 10,
+      borderRadius: theme.radii.lg,
+      borderWidth: 1,
+      borderColor: theme.palette.border,
+      backgroundColor: theme.palette.overlay,
+      overflow: "hidden",
+    },
+    optionRow: {
+      paddingVertical: 14,
+      paddingHorizontal: 18,
+      gap: 4,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.palette.border,
+    },
+    optionSelected: {
+      backgroundColor: "rgba(240, 68, 44, 0.18)",
+    },
+    optionLabel: {
+      color: theme.palette.textPrimary,
+      fontSize: 15,
+      fontWeight: "600",
+    },
+    optionDescription: {
+      color: theme.palette.textSecondary,
+      fontSize: 13,
+    },
+    hint: {
+      fontSize: 12,
+      marginLeft: 6,
+    },
+  });
 
 export type { Option as NeonSelectOption };
 export default NeonSelectField;

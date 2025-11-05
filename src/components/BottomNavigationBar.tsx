@@ -16,7 +16,8 @@ import {
 import { Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { palette } from "@/theme/colors";
+import { themes } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 
 export type BottomNavItem = {
   key: string;
@@ -26,48 +27,52 @@ export type BottomNavItem = {
   accent: string;
 };
 
+const PRIMARY_ACCENT = themes.pionero.palette.primary;
+const PRIMARY_ACCENT_SOFT = "rgba(221, 20, 29, 0.64)";
+const PRIMARY_ACCENT_FADE = "rgba(221, 20, 29, 0.08)";
+
 const items: BottomNavItem[] = [
   {
     key: "balance",
     label: "Saldo",
     icon: "wallet",
     route: "/(app)/home",
-    accent: "#F0442C",
+    accent: PRIMARY_ACCENT,
   },
   {
     key: "transfer",
     label: "Transferir",
     icon: "bank-transfer",
     route: "/(app)/transfer",
-    accent: "#F8991D",
+    accent: PRIMARY_ACCENT,
   },
   {
     key: "history",
     label: "Historial",
     icon: "history",
     route: "/(app)/history",
-    accent: "#DD141D",
+    accent: PRIMARY_ACCENT,
   },
   {
     key: "recharge",
     label: "Recarga",
     icon: "cellphone-nfc",
     route: "/(app)/mobile-recharge",
-    accent: "#FFE01C",
+    accent: PRIMARY_ACCENT,
   },
   {
     key: "charges",
     label: "Cobros",
     icon: "hand-coin-outline",
     route: "/(app)/charges",
-    accent: "#F58220",
+    accent: PRIMARY_ACCENT,
   },
   {
     key: "profile",
     label: "Perfil",
     icon: "account-circle",
     route: "/(app)/profile",
-    accent: "#0082C4",
+    accent: PRIMARY_ACCENT,
   },
 ];
 
@@ -79,12 +84,12 @@ type ItemLayout = {
 };
 
 const indicatorGradients: Record<string, [string, string]> = {
-  balance: ["#F0442C", "#7C131D"],
-  transfer: ["#F8991D", "#C12A14"],
-  history: ["#DD141D", "#550A12"],
-  recharge: ["#FFE01C", "#F0442C"],
-  charges: ["#F58220", "#7A1A0F"],
-  profile: ["#0082C4", "#0B3A52"],
+  balance: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
+  transfer: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
+  history: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
+  recharge: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
+  charges: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
+  profile: [PRIMARY_ACCENT_SOFT, PRIMARY_ACCENT_FADE],
 };
 
 const segmentToKey: Record<string, BottomNavItem["key"]> = {
@@ -119,6 +124,8 @@ const BottomNavigationBar = () => {
   const pathname = usePathname();
   const segments = useSegments();
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   
   const [isNavigating, setIsNavigating] = useState(false);
   const [disabledRoutes, setDisabledRoutes] = useState<Set<string>>(new Set());
@@ -268,14 +275,10 @@ const BottomNavigationBar = () => {
           style={styles.indicator}
           animate={{
             opacity: indicatorReady ? 1 : 0,
-            width: targetLayout
-              ? Math.max(0, targetLayout.width - INDICATOR_INSET * 2)
-              : 0,
-            height: targetLayout
-              ? Math.max(0, targetLayout.height - INDICATOR_INSET * 2)
-              : 0,
-            translateX: targetLayout ? targetLayout.x + INDICATOR_INSET : 0,
-            translateY: targetLayout ? targetLayout.y + INDICATOR_INSET : 0,
+            width: targetLayout ? targetLayout.width : 0,
+            height: targetLayout ? targetLayout.height : 0,
+            translateX: targetLayout ? targetLayout.x - 0.7 : 0,
+            translateY: targetLayout ? targetLayout.y + 10 : 0,
           }}
           transition={{
             type: "timing",
@@ -291,7 +294,11 @@ const BottomNavigationBar = () => {
             end={gradientOrientation.end}
             style={StyleSheet.absoluteFillObject}
           />
-          <View style={styles.indicatorGlow} />
+          <View
+            style={[
+              styles.indicatorGlow,
+            ]}
+          />
         </MotiView>
         {items.map((item) => {
           const isActive = item.key === activeKey;
@@ -320,8 +327,9 @@ const BottomNavigationBar = () => {
                     isActive && [
                       styles.iconWrapperActive,
                       {
-                        shadowColor: `${item.accent}88`,
-                        borderColor: `${item.accent}66`,
+                        shadowColor: "rgba(221, 20, 29, 0.22)",
+                        borderColor: "rgba(255, 255, 255, 0.35)",
+                        backgroundColor: "rgba(255, 255, 255, 0.32)",
                       },
                     ],
                     isDisabled && styles.iconWrapperDisabled,
@@ -331,11 +339,11 @@ const BottomNavigationBar = () => {
                     name={item.icon as any}
                     size={22}
                     color={
-                      isDisabled 
-                        ? palette.textMuted
-                        : isActive 
-                        ? palette.background 
-                        : palette.textSecondary
+                      isDisabled
+                        ? theme.components.icon.muted
+                        : isActive
+                        ? theme.components.nav.iconActive
+                        : theme.components.nav.iconInactive
                     }
                   />
                 </View>
@@ -349,137 +357,137 @@ const BottomNavigationBar = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  wrapper: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  bar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    position: "relative",
-    borderRadius: 32,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    backgroundColor: "rgba(42, 4, 7, 0.94)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 205, 180, 0.14)",
-    shadowColor: "rgba(221, 20, 29, 0.45)",
-    shadowOffset: { width: 0, height: 18 },
-    shadowOpacity: 0.25,
-    shadowRadius: 32,
-    overflow: "visible",
-  },
-  slot: {
-    flex: 1,
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    minWidth: 0,
-  },
-  indicator: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    borderRadius: 26,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    overflow: "hidden",
-    shadowColor: "rgba(240, 68, 44, 0.32)",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.28,
-    shadowRadius: 26,
-  },
-  indicatorGlow: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: "rgba(240, 68, 44, 0.24)",
-  },
-  button: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingVertical: 6,
-  },
-  buttonPressed: {
-    opacity: 0.7,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  iconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 224, 28, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(240, 68, 44, 0.16)",
-  },
-  iconWrapperActive: {
-    backgroundColor: "rgba(255, 247, 245, 0.96)",
-    borderColor: "transparent",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.36,
-    shadowRadius: 22,
-  },
-  iconWrapperDisabled: {
-    backgroundColor: "rgba(255, 224, 28, 0.04)",
-    borderColor: "rgba(240, 68, 44, 0.08)",
-  },
-  label: {
-    color: palette.textSecondary,
-    fontSize: 10.2,
-    fontWeight: "600",
-    lineHeight: 12.6,
-    letterSpacing: 0.15,
-    textAlign: "center",
-    paddingHorizontal: 2,
-    flexShrink: 0,
-  },
-  labelActive: {
-    color: palette.brandYellow,
-    textShadowColor: "rgba(240, 68, 44, 0.35)",
-    textShadowRadius: 6,
-  },
-  labelDisabled: {
-    color: palette.textSecondary,
-    opacity: 0.4,
-  },
-  labelContainer: {
-    width: "100%",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  labelOverflow: {
-    textAlign: "left",
-  },
-  labelContainerOverflow: {
-    alignItems: "flex-start",
-  },
-  labelScroll: {
-    width: "100%",
-  },
-  labelScrollContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: "100%",
-  },
-  labelScrollOverflow: {
-    justifyContent: "flex-start",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    wrapper: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+    },
+    bar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+      position: "relative",
+      borderRadius: theme.radii.xl,
+      paddingHorizontal: 12,
+      paddingVertical: 14,
+      backgroundColor: theme.components.nav.background,
+      borderWidth: 1,
+      borderColor: theme.components.nav.border,
+      shadowColor: theme.components.nav.indicator,
+      shadowOffset: { width: 0, height: 18 },
+      shadowOpacity: 0.25,
+      shadowRadius: 32,
+      overflow: "visible",
+    },
+    slot: {
+      flex: 1,
+      paddingHorizontal: 4,
+      paddingVertical: 4,
+      minWidth: 0,
+    },
+    indicator: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      borderRadius: theme.radii.full,
+      backgroundColor: theme.palette.overlay,
+      overflow: "hidden",
+      shadowColor: theme.components.nav.indicator,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.28,
+      shadowRadius: 26,
+    },
+    indicatorGlow: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(221, 20, 29, 0.22)",
+    },
+    button: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 6,
+    },
+    buttonPressed: {
+      opacity: 0.7,
+    },
+    buttonDisabled: {
+      opacity: 0.5,
+    },
+    iconWrapper: {
+      width: 44,
+      height: 44,
+      borderRadius: theme.radii.full,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.palette.overlay,
+      borderWidth: 1,
+      borderColor: theme.palette.border,
+    },
+    iconWrapperActive: {
+      borderColor: "transparent",
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.32,
+      shadowRadius: 22,
+    },
+    iconWrapperDisabled: {
+      backgroundColor: theme.palette.overlay,
+      borderColor: theme.palette.border,
+    },
+  });
+
+const createNavLabelStyles = (theme: Theme) =>
+  StyleSheet.create({
+    label: {
+      color: theme.components.nav.label,
+      fontSize: 10.2,
+      fontWeight: "600",
+      lineHeight: 12.6,
+      letterSpacing: 0.15,
+      textAlign: "center",
+      paddingHorizontal: 2,
+      flexShrink: 0,
+    },
+    labelActive: {
+      color: theme.palette.softPink,
+      textShadowColor: theme.components.nav.indicator,
+      textShadowRadius: 6,
+    },
+    labelDisabled: {
+      color: theme.components.icon.muted,
+      opacity: 0.6,
+    },
+    labelContainer: {
+      width: "100%",
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    labelContainerOverflow: {
+      alignItems: "flex-start",
+    },
+    labelOverflow: {
+      textAlign: "left",
+    },
+    labelScroll: {
+      width: "100%",
+    },
+    labelScrollContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: "100%",
+    },
+    labelScrollOverflow: {
+      justifyContent: "flex-start",
+    },
+  });
 
 export default BottomNavigationBar;
 export { items as bottomNavigationItems };
@@ -495,6 +503,8 @@ const NavLabel = ({
   isActive: boolean;
   isDisabled?: boolean;
 }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createNavLabelStyles(theme), [theme]);
   const scrollAnim = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);

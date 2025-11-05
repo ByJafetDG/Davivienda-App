@@ -10,7 +10,7 @@ import NeonSelectField from "@/components/NeonSelectField";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import { useBankStore } from "@/store/useBankStore";
-import { palette } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
 
 const bankLogo = require("../../assets/logo2.png");
@@ -120,7 +120,36 @@ const ID_TYPE_OPTIONS = [
 const resolveIdTypeValueFromLabel = (label: string) =>
   ID_TYPE_OPTIONS.find((option) => option.label === label)?.value;
 
+const withOpacity = (color: string, alpha: number) => {
+  if (color.startsWith("#")) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex
+        .split("")
+        .map((char) => char + char)
+        .join("");
+    }
+    if (hex.length === 6) {
+      const value = Number.parseInt(hex, 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+  const rgbaMatch = color.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbaMatch) {
+    const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+    const [r = "0", g = "0", b = "0"] = parts;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
+};
+
 const LoginScreen = () => {
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
   const {
     login,
@@ -502,168 +531,172 @@ const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 1,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-    gap: 40,
-  },
-  header: {
-    gap: 16,
-    alignItems: "flex-start",
-  },
-  logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  logoImage: {
-    width: 36,
-    height: 36,
-  },
-  greeting: {
-    fontSize: 16,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    color: palette.textMuted,
-    fontWeight: "600",
-  },
-  title: {
-    fontSize: 32,
-    color: palette.textPrimary,
-    fontWeight: "800",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: palette.textSecondary,
-    lineHeight: 22,
-  },
-  form: {
-    flex: 1,
-  },
-  card: {
-    borderRadius: 28,
-    padding: 24,
-    backgroundColor: "rgba(86, 86, 86, 0.48)",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 1)",
-    gap: 20,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: palette.textPrimary,
-  },
-  biometricSection: {
-    borderTopWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.06)",
-    paddingTop: 18,
-    gap: 16,
-  },
-  biometricHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-  biometricIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(0, 240, 255, 0.08)",
-  },
-  biometricCopy: {
-    flex: 1,
-    gap: 4,
-  },
-  biometricTitle: {
-    color: palette.textPrimary,
-    fontWeight: "700",
-  },
-  biometricSubtitle: {
-    color: palette.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  biometricStatus: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-  },
-  biometricStatusActive: {
-    backgroundColor: "rgba(24, 255, 178, 0.18)",
-  },
-  biometricStatusPending: {
-    backgroundColor: "rgba(255, 200, 87, 0.18)",
-  },
-  biometricStatusText: {
-    color: palette.textPrimary,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  biometricHistory: {
-    gap: 12,
-  },
-  biometricRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  biometricRowCopy: {
-    flex: 1,
-    gap: 4,
-  },
-  biometricRowTitle: {
-    color: palette.textPrimary,
-    fontWeight: "600",
-  },
-  biometricRowSubtitle: {
-    color: palette.textMuted,
-    fontSize: 12,
-  },
-  biometricResult: {
-    fontWeight: "700",
-    fontSize: 12,
-  },
-  biometricHint: {
-    color: palette.textSecondary,
-    fontSize: 12,
-    lineHeight: 18,
-  },
-  biometricActions: {
-    gap: 12,
-  },
-  biometricSecondary: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.4)",
-    backgroundColor: "rgba(0, 240, 255, 0.08)",
-  },
-  biometricSecondaryLabel: {
-    color: palette.accentCyan,
-    fontWeight: "600",
-  },
-  helper: {
-    fontSize: 12,
-    color: palette.textMuted,
-    textAlign: "center",
-  },
-});
+const createStyles = (theme: Theme) => {
+  const { palette, components } = theme;
+  const cardTokens = components.card;
+  return StyleSheet.create({
+    scroll: {
+      flexGrow: 1,
+    },
+    container: {
+      flex: 1,
+      paddingHorizontal: 24,
+      paddingVertical: 48,
+      gap: 40,
+    },
+    header: {
+      gap: 16,
+      alignItems: "flex-start",
+    },
+    logoBadge: {
+      width: 64,
+      height: 64,
+      borderRadius: 20,
+      backgroundColor: withOpacity(palette.textPrimary, 0.08),
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: withOpacity(palette.textPrimary, 0.12),
+    },
+    logoImage: {
+      width: 36,
+      height: 36,
+    },
+    greeting: {
+      fontSize: 16,
+      letterSpacing: 1.5,
+      textTransform: "uppercase",
+      color: palette.textMuted,
+      fontWeight: "600",
+    },
+    title: {
+      fontSize: 32,
+      color: palette.textPrimary,
+      fontWeight: "800",
+    },
+    subtitle: {
+      fontSize: 15,
+      color: palette.textSecondary,
+      lineHeight: 22,
+    },
+    form: {
+      flex: 1,
+    },
+    card: {
+      borderRadius: 28,
+      padding: 24,
+      backgroundColor: cardTokens.background,
+      borderWidth: cardTokens.borderWidth,
+      borderColor: cardTokens.border,
+      gap: 20,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: palette.textPrimary,
+    },
+    biometricSection: {
+      borderTopWidth: 1,
+      borderColor: withOpacity(palette.textPrimary, 0.06),
+      paddingTop: 18,
+      gap: 16,
+    },
+    biometricHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+    },
+    biometricIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: withOpacity(palette.accentCyan, 0.12),
+    },
+    biometricCopy: {
+      flex: 1,
+      gap: 4,
+    },
+    biometricTitle: {
+      color: palette.textPrimary,
+      fontWeight: "700",
+    },
+    biometricSubtitle: {
+      color: palette.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    biometricStatus: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 14,
+    },
+    biometricStatusActive: {
+      backgroundColor: withOpacity(palette.success, 0.2),
+    },
+    biometricStatusPending: {
+      backgroundColor: withOpacity(palette.warning, 0.2),
+    },
+    biometricStatusText: {
+      color: palette.textPrimary,
+      fontSize: 12,
+      fontWeight: "700",
+    },
+    biometricHistory: {
+      gap: 12,
+    },
+    biometricRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    },
+    biometricRowCopy: {
+      flex: 1,
+      gap: 4,
+    },
+    biometricRowTitle: {
+      color: palette.textPrimary,
+      fontWeight: "600",
+    },
+    biometricRowSubtitle: {
+      color: palette.textMuted,
+      fontSize: 12,
+    },
+    biometricResult: {
+      fontWeight: "700",
+      fontSize: 12,
+    },
+    biometricHint: {
+      color: palette.textSecondary,
+      fontSize: 12,
+      lineHeight: 18,
+    },
+    biometricActions: {
+      gap: 12,
+    },
+    biometricSecondary: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 14,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: withOpacity(palette.accentCyan, 0.4),
+      backgroundColor: withOpacity(palette.accentCyan, 0.12),
+    },
+    biometricSecondaryLabel: {
+      color: palette.accentCyan,
+      fontWeight: "600",
+    },
+    helper: {
+      fontSize: 12,
+      color: palette.textMuted,
+      textAlign: "center",
+    },
+  });
+};
 
 export default LoginScreen;

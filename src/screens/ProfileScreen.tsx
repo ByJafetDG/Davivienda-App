@@ -2,43 +2,20 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import QRCode from "react-native-qrcode-svg";
 import { MotiView } from "moti";
-import { ComponentProps, useMemo } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
-import {
-  useBankStore,
-  type RechargeRecord,
-  type TransferRecord,
-} from "@/store/useBankStore";
+import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
-import { formatCurrency } from "@/utils/currency";
 
 const bankLogo = require("../../assets/logo.png");
 
 const ProfileScreen = () => {
   const router = useRouter();
-  const { user, balance, initialBalance, transfers, recharges, logout } =
-    useBankStore();
-
-  const totals = useMemo(() => {
-    const sent = transfers.reduce(
-      (acc: number, transfer: TransferRecord) => acc + transfer.amount,
-      0,
-    );
-    const recharged = recharges.reduce(
-      (acc: number, recharge: RechargeRecord) => acc + recharge.amount,
-      0,
-    );
-    return {
-      sent,
-      recharged,
-      operations: transfers.length + recharges.length,
-      savings: initialBalance - balance,
-    };
-  }, [balance, initialBalance, recharges, transfers]);
+  const { user, logout } = useBankStore();
 
   const handleLogout = () => {
     logout();
@@ -109,16 +86,6 @@ const ProfileScreen = () => {
             </MotiView>
 
             <GlassCard>
-              <View style={styles.balanceSection}>
-                <Text style={styles.sectionLabel}>Saldo disponible</Text>
-                <Text style={styles.balanceValue}>{formatCurrency(balance)}</Text>
-                <Text style={styles.balanceHint}>
-                  Saldo inicial: {formatCurrency(initialBalance)}
-                </Text>
-              </View>
-            </GlassCard>
-
-            <GlassCard>
               <View style={styles.qrPreview}>
                 <View style={styles.qrCopy}>
                   <Text style={styles.qrLabel}>Tu código QR</Text>
@@ -148,48 +115,10 @@ const ProfileScreen = () => {
                 </View>
               </View>
             </GlassCard>
-
-            <GlassCard>
-              <View style={styles.metricsGrid}>
-                <MetricTile
-                  label="Transferido"
-                  value={formatCurrency(totals.sent)}
-                  icon="bank-transfer-out"
-                  accent="#FF3B6B"
-                />
-                <MetricTile
-                  label="Recargas"
-                  value={formatCurrency(totals.recharged)}
-                  icon="cellphone-check"
-                  accent="#7A2BFF"
-                />
-                <MetricTile
-                  label="Operaciones"
-                  value={`${totals.operations}`}
-                  icon="timeline-clock"
-                  accent="#00F0FF"
-                />
-                <MetricTile
-                  label="Ahorro"
-                  value={formatCurrency(totals.savings)}
-                  icon="piggy-bank"
-                  accent="#4ADE80"
-                />
-              </View>
-            </GlassCard>
-
             <View style={styles.actions}>
               <PrimaryButton
-                label="Administrar sobres"
-                onPress={() => router.push("/(app)/envelopes")}
-              />
-              <PrimaryButton
-                label="Gestionar automatizaciones"
-                onPress={() => router.push("/(app)/automations")}
-              />
-              <PrimaryButton
-                label="Realizar transferencia"
-                onPress={() => router.push("/(app)/transfer")}
+                label="Ajustes"
+                onPress={() => router.push("/(app)/settings")}
               />
               <PrimaryButton
                 label="Cerrar sesión"
@@ -201,30 +130,6 @@ const ProfileScreen = () => {
         </ScrollView>
       </View>
     </FuturisticBackground>
-  );
-};
-
-type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
-
-type MetricTileProps = {
-  label: string;
-  value: string;
-  icon: IconName;
-  accent: string;
-};
-
-const MetricTile = ({ label, value, icon, accent }: MetricTileProps) => {
-  return (
-    <View style={styles.metricTile}>
-      <View
-        style={[styles.metricIcon, { backgroundColor: `${accent}1A` }]}
-        accessibilityElementsHidden
-      >
-        <MaterialCommunityIcons name={icon} size={24} color={accent} />
-      </View>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-    </View>
   );
 };
 
@@ -294,25 +199,6 @@ const styles = StyleSheet.create({
     color: palette.textSecondary,
     fontSize: 14,
   },
-  balanceSection: {
-    gap: 6,
-    padding: 22,
-  },
-  sectionLabel: {
-    color: palette.textMuted,
-    fontSize: 12,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
-  balanceValue: {
-    color: palette.textPrimary,
-    fontSize: 32,
-    fontWeight: "800",
-  },
-  balanceHint: {
-    color: palette.textSecondary,
-    fontSize: 13,
-  },
   qrPreview: {
     flexDirection: "row",
     alignItems: "center",
@@ -350,40 +236,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
-  },
-  metricsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 16,
-    padding: 20,
-    justifyContent: "space-between",
-  },
-  metricTile: {
-    width: "47%",
-    borderRadius: 20,
-    backgroundColor: "rgba(8, 16, 34, 0.75)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-    padding: 16,
-    gap: 8,
-  },
-  metricIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  metricLabel: {
-    color: palette.textMuted,
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-  },
-  metricValue: {
-    color: palette.textPrimary,
-    fontSize: 18,
-    fontWeight: "700",
   },
   actions: {
     gap: 16,

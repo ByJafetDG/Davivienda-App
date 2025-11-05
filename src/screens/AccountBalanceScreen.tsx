@@ -1,5 +1,4 @@
 ﻿import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo } from "react";
@@ -12,9 +11,9 @@ import {
 } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
-import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
-import { palette } from "@/theme/colors";
+import ProfileAvatarButton from "@/components/ProfileAvatarButton";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
 import {
   Envelope,
@@ -22,7 +21,6 @@ import {
   TransferRecord,
   useBankStore,
 } from "@/store/useBankStore";
-import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 
 type ActivityItem = {
   id: string;
@@ -34,8 +32,37 @@ type ActivityItem = {
   color: string;
 };
 
+const withOpacity = (color: string, alpha: number) => {
+  if (color.startsWith("#")) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex
+        .split("")
+        .map((char) => char + char)
+        .join("");
+    }
+    if (hex.length === 6) {
+      const value = Number.parseInt(hex, 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+  const rgbaMatch = color.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbaMatch) {
+    const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+    const [r = "0", g = "0", b = "0"] = parts;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
+};
+
 const AccountBalanceScreen = () => {
   const router = useRouter();
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { user, balance, transfers, recharges, envelopes, automations } =
     useBankStore();
 
@@ -111,7 +138,7 @@ const AccountBalanceScreen = () => {
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
-  }, [transfers, recharges, envelopeById]);
+  }, [transfers, recharges, envelopeById, palette]);
 
   return (
     <FuturisticBackground>
@@ -144,10 +171,7 @@ const AccountBalanceScreen = () => {
               animate={{ opacity: 1, translateY: 0, scale: 1 }}
               transition={{ type: "timing", duration: 480 }}
             >
-              <LinearGradient
-                colors={["rgba(194, 61, 56, 0.82)", "rgba(122, 24, 28, 0.6)"]}
-                style={styles.balanceCard}
-              >
+              <View style={styles.balanceCard}>
                 <View style={styles.balanceVeil} />
                 <Text style={styles.balanceLabel}>Saldo disponible</Text>
                 <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
@@ -167,7 +191,7 @@ const AccountBalanceScreen = () => {
                     <Text style={styles.secondaryActionLabel}>Ver historial</Text>
                   </Pressable>
                 </View>
-              </LinearGradient>
+              </View>
             </MotiView>
 
             <MotiView
@@ -175,7 +199,7 @@ const AccountBalanceScreen = () => {
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: "timing", duration: 420, delay: 60 }}
             >
-              <GlassCard>
+              <View style={styles.sectionCard}>
                 <View style={styles.historyHeader}>
                   <View style={styles.historyTitleRow}>
                     <Text style={styles.sectionTitle}>Actividad reciente</Text>
@@ -226,7 +250,7 @@ const AccountBalanceScreen = () => {
                     </View>
                   ))
                 )}
-              </GlassCard>
+              </View>
             </MotiView>
 
             <MotiView
@@ -234,7 +258,7 @@ const AccountBalanceScreen = () => {
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: "timing", duration: 420, delay: 120 }}
             >
-              <GlassCard>
+              <View style={styles.sectionCard}>
                 <View style={styles.envelopeHeader}>
                   <View style={styles.envelopeHeaderCopy}>
                     <Text style={styles.sectionTitle}>Sobres inteligentes</Text>
@@ -368,7 +392,7 @@ const AccountBalanceScreen = () => {
                     </View>
                   </>
                 )}
-              </GlassCard>
+              </View>
             </MotiView>
           </MotiView>
         </ScrollView>
@@ -377,245 +401,265 @@ const AccountBalanceScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    position: "relative",
-  },
-  scroll: {
-    paddingBottom: 220,
-  },
-  container: {
-    paddingTop: 68,
-    paddingHorizontal: 24,
-    gap: 28,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  caption: {
-    color: palette.textMuted,
-    letterSpacing: 1.6,
-    textTransform: "uppercase",
-    fontSize: 12,
-  },
-  title: {
-    color: palette.textPrimary,
-    fontSize: 28,
-    fontWeight: "800",
-  },
-  balanceCard: {
-    borderRadius: 36,
-    padding: 28,
-    overflow: "hidden",
-    gap: 22,
-  },
-  balanceVeil: {
-    position: "absolute",
-    top: -60,
-    right: -60,
-    bottom: -60,
-    left: -60,
-    borderRadius: 360,
-    backgroundColor: "rgba(86, 86, 86, 0.48)",
-  },
-  balanceLabel: {
-    color: palette.textMuted,
-    fontSize: 14,
-    letterSpacing: 0.8,
-  },
-  balanceValue: {
-    color: palette.textPrimary,
-    fontSize: 44,
-    fontWeight: "800",
-  },
-  balanceHint: {
-    color: palette.textSecondary,
-    fontSize: 14,
-  },
-  balanceActions: {
-    gap: 14,
-  },
-  secondaryAction: {
-    alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-    backgroundColor: "rgba(6, 20, 45, 0.6)",
-  },
-  secondaryActionLabel: {
-    color: palette.textPrimary,
-    fontWeight: "600",
-  },
-  historyHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  historyTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  sectionTitle: {
-    color: palette.textPrimary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  historyLink: {
-    color: palette.accentCyan,
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  emptyState: {
-    paddingVertical: 32,
-    alignItems: "center",
-    gap: 12,
-  },
-  emptyTitle: {
-    color: palette.textPrimary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  emptyCopy: {
-    color: palette.textSecondary,
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  historyItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderColor: "rgba(255,255,255,0.06)",
-  },
-  historyIconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: 16,
-    backgroundColor: "rgba(125, 142, 255, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  historyCopy: {
-    flex: 1,
-    marginHorizontal: 12,
-  },
-  historyTitle: {
-    color: palette.textPrimary,
-    fontWeight: "600",
-  },
-  historySubtitle: {
-    color: palette.textSecondary,
-    fontSize: 13,
-  },
-  historyAmount: {
-    fontWeight: "700",
-  },
-  envelopeHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 16,
-    paddingBottom: 12,
-  },
-  envelopeHeaderCopy: {
-    flex: 1,
-    gap: 6,
-  },
-  envelopeHint: {
-    color: palette.textSecondary,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  envelopeEmpty: {
-    alignItems: "center",
-    gap: 14,
-    paddingVertical: 24,
-  },
-  envelopeEmptyTitle: {
-    color: palette.textPrimary,
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  envelopeEmptyCopy: {
-    color: palette.textSecondary,
-    textAlign: "center",
-    fontSize: 13,
-    lineHeight: 18,
-    paddingHorizontal: 16,
-  },
-  envelopeList: {
-    gap: 12,
-  },
-  envelopeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 10,
-  },
-  envelopeMarker: {
-    width: 46,
-    height: 46,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  envelopeDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 8,
-  },
-  envelopeInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  envelopeName: {
-    color: palette.textPrimary,
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  envelopeMeta: {
-    color: palette.textSecondary,
-    fontSize: 13,
-  },
-  envelopeProgress: {
-    height: 6,
-    borderRadius: 4,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    overflow: "hidden",
-  },
-  envelopeProgressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  envelopeFooter: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginTop: 16,
-  },
-  envelopeStat: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 16,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  envelopeStatLabel: {
-    color: palette.textPrimary,
-    fontSize: 12,
-    fontWeight: "600",
-  },
-});
+const createStyles = (theme: Theme) => {
+  const { palette } = theme;
+  const cardTokens = theme.components.card;
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      position: "relative",
+    },
+    scroll: {
+      paddingBottom: 220,
+    },
+    container: {
+      paddingTop: 68,
+      paddingHorizontal: 24,
+      gap: 28,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    caption: {
+      color: palette.textMuted,
+      letterSpacing: 1.6,
+      textTransform: "uppercase",
+      fontSize: 12,
+    },
+    title: {
+      color: palette.textPrimary,
+      fontSize: 28,
+      fontWeight: "800",
+    },
+    balanceCard: {
+      borderRadius: theme.radii.xl,
+      padding: 28,
+      overflow: "hidden",
+      gap: 22,
+      backgroundColor: cardTokens.background,
+      borderWidth: cardTokens.borderWidth,
+      borderColor: cardTokens.border,
+      shadowColor: cardTokens.shadowColor,
+      shadowOffset: { width: 0, height: 20 },
+      shadowOpacity: 0.32,
+      shadowRadius: 30,
+    },
+    balanceVeil: {
+      position: "absolute",
+      top: -60,
+      right: -60,
+      bottom: -60,
+      left: -60,
+      borderRadius: 360,
+      backgroundColor: withOpacity(palette.textPrimary, 0.12),
+    },
+    balanceLabel: {
+      color: palette.textMuted,
+      fontSize: 14,
+      letterSpacing: 0.8,
+    },
+    balanceValue: {
+      color: palette.textPrimary,
+      fontSize: 44,
+      fontWeight: "800",
+    },
+    balanceHint: {
+      color: palette.textSecondary,
+      fontSize: 14,
+    },
+    balanceActions: {
+      gap: 14,
+    },
+    secondaryAction: {
+      alignItems: "center",
+      paddingVertical: 12,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: withOpacity(palette.textPrimary, 0.12),
+      backgroundColor: withOpacity(palette.accentBlue, 0.18),
+    },
+    secondaryActionLabel: {
+      color: palette.textPrimary,
+      fontWeight: "600",
+    },
+    sectionCard: {
+      borderRadius: theme.radii.xl,
+      padding: 24,
+      backgroundColor: cardTokens.background,
+      borderWidth: cardTokens.borderWidth,
+      borderColor: cardTokens.border,
+    },
+    historyHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+    historyTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    sectionTitle: {
+      color: palette.textPrimary,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    historyLink: {
+      color: palette.accentCyan,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+    emptyState: {
+      paddingVertical: 32,
+      alignItems: "center",
+      gap: 12,
+    },
+    emptyTitle: {
+      color: palette.textPrimary,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    emptyCopy: {
+      color: palette.textSecondary,
+      fontSize: 14,
+      textAlign: "center",
+      lineHeight: 20,
+    },
+    historyItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 14,
+      borderTopWidth: 1,
+      borderColor: withOpacity(palette.textPrimary, 0.06),
+    },
+    historyIconWrapper: {
+      width: 40,
+      height: 40,
+      borderRadius: 16,
+      backgroundColor: withOpacity(palette.accentPurple, 0.18),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    historyCopy: {
+      flex: 1,
+      marginHorizontal: 12,
+    },
+    historyTitle: {
+      color: palette.textPrimary,
+      fontWeight: "600",
+    },
+    historySubtitle: {
+      color: palette.textSecondary,
+      fontSize: 13,
+    },
+    historyAmount: {
+      fontWeight: "700",
+    },
+    envelopeHeader: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 16,
+      paddingBottom: 12,
+    },
+    envelopeHeaderCopy: {
+      flex: 1,
+      gap: 6,
+    },
+    envelopeHint: {
+      color: palette.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    envelopeEmpty: {
+      alignItems: "center",
+      gap: 14,
+      paddingVertical: 24,
+    },
+    envelopeEmptyTitle: {
+      color: palette.textPrimary,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    envelopeEmptyCopy: {
+      color: palette.textSecondary,
+      textAlign: "center",
+      fontSize: 13,
+      lineHeight: 18,
+      paddingHorizontal: 16,
+    },
+    envelopeList: {
+      gap: 12,
+    },
+    envelopeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      paddingVertical: 10,
+    },
+    envelopeMarker: {
+      width: 46,
+      height: 46,
+      borderRadius: 18,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      borderColor: withOpacity(palette.textPrimary, 0.12),
+      backgroundColor: withOpacity(palette.textPrimary, 0.04),
+    },
+    envelopeDot: {
+      width: 18,
+      height: 18,
+      borderRadius: 8,
+    },
+    envelopeInfo: {
+      flex: 1,
+      gap: 4,
+    },
+    envelopeName: {
+      color: palette.textPrimary,
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    envelopeMeta: {
+      color: palette.textSecondary,
+      fontSize: 13,
+    },
+    envelopeProgress: {
+      height: 6,
+      borderRadius: 4,
+      backgroundColor: withOpacity(palette.textPrimary, 0.08),
+      overflow: "hidden",
+    },
+    envelopeProgressFill: {
+      height: "100%",
+      borderRadius: 4,
+    },
+    envelopeFooter: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+      marginTop: 16,
+    },
+    envelopeStat: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: withOpacity(palette.textPrimary, 0.08),
+      borderRadius: 16,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+    },
+    envelopeStatLabel: {
+      color: palette.textPrimary,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+  });
+};
 
 export default AccountBalanceScreen;

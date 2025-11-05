@@ -23,18 +23,15 @@ import {
 import { Easing } from "react-native-reanimated";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
-import GlassCard from "@/components/GlassCard";
 import NeonTextField from "@/components/NeonTextField";
 import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, Contact } from "@/store/useBankStore";
-import { palette, themes } from "@/theme/colors";
+import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
 import { formatAmountDisplay, parseAmountToNumber, sanitizeAmountInput } from "@/utils/amount";
 import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
 import MarqueeText from "@/components/MarqueeText";
-
-const cardTokens = themes.pionero.components.card;
 
 const MoneyTransferScreen = () => {
   const router = useRouter();
@@ -481,21 +478,16 @@ const MoneyTransferScreen = () => {
               from={{ opacity: 0, translateY: 32 }}
               animate={{ opacity: 1, translateY: 0 }}
               transition={{ type: "timing", duration: 600 }}
+              style={styles.balanceSummary}
             >
-              <GlassCard
-                padding={24}
-                style={styles.balanceCard}
-                contentStyle={styles.balanceSummary}
-              >
-                <Text style={styles.balanceCaption}>Saldo disponible</Text>
-                <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
-                <Text style={styles.balanceHint}>
-                  Actualizado hace 1 min
-                  {totalEnvelopeBalance > 0
-                    ? ` · ${formatCurrency(totalEnvelopeBalance)} en sobres`
-                    : ""}
-                </Text>
-              </GlassCard>
+              <Text style={styles.balanceCaption}>Saldo disponible</Text>
+              <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
+              <Text style={styles.balanceHint}>
+                Actualizado hace 1 min
+                {totalEnvelopeBalance > 0
+                  ? ` · ${formatCurrency(totalEnvelopeBalance)} en sobres`
+                  : ""}
+              </Text>
             </MotiView>
 
             <View style={styles.contactRow}>
@@ -749,11 +741,7 @@ const MoneyTransferScreen = () => {
         onRequestClose={closeScanner}
       >
         <View style={styles.scannerBackdrop}>
-          <GlassCard
-            padding={22}
-            style={styles.scannerCard}
-            contentStyle={styles.scannerContent}
-          >
+          <View style={styles.scannerCard}>
             <View style={styles.scannerHeader}>
               <Text style={styles.scannerTitle}>Escanear código QR</Text>
               <Pressable
@@ -821,7 +809,7 @@ const MoneyTransferScreen = () => {
                 <Text style={styles.scannerHint}>Procesando…</Text>
               </View>
             ) : null}
-          </GlassCard>
+          </View>
         </View>
       </Modal>
     </FuturisticBackground>
@@ -863,10 +851,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
   },
-  balanceCard: {
-    width: "100%",
-  },
   balanceSummary: {
+    backgroundColor: "rgba(8, 16, 30, 0.7)",
+    borderRadius: 28,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
     gap: 8,
   },
   balanceCaption: {
@@ -914,9 +904,9 @@ const styles = StyleSheet.create({
   },
   contactBadge: {
     borderRadius: 22,
-    backgroundColor: cardTokens.background,
-    borderWidth: cardTokens.borderWidth,
-    borderColor: cardTokens.border,
+    backgroundColor: "rgba(9, 22, 40, 0.65)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.06)",
     paddingVertical: 12,
     paddingHorizontal: 18,
     flexDirection: "row",
@@ -1026,8 +1016,11 @@ const styles = StyleSheet.create({
   scannerCard: {
     width: "100%",
     maxWidth: 420,
-  },
-  scannerContent: {
+    borderRadius: 24,
+    padding: 22,
+    backgroundColor: "rgba(6, 12, 24, 0.95)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
     gap: 16,
   },
   scannerHeader: {

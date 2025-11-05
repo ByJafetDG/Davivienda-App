@@ -1,10 +1,18 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
-import { Easing } from "react-native-reanimated";
+import Svg, { Path } from "react-native-svg";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 
-import { palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeProvider";
 
 type OrbConfig = {
   size: number;
@@ -24,6 +32,21 @@ type AuroraConfig = {
   opacity: number;
   duration: number;
   delay: number;
+};
+
+type MotifConfig = {
+  position: Partial<Record<"top" | "bottom" | "left" | "right", number>>;
+  scale: number;
+  baseRotation: number;
+  opacity: number;
+  delay: number;
+  spinDuration: number;
+  spinDirection: 1 | -1;
+  highlightOffset?: number;
+  highlightWidth?: number;
+  floatAmplitude: number;
+  floatDuration: number;
+  floatPhase?: number;
 };
 
 const ORBS: OrbConfig[] = [
@@ -94,9 +117,207 @@ const AURORAS: AuroraConfig[] = [
   },
 ];
 
-const FuturisticBackground = ({ children }: PropsWithChildren) => {
+const ARCHES: MotifConfig[] = [
+  {
+    position: { top: 80, left: 24 },
+    scale: 1.05,
+    baseRotation: -6,
+    opacity: 0.18,
+    delay: 0,
+    spinDuration: 22000,
+    spinDirection: 1,
+    highlightOffset: 92,
+    floatAmplitude: 26,
+    floatDuration: 18000,
+    floatPhase: 0,
+  },
+  {
+    position: { top: 160, right: 34 },
+    scale: 0.9,
+    baseRotation: 4,
+    opacity: 0.16,
+    delay: 600,
+    spinDuration: 20500,
+    spinDirection: -1,
+    highlightOffset: 94,
+    floatAmplitude: 22,
+    floatDuration: 16800,
+    floatPhase: 0.22,
+  },
+  {
+    position: { top: 280, left: 48 },
+    scale: 0.8,
+    baseRotation: -2,
+    opacity: 0.14,
+    delay: 1200,
+    spinDuration: 23600,
+    spinDirection: 1,
+    highlightOffset: 90,
+    floatAmplitude: 18,
+    floatDuration: 16000,
+    floatPhase: 0.45,
+  },
+  {
+    position: { top: 360, right: 52 },
+    scale: 1,
+    baseRotation: 8,
+    opacity: 0.17,
+    delay: 1800,
+    spinDuration: 24800,
+    spinDirection: -1,
+    highlightOffset: 96,
+    floatAmplitude: 24,
+    floatDuration: 19000,
+    floatPhase: 0.63,
+  },
+  {
+    position: { bottom: 140, left: 56 },
+    scale: 0.72,
+    baseRotation: -10,
+    opacity: 0.13,
+    delay: 900,
+    spinDuration: 21400,
+    spinDirection: 1,
+    highlightOffset: 88,
+    highlightWidth: 18,
+    floatAmplitude: 20,
+    floatDuration: 17400,
+    floatPhase: 0.4,
+  },
+  {
+    position: { bottom: 80, right: 60 },
+    scale: 0.62,
+    baseRotation: 5,
+    opacity: 0.12,
+    delay: 1500,
+    spinDuration: 23200,
+    spinDirection: -1,
+    highlightOffset: 90,
+    highlightWidth: 16,
+    floatAmplitude: 16,
+    floatDuration: 16200,
+    floatPhase: 0.78,
+  },
+];
+
+const MOTIF_BASE = { width: 132, height: 88 };
+const MOTIF_PATH = "M12 74 Q66 -6 120 74";
+
+const Motif = ({ motif, strokeColor }: { motif: MotifConfig; strokeColor: string }) => {
+  const spinProgress = useSharedValue(0);
+  const floatProgress = useSharedValue(0);
+
+  useEffect(() => {
+    spinProgress.value = withDelay(
+      motif.delay,
+      withRepeat(
+        withTiming(1, {
+          duration: motif.spinDuration,
+          easing: Easing.linear,
+        }),
+        -1,
+        false,
+      ),
+    );
+    floatProgress.value = withDelay(
+      motif.delay,
+      withRepeat(
+        withTiming(1, {
+          duration: motif.floatDuration,
+          easing: Easing.linear,
+        }),
+        -1,
+        false,
+      ),
+    );
+  }, [motif.delay, motif.spinDuration, motif.floatDuration, spinProgress, floatProgress]);
+
+  const spinStyle = useAnimatedStyle(() => {
+    const rotation = motif.baseRotation + motif.spinDirection * 360 * spinProgress.value;
+    return {
+      transform: [{ scale: motif.scale }, { rotate: `${rotation}deg` }],
+    };
+  });
+
+  const flashStyle = useAnimatedStyle(() => {
+    const rawRotation = motif.baseRotation + motif.spinDirection * 360 * spinProgress.value;
+    const current = ((rawRotation % 360) + 360) % 360;
+    const target = (((motif.baseRotation + (motif.highlightOffset ?? 90)) % 360) + 360) % 360;
+    const diff = Math.abs(current - target);
+    const shortest = Math.min(diff, 360 - diff);
+    const width = motif.highlightWidth ?? 22;
+    const intensity = Math.max(0, 1 - shortest / width);
+    const flashStrength = Math.pow(intensity, 4);
+    return { opacity: flashStrength };
+  });
+
+  const floatStyle = useAnimatedStyle(() => {
+    const progress = floatProgress.value + (motif.floatPhase ?? 0);
+    const translateY = Math.sin(progress * Math.PI * 2) * motif.floatAmplitude;
+    return {
+      transform: [{ translateY }],
+    };
+  });
+
   return (
-    <View style={styles.root}>
+    <Animated.View
+      style={[
+        styles.motif,
+        {
+          width: MOTIF_BASE.width,
+          height: MOTIF_BASE.height,
+          ...motif.position,
+          opacity: motif.opacity,
+        },
+        floatStyle,
+      ]}
+      pointerEvents="none"
+    >
+      <Animated.View style={[styles.motifInner, spinStyle]} pointerEvents="none">
+        <View style={styles.motifSvgWrapper} pointerEvents="none">
+          <Svg
+            width={MOTIF_BASE.width}
+            height={MOTIF_BASE.height}
+            viewBox="0 0 132 88"
+            style={styles.motifSvg}
+          >
+            <Path
+              d={MOTIF_PATH}
+              stroke={strokeColor}
+              strokeWidth={18}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
+          <Animated.View style={[styles.motifOverlay, flashStyle]} pointerEvents="none">
+            <Svg
+              width={MOTIF_BASE.width}
+              height={MOTIF_BASE.height}
+              viewBox="0 0 132 88"
+              style={styles.motifSvg}
+            >
+              <Path
+                d={MOTIF_PATH}
+                stroke="rgba(255,255,255,0.92)"
+                strokeWidth={18}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </Svg>
+          </Animated.View>
+        </View>
+      </Animated.View>
+    </Animated.View>
+  );
+};
+
+const FuturisticBackground = ({ children }: PropsWithChildren) => {
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  return (
+    <View style={[styles.root, { backgroundColor: palette.background }]}>
       <LinearGradient
         colors={[palette.background, "#410707ff", "#7C131D"]}
         start={{ x: 0, y: 0 }}
@@ -194,6 +415,11 @@ const FuturisticBackground = ({ children }: PropsWithChildren) => {
           </MotiView>
         ))}
       </View>
+      <View pointerEvents="none" style={styles.motifLayer}>
+        {ARCHES.map((motif, index) => (
+          <Motif motif={motif} key={`motif-${index}`} strokeColor={palette.primary} />
+        ))}
+      </View>
       {children}
     </View>
   );
@@ -202,7 +428,7 @@ const FuturisticBackground = ({ children }: PropsWithChildren) => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: palette.background,
+    backgroundColor: "transparent",
   },
   noiseLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -237,6 +463,33 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: "rgba(255, 180, 150, 0.18)",
     opacity: 0.3,
+  },
+  motifLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  motif: {
+    position: "absolute",
+  },
+  motifInner: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  motifSvgWrapper: {
+    width: "100%",
+    height: "100%",
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  motifSvg: {
+    width: "100%",
+    height: "100%",
+  },
+  motifOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 
