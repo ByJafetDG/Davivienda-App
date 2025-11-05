@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 18,
     padding: 20,
+    position: "relative",
   },
   avatarWrapper: {
     width: 72,
@@ -236,6 +237,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
+    position: "relative",
+    overflow: "visible",
   },
   actions: {
     gap: 16,

@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
 import { useRouter } from "expo-router";
-import QRCode from "react-native-qrcode-svg";
 import { MotiView } from "moti";
 import { useMemo, useRef } from "react";
 import {
@@ -14,7 +14,7 @@ import {
   Alert,
   Platform,
 } from "react-native";
-import * as FileSystem from "expo-file-system";
+import QRCode from "react-native-qrcode-svg";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -56,12 +56,18 @@ const ProfileQrScreen = () => {
         // Prefer saving to a temporary file if expo-file-system is available.
         // Use casts to `any` to avoid depending on specific TS types in different expo-file-system versions.
         const fsAny: any = FileSystem as any;
-        if (fsAny && typeof fsAny.writeAsStringAsync === "function" && typeof fsAny.cacheDirectory === "string") {
+        if (
+          fsAny &&
+          typeof fsAny.writeAsStringAsync === "function" &&
+          typeof fsAny.cacheDirectory === "string"
+        ) {
           const filename = `sinpe-qr-${Date.now()}.png`;
           const fileUri = `${fsAny.cacheDirectory}${filename}`;
 
           // write base64 to temp file (use 'base64' encoding string for compatibility)
-          await fsAny.writeAsStringAsync(fileUri, base64, { encoding: "base64" });
+          await fsAny.writeAsStringAsync(fileUri, base64, {
+            encoding: "base64",
+          });
 
           // On Android the Share API may require the 'file://' prefix, expo FileSystem cacheDirectory includes it
           await Share.share(
