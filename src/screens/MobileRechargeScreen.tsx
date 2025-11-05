@@ -130,7 +130,12 @@ const MobileRechargeScreen = () => {
             transition={{ type: "timing", duration: 480 }}
           >
           <View style={styles.header}>
-            <Pressable onPress={() => router.back()}>
+            <Pressable 
+              onPress={() => router.push("/(app)/home")}
+              style={styles.backButton}
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+            >
               <MaterialCommunityIcons
                 name="arrow-left"
                 size={26}
@@ -329,6 +334,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   profileShortcut: {
     shadowOpacity: 0.25,

@@ -136,7 +136,7 @@ const InsightsScreen = () => {
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => router.push("/(app)/home")}
               accessibilityRole="button"
               accessibilityLabel="Volver"
             >

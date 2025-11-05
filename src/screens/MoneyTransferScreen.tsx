@@ -457,7 +457,7 @@ const MoneyTransferScreen = () => {
           >
             <View style={styles.header}>
               <Pressable
-                onPress={() => router.back()}
+                onPress={() => router.push("/(app)/home")}
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
                 style={styles.backButton}

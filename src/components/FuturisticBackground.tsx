@@ -415,11 +415,6 @@ const FuturisticBackground = ({ children }: PropsWithChildren) => {
           </MotiView>
         ))}
       </View>
-      <View pointerEvents="none" style={styles.motifLayer}>
-        {ARCHES.map((motif, index) => (
-          <Motif motif={motif} key={`motif-${index}`} strokeColor={palette.primary} />
-        ))}
-      </View>
       {children}
     </View>
   );

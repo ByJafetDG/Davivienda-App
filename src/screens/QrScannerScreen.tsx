@@ -191,7 +191,7 @@ const QrScannerScreen = () => {
               accessibilityRole="button"
               accessibilityLabel="Volver"
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => router.push("/(app)/home")}
             >
               <MaterialCommunityIcons
                 name="arrow-left"

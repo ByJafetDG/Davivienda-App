@@ -156,7 +156,7 @@ const AccountBalanceScreen = () => {
           >
             <View style={styles.header}>
               <View>
-                <Text style={styles.caption}>SINPE Móvil</Text>
+                <Text style={styles.caption}>Davivienda SINPE Móvil</Text>
                 <Text style={styles.title}>Hola, {user.name.split(" ")[0]}</Text>
               </View>
               <ProfileAvatarButton

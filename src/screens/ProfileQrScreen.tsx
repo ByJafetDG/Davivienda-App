@@ -120,7 +120,7 @@ const ProfileQrScreen = () => {
             <View style={styles.header}>
               <Pressable
                 style={styles.headerButton}
-                onPress={() => router.back()}
+                onPress={() => router.push("/(app)/home")}
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
