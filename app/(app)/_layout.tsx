@@ -1,9 +1,14 @@
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { StyleSheet, View } from "react-native";
 
 import BottomNavigationBar from "@/components/BottomNavigationBar";
 
 export default function AppLayout() {
+  const pathname = usePathname();
+  const hideNavBar = pathname?.includes('/support');
+
+  console.log('Current pathname:', pathname, 'hideNavBar:', hideNavBar);
+
   return (
     <View style={styles.container}>
       <Stack
@@ -28,8 +33,18 @@ export default function AppLayout() {
         <Stack.Screen name="automations" />
         <Stack.Screen name="envelopes" />
         <Stack.Screen name="charges" />
+        <Stack.Screen
+          name="support"
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'fade',
+            contentStyle: {
+              backgroundColor: 'transparent',
+            },
+          }}
+        />
       </Stack>
-      <BottomNavigationBar />
+      {!hideNavBar && <BottomNavigationBar />}
     </View>
   );
 }

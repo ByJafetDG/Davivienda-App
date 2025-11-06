@@ -189,6 +189,13 @@ const AccountBalanceScreen = () => {
                     label="Enviar dinero ahora"
                     onPress={() => router.push("/(app)/transfer")}
                   />
+                  <Pressable
+                    style={styles.secondaryAction}
+                    onPress={() => router.push("/(app)/history")}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.secondaryActionLabel}>Ver historial</Text>
+                  </Pressable>
                 </View>
               </View>
             </MotiView>
@@ -395,6 +402,29 @@ const AccountBalanceScreen = () => {
             </MotiView>
           </MotiView>
         </ScrollView>
+
+        <MotiView
+          from={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", delay: 800, damping: 15 }}
+          style={styles.fabContainer}
+        >
+          <Pressable
+            onPress={() => router.push("/(app)/support")}
+            style={({ pressed }) => [
+              styles.fab,
+              pressed && styles.fabPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir chat de soporte"
+          >
+            <MaterialCommunityIcons
+              name="chat-question"
+              size={24}
+              color="white"
+            />
+          </Pressable>
+        </MotiView>
       </View>
     </FuturisticBackground>
   );
@@ -663,6 +693,29 @@ const createStyles = (theme: Theme) => {
       color: palette.textPrimary,
       fontSize: 12,
       fontWeight: "600",
+    },
+    fabContainer: {
+      position: "absolute",
+      bottom: 140,
+      right: 20,
+      zIndex: 999,
+    },
+    fab: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: palette.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: palette.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 12,
+      elevation: 8,
+    },
+    fabPressed: {
+      transform: [{ scale: 0.95 }],
+      shadowOpacity: 0.2,
     },
   });
 };
