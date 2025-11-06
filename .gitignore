@@ -1,13 +1,2 @@
 node_modules
 
-# Backend folder (NO incluir en la app móvil)
-backend/
-
-# Environment variables (NUNCA subir)
-.env
-.env.local
-.env.*.local
-
-# Service account keys
-service-account*.json
-dialogflow-*.json
