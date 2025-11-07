@@ -12,7 +12,6 @@ import {
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import PrimaryButton from "@/components/PrimaryButton";
-import LeitmotivBadge from "@/components/LeitmotivBadge";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
@@ -179,11 +178,6 @@ const AccountBalanceScreen = () => {
             >
               <View style={styles.balanceCard}>
                 <View style={styles.balanceVeil} />
-                <LeitmotivBadge
-                  style={styles.leitmotivBadge}
-                  opacity={0.78}
-                  size={104}
-                />
                 <Text style={styles.balanceLabel}>Saldo disponible</Text>
                 <Text style={styles.balanceValue}>{formatCurrency(availableBalance)}</Text>
                 <Text style={styles.balanceHint}>
@@ -194,13 +188,6 @@ const AccountBalanceScreen = () => {
                     label="Enviar dinero ahora"
                     onPress={() => router.push("/(app)/transfer")}
                   />
-                  <Pressable
-                    style={styles.secondaryAction}
-                    onPress={() => router.push("/(app)/history")}
-                    accessibilityRole="button"
-                  >
-                    <Text style={styles.secondaryActionLabel}>Ver historial</Text>
-                  </Pressable>
                 </View>
               </View>
             </MotiView>
@@ -508,23 +495,6 @@ const createStyles = (theme: Theme) => {
     },
     balanceActions: {
       gap: 14,
-    },
-    leitmotivBadge: {
-      top: -15,
-      right: -15,
-      transform: [{ rotate: "8deg" }],
-    },
-    secondaryAction: {
-      alignItems: "center",
-      paddingVertical: 12,
-      borderRadius: 18,
-      borderWidth: 1,
-      borderColor: withOpacity(palette.textPrimary, 0.12),
-      backgroundColor: withOpacity(palette.accentBlue, 0.18),
-    },
-    secondaryActionLabel: {
-      color: palette.textPrimary,
-      fontWeight: "600",
     },
     sectionCard: {
       borderRadius: theme.radii.xl,
