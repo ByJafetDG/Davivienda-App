@@ -9,11 +9,40 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
 import { useBankStore } from "@/store/useBankStore";
-import { palette } from "@/theme/colors";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
+
+const withOpacity = (color: string, alpha: number) => {
+  if (color.startsWith("#")) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex
+        .split("")
+        .map((char) => char + char)
+        .join("");
+    }
+    if (hex.length === 6) {
+      const value = Number.parseInt(hex, 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+  }
+  const rgbaMatch = color.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbaMatch) {
+    const parts = rgbaMatch[1].split(",").map((part) => part.trim());
+    const [r = "0", g = "0", b = "0"] = parts;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  return color;
+};
 
 const ConfirmTransferScreen = () => {
   const router = useRouter();
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const params = useLocalSearchParams<{
     contactName?: string;
     phone?: string;
@@ -72,19 +101,31 @@ const ConfirmTransferScreen = () => {
     router.replace("/(app)/history");
   };
 
-  const summaryItems = [
-    {
-      label: "Destinatario",
-      value: params.contactName,
-      icon: "account-circle-outline",
-    },
-    { label: "Número telefónico", value: params.phone, icon: "cellphone" },
-    {
-      label: "Nota",
-      value: params.note || "Sin detalles",
-      icon: "note-text-outline",
-    },
-  ];
+  const summaryItems = useMemo(
+    () => [
+      {
+        label: "Destinatario",
+        value: params.contactName,
+        icon: "account-circle-outline",
+      },
+      { label: "Número telefónico", value: params.phone, icon: "cellphone" },
+      {
+        label: "Nota",
+        value: params.note || "Sin detalles",
+        icon: "note-text-outline",
+      },
+    ],
+    [params.contactName, params.phone, params.note],
+  );
+
+  const successGradient = useMemo(
+    () =>
+      [
+        withOpacity(palette.primary, 0.85),
+        withOpacity(palette.primaryAlt, 0.45),
+      ] as const,
+    [palette.primary, palette.primaryAlt],
+  );
 
   return (
     <FuturisticBackground>
@@ -100,18 +141,18 @@ const ConfirmTransferScreen = () => {
           transition={{ type: "timing", duration: 480 }}
         >
           <View style={styles.header}>
-            <Pressable
-              onPress={() => router.push("/(app)/home")}
-              accessibilityRole="button"
-              accessibilityLabel="Volver"
-              style={styles.backButton}
-            >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={24}
-                color={palette.textPrimary}
-              />
-            </Pressable>
+              <Pressable
+                onPress={() => router.push("/(app)/home")}
+                accessibilityRole="button"
+                accessibilityLabel="Volver"
+                style={styles.backButton}
+              >
+                <MaterialCommunityIcons
+                  name="arrow-left"
+                  size={24}
+                  color={palette.textPrimary}
+                />
+              </Pressable>
             <Text style={styles.headerTitle}>Confirmar envío</Text>
             <View style={styles.headerSpacer} />
           </View>
@@ -122,15 +163,17 @@ const ConfirmTransferScreen = () => {
               <Text style={styles.subtitle}>
                 Revisa los datos antes de enviar.
               </Text>
-              <LinearGradient
-                colors={["#0F213F", "#081226"]}
+              <GlassCard
+                intensity={45}
+                padding={24}
                 style={styles.amountCard}
+                contentStyle={styles.amountContent}
               >
                 <Text style={styles.amountLabel}>Monto a enviar</Text>
                 <Text style={styles.amountValue}>
                   {formatCurrency(amountNumber)}
                 </Text>
-              </LinearGradient>
+              </GlassCard>
 
               <GlassCard>
                 <View style={styles.summary}>
@@ -170,10 +213,7 @@ const ConfirmTransferScreen = () => {
               transition={{ type: "spring", damping: 12, mass: 0.8 }}
               style={styles.successState}
             >
-              <LinearGradient
-                colors={["#ff1c1cff", "#ffffff77"]}
-                style={styles.successBadge}
-              >
+              <LinearGradient colors={successGradient} style={styles.successBadge}>
                 <MaterialCommunityIcons
                   name="check"
                   size={42}
@@ -206,131 +246,137 @@ const ConfirmTransferScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  scroll: {
-    paddingBottom: 120,
-  },
-  container: {
-    paddingTop: 64,
-    paddingHorizontal: 24,
-    gap: 24,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
-  },
-  headerTitle: {
-    color: palette.textPrimary,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  headerSpacer: {
-    width: 40,
-    height: 40,
-  },
-  title: {
-    color: palette.textPrimary,
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  subtitle: {
-    color: palette.textSecondary,
-    fontSize: 15,
-  },
-  amountCard: {
-    borderRadius: 32,
-    padding: 24,
-    gap: 10,
-  },
-  amountLabel: {
-    color: palette.textMuted,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-  },
-  amountValue: {
-    color: palette.textPrimary,
-    fontSize: 36,
-    fontWeight: "800",
-  },
-  summary: {
-    gap: 16,
-    padding: 20,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  summaryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  summaryCopy: {
-    flex: 1,
-  },
-  summaryLabel: {
-    color: palette.textMuted,
-    fontSize: 12,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  summaryValue: {
-    color: palette.textPrimary,
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  error: {
-    color: palette.danger,
-    textAlign: "center",
-  },
-  helper: {
-    color: palette.textMuted,
-    textAlign: "center",
-    fontSize: 12,
-  },
-  successState: {
-    alignItems: "center",
-    gap: 24,
-    marginTop: 80,
-  },
-  successBadge: {
-    width: 96,
-    height: 96,
-    borderRadius: 32,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  successTitle: {
-    color: palette.textPrimary,
-    fontSize: 26,
-    fontWeight: "800",
-    textAlign: "center",
-  },
-  successCopy: {
-    color: palette.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  successActions: {
-    width: "100%",
-    gap: 12,
-  },
-  successButton: {
-    width: "100%",
-  },
-});
+const createStyles = (theme: Theme) => {
+  const { palette } = theme;
+  return StyleSheet.create({
+    scroll: {
+      paddingBottom: 120,
+    },
+    container: {
+      paddingTop: 64,
+      paddingHorizontal: 24,
+      gap: 24,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.06)",
+    },
+    headerTitle: {
+      color: palette.textPrimary,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    headerSpacer: {
+      width: 40,
+      height: 40,
+    },
+    title: {
+      color: palette.textPrimary,
+      fontSize: 24,
+      fontWeight: "700",
+    },
+    subtitle: {
+      color: palette.textSecondary,
+      fontSize: 15,
+    },
+    amountCard: {
+      borderRadius: 32,
+    },
+    amountContent: {
+      gap: 10,
+    },
+    amountLabel: {
+      color: palette.textMuted,
+      letterSpacing: 1,
+      textTransform: "uppercase",
+    },
+    amountValue: {
+      color: palette.textPrimary,
+      fontSize: 36,
+      fontWeight: "800",
+    },
+    summary: {
+      gap: 16,
+      padding: 20,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+    },
+    summaryIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 16,
+      backgroundColor: "rgba(255, 255, 255, 0.08)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    summaryCopy: {
+      flex: 1,
+    },
+    summaryLabel: {
+      color: palette.textMuted,
+      fontSize: 12,
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
+    summaryValue: {
+      color: palette.textPrimary,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    error: {
+      color: palette.danger,
+      textAlign: "center",
+    },
+    helper: {
+      color: palette.textMuted,
+      textAlign: "center",
+      fontSize: 12,
+    },
+    successState: {
+      alignItems: "center",
+      gap: 24,
+      marginTop: 80,
+    },
+    successBadge: {
+      width: 96,
+      height: 96,
+      borderRadius: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: withOpacity(palette.primaryAlt, 0.35),
+    },
+    successTitle: {
+      color: palette.textPrimary,
+      fontSize: 26,
+      fontWeight: "800",
+      textAlign: "center",
+    },
+    successCopy: {
+      color: palette.textSecondary,
+      textAlign: "center",
+      lineHeight: 20,
+    },
+    successActions: {
+      width: "100%",
+      gap: 12,
+    },
+    successButton: {
+      width: "100%",
+    },
+  });
+};
 
 export default ConfirmTransferScreen;

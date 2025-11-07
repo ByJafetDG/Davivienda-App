@@ -197,45 +197,42 @@ export const SupportChatScreen: React.FC = () => {
             onContentSizeChange={scrollToBottom}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            ListFooterComponent={
-              <>
-                {isTyping && <TypingIndicator />}
-                {showQuickReplies && messages.length <= 1 && (
-                  <View style={styles.quickRepliesContainer}>
-                    <Text style={[styles.quickRepliesTitle, { color: theme.palette.textSecondary }]}>
-                      Sugerencias:
-                    </Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.quickReplies}
-                    >
-                      {getQuickReplies().map((reply, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => handleQuickReply(reply)}
-                          activeOpacity={0.7}
-                        >
-                          <LinearGradient
-                            colors={['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.08)']}
-                            style={[
-                              styles.quickReplyButton,
-                              { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                            ]}
-                          >
-                            <Text style={[styles.quickReplyText, { color: theme.palette.textPrimary }]}>
-                              {reply}
-                            </Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-              </>
-            }
+            ListFooterComponent={isTyping ? <TypingIndicator /> : <View style={styles.listFooterSpacer} />}
           />
         </View>
+
+        {showQuickReplies && messages.length <= 1 && (
+          <View style={styles.quickRepliesContainer}>
+            <Text style={[styles.quickRepliesTitle, { color: theme.palette.textSecondary }]}>
+              Sugerencias:
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.quickReplies}
+            >
+              {getQuickReplies().map((reply, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleQuickReply(reply)}
+                  activeOpacity={0.7}
+                >
+                  <LinearGradient
+                    colors={['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.08)']}
+                    style={[
+                      styles.quickReplyButton,
+                      { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                    ]}
+                  >
+                    <Text style={[styles.quickReplyText, { color: theme.palette.textPrimary }]}>
+                      {reply}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         <ChatInput
           onSend={handleSendMessage}
@@ -337,11 +334,11 @@ const styles = StyleSheet.create({
   },
   messagesContent: {
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
     flexGrow: 1,
   },
   quickRepliesContainer: {
-    marginTop: 16,
+    marginTop: 12,
     marginBottom: 16,
   },
   quickRepliesTitle: {
@@ -362,5 +359,8 @@ const styles = StyleSheet.create({
   },
   quickReplyText: {
     fontSize: 14,
+  },
+  listFooterSpacer: {
+    height: 12,
   },
 });

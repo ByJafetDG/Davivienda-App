@@ -22,6 +22,7 @@ import {
   TransferRecord,
   useBankStore,
 } from "@/store/useBankStore";
+import { useChatStore } from "@/store/useChatStore";
 
 type ActivityItem = {
   id: string;
@@ -98,6 +99,10 @@ const AccountBalanceScreen = () => {
       .sort((a: Envelope, b: Envelope) => b.balance - a.balance)
       .slice(0, 3);
   }, [envelopes]);
+
+  const supportAssistantEnabled = useChatStore(
+    (state) => state.supportAssistantEnabled,
+  );
 
   const timeline = useMemo<ActivityItem[]>(() => {
     const transfersMapped = transfers.map((item: TransferRecord) => {
@@ -403,28 +408,30 @@ const AccountBalanceScreen = () => {
           </MotiView>
         </ScrollView>
 
-        <MotiView
-          from={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", delay: 800, damping: 15 }}
-          style={styles.fabContainer}
-        >
-          <Pressable
-            onPress={() => router.push("/(app)/support")}
-            style={({ pressed }) => [
-              styles.fab,
-              pressed && styles.fabPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Abrir chat de soporte"
+        {supportAssistantEnabled && (
+          <MotiView
+            from={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", delay: 800, damping: 15 }}
+            style={styles.fabContainer}
           >
-            <MaterialCommunityIcons
-              name="chat-question"
-              size={24}
-              color="white"
-            />
-          </Pressable>
-        </MotiView>
+            <Pressable
+              onPress={() => router.push("/(app)/support")}
+              style={({ pressed }) => [
+                styles.fab,
+                pressed && styles.fabPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir chat de soporte"
+            >
+              <MaterialCommunityIcons
+                name="chat-question"
+                size={24}
+                color="white"
+              />
+            </Pressable>
+          </MotiView>
+        )}
       </View>
     </FuturisticBackground>
   );
@@ -696,7 +703,7 @@ const createStyles = (theme: Theme) => {
     },
     fabContainer: {
       position: "absolute",
-      bottom: 140,
+      bottom: 153,
       right: 20,
       zIndex: 999,
     },

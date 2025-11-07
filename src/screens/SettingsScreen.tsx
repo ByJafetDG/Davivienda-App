@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -14,6 +15,7 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { themes, type ThemeName } from "@/theme/colors";
+import { useChatStore } from "@/store/useChatStore";
 
 const themeCopy: Record<ThemeName, string> = {
   pionero: "Tema original de la aplicación, inspirado en la estética futurista.",
@@ -23,6 +25,12 @@ const themeCopy: Record<ThemeName, string> = {
 const SettingsScreen = () => {
   const router = useRouter();
   const { theme, themeName, setTheme, availableThemes } = useTheme();
+  const { supportAssistantEnabled, toggleSupportAssistant } = useChatStore(
+    (state) => ({
+      supportAssistantEnabled: state.supportAssistantEnabled,
+      toggleSupportAssistant: state.toggleSupportAssistant,
+    }),
+  );
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const themeOptions = useMemo(
@@ -111,6 +119,35 @@ const SettingsScreen = () => {
                       </Pressable>
                     );
                   })}
+                </View>
+              </View>
+            </GlassCard>
+
+            <GlassCard>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Asistente virtual</Text>
+                <Text style={styles.sectionSubtitle}>
+                  Controla la disponibilidad del chat de soporte. Al
+                  desactivarlo, el botón flotante desaparecerá de la pantalla de
+                  inicio.
+                </Text>
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleTextBlock}>
+                    <Text style={styles.toggleLabel}>Mostrar botón de soporte</Text>
+                    <Text style={styles.toggleDescription}>
+                      Mantén activo el acompañamiento virtual para recibir ayuda
+                      inmediata.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={supportAssistantEnabled}
+                    onValueChange={toggleSupportAssistant}
+                    trackColor={{
+                      false: "rgba(255,255,255,0.24)",
+                      true: theme.palette.primary,
+                    }}
+                    thumbColor="#ffffff"
+                  />
                 </View>
               </View>
             </GlassCard>
@@ -209,6 +246,26 @@ const createStyles = (theme: Theme) =>
     radioActive: {
       backgroundColor: theme.palette.primary,
       borderColor: theme.components.button.primaryHighlight,
+    },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 18,
+    },
+    toggleTextBlock: {
+      flex: 1,
+      gap: 6,
+    },
+    toggleLabel: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: theme.palette.textPrimary,
+    },
+    toggleDescription: {
+      fontSize: 12,
+      color: theme.palette.textSecondary,
+      lineHeight: 18,
     },
   });
 

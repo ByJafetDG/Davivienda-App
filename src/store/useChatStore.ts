@@ -13,11 +13,13 @@ type ChatState = {
   sessionId: string | null;
   isTyping: boolean;
   error: string | null;
+  supportAssistantEnabled: boolean;
   addMessage: (message: ChatMessage) => void;
   setTyping: (isTyping: boolean) => void;
   setError: (error: string | null) => void;
   setSessionId: (sessionId: string) => void;
   clearMessages: () => void;
+  toggleSupportAssistant: (enabled: boolean) => void;
 };
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -25,6 +27,7 @@ export const useChatStore = create<ChatState>((set) => ({
   sessionId: null,
   isTyping: false,
   error: null,
+  supportAssistantEnabled: true,
   addMessage: (message) =>
     set((state) => ({
       messages: [...state.messages, message],
@@ -33,4 +36,5 @@ export const useChatStore = create<ChatState>((set) => ({
   setError: (error) => set({ error }),
   setSessionId: (sessionId) => set({ sessionId }),
   clearMessages: () => set({ messages: [] }),
+  toggleSupportAssistant: (enabled) => set({ supportAssistantEnabled: enabled }),
 }));
