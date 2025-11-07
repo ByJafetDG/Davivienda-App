@@ -100,9 +100,8 @@ export const getQuickReplies = (): string[] => {
   return [
     '¿Cómo hago una transferencia?',
     '¿Qué son los sobres inteligentes?',
-    'Ayuda con recargas',
-    'Problemas con mi saldo',
-    'Hablar con un agente',
+    '¿Cómo realizar una recarga?',
+    '¿Cómo gestionar mis cobros?',
   ];
 };
 
