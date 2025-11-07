@@ -6,7 +6,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
@@ -139,15 +138,27 @@ const SettingsScreen = () => {
                       inmediata.
                     </Text>
                   </View>
-                  <Switch
-                    value={supportAssistantEnabled}
-                    onValueChange={toggleSupportAssistant}
-                    trackColor={{
-                      false: "rgba(255,255,255,0.24)",
-                      true: theme.palette.primary,
-                    }}
-                    thumbColor="#ffffff"
-                  />
+                  <Pressable
+                    onPress={() => toggleSupportAssistant(!supportAssistantEnabled)}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: supportAssistantEnabled }}
+                    style={({ pressed }) => [
+                      styles.switchBase,
+                      supportAssistantEnabled
+                        ? styles.switchBaseOn
+                        : styles.switchBaseOff,
+                      pressed && styles.switchBasePressed,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.switchThumb,
+                        supportAssistantEnabled
+                          ? styles.switchThumbOn
+                          : styles.switchThumbOff,
+                      ]}
+                    />
+                  </Pressable>
                 </View>
               </View>
             </GlassCard>
@@ -266,6 +277,44 @@ const createStyles = (theme: Theme) =>
       fontSize: 12,
       color: theme.palette.textSecondary,
       lineHeight: 18,
+    },
+    switchBase: {
+      width: 52,
+      height: 30,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.24)",
+      backgroundColor: "rgba(255,255,255,0.2)",
+      padding: 2,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-start",
+    },
+    switchBaseOn: {
+      backgroundColor: "rgba(255,255,255,0.32)",
+      justifyContent: "flex-end",
+    },
+    switchBaseOff: {
+      justifyContent: "flex-start",
+    },
+    switchBasePressed: {
+      opacity: 0.8,
+    },
+    switchThumb: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: "#ffffff",
+      shadowColor: "#000000",
+      shadowOpacity: 0.18,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
+    },
+    switchThumbOn: {
+      backgroundColor: "#ffffff",
+    },
+    switchThumbOff: {
+      backgroundColor: "#ffffff",
     },
   });
 
