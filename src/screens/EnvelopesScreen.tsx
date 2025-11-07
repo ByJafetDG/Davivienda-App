@@ -32,6 +32,7 @@ import {
   Envelope,
   useBankStore,
 } from "@/store/useBankStore";
+import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { palette } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
 import {
@@ -835,6 +836,9 @@ const EnvelopeFormModal = ({
     () => formatAmountDisplay(formState.targetAmount),
     [formState.targetAmount],
   );
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const modalStyles = useMemo(() => createModalStyles(theme), [theme]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -844,9 +848,9 @@ const EnvelopeFormModal = ({
             from={{ opacity: 0, translateY: 18 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 260 }}
-            style={styles.modalCard}
+            style={modalStyles.card}
           >
-            <Text style={styles.modalTitle}>
+            <Text style={modalStyles.title}>
               {mode === "create" ? "Crear sobre" : "Editar sobre"}
             </Text>
             <NeonTextField
@@ -900,7 +904,7 @@ const EnvelopeFormModal = ({
                 />
               }
             />
-            <Text style={styles.modalSubtitle}>Color de identificación</Text>
+            <Text style={modalStyles.subtitle}>Color de identificación</Text>
             <View style={styles.swatchGrid}>
               {ENVELOPE_COLORS.map((color) => {
                 const isSelected = formState.color === color;
@@ -919,19 +923,19 @@ const EnvelopeFormModal = ({
                 );
               })}
             </View>
-            {error ? <Text style={styles.modalError}>{error}</Text> : null}
-            <View style={styles.modalActions}>
+            {error ? <Text style={modalStyles.error}>{error}</Text> : null}
+            <View style={modalStyles.actions}>
               <PrimaryButton
                 label="Cancelar"
                 onPress={onClose}
                 variant="ghost"
                 compact
-                style={styles.modalPrimaryButton}
+                style={modalStyles.primaryButton}
               />
               <PrimaryButton
                 label={mode === "create" ? "Crear" : "Guardar"}
                 onPress={onSubmit}
-                style={styles.modalPrimaryButton}
+                style={modalStyles.primaryButton}
                 compact
               />
             </View>
@@ -965,6 +969,9 @@ const AllocationModal = ({
     () => formatAmountDisplay(formState.amount),
     [formState.amount],
   );
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const modalStyles = useMemo(() => createModalStyles(theme), [theme]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -974,15 +981,15 @@ const AllocationModal = ({
             from={{ opacity: 0, translateY: 18 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 260 }}
-            style={styles.modalCard}
+            style={modalStyles.card}
           >
-            <Text style={styles.modalTitle}>
+            <Text style={modalStyles.title}>
               {formState.mode === "deposit"
                 ? "Asignar saldo al sobre"
                 : "Retirar saldo del sobre"}
             </Text>
             {envelope ? (
-              <Text style={styles.modalSubtitle}>{envelope.name}</Text>
+              <Text style={modalStyles.subtitle}>{envelope.name}</Text>
             ) : null}
             <View style={styles.toggleGroup}>
               <Pressable
@@ -1032,19 +1039,19 @@ const AllocationModal = ({
                 />
               }
             />
-            {error ? <Text style={styles.modalError}>{error}</Text> : null}
-            <View style={styles.modalActions}>
+            {error ? <Text style={modalStyles.error}>{error}</Text> : null}
+            <View style={modalStyles.actions}>
               <PrimaryButton
                 label="Cancelar"
                 onPress={onClose}
                 variant="ghost"
                 compact
-                style={styles.modalPrimaryButton}
+                style={modalStyles.primaryButton}
               />
               <PrimaryButton
                 label="Guardar"
                 onPress={onSubmit}
-                style={styles.modalPrimaryButton}
+                style={modalStyles.primaryButton}
                 compact
               />
             </View>
@@ -1082,6 +1089,9 @@ const AutomationFormModal = ({
     () => formatPhoneNumber(formState.matchPhone),
     [formState.matchPhone],
   );
+  const { theme } = useTheme();
+  const palette = theme.palette;
+  const modalStyles = useMemo(() => createModalStyles(theme), [theme]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -1091,9 +1101,9 @@ const AutomationFormModal = ({
             from={{ opacity: 0, translateY: 18 }}
             animate={{ opacity: 1, translateY: 0 }}
             transition={{ type: "timing", duration: 260 }}
-            style={styles.modalCard}
+            style={modalStyles.card}
           >
-            <Text style={styles.modalTitle}>
+            <Text style={modalStyles.title}>
               {mode === "create" ? "Nueva automatización" : "Editar automatización"}
             </Text>
             <NeonTextField
@@ -1131,7 +1141,7 @@ const AutomationFormModal = ({
                 />
               }
             />
-            <Text style={styles.modalSubtitle}>Depositar en</Text>
+            <Text style={modalStyles.subtitle}>Depositar en</Text>
             <View style={styles.envelopePicker}>
               {envelopes.length === 0 ? (
                 <Text style={styles.emptyCopy}>
@@ -1183,30 +1193,30 @@ const AutomationFormModal = ({
                 thumbColor={formState.active ? palette.surface : palette.textMuted}
               />
             </View>
-            {error ? <Text style={styles.modalError}>{error}</Text> : null}
-            <View style={styles.modalActions}>
+            {error ? <Text style={modalStyles.error}>{error}</Text> : null}
+            <View style={modalStyles.actions}>
               <PrimaryButton
                 label="Cancelar"
                 onPress={onClose}
                 variant="ghost"
                 compact
-                style={styles.modalPrimaryButton}
+                style={modalStyles.primaryButton}
               />
               {onRemove ? (
-                <View style={styles.modalPrimaryButton}>
+                <View style={modalStyles.primaryButton}>
                   <Pressable
                     onPress={onRemove}
-                    style={styles.modalDangerPressable}
+                    style={modalStyles.dangerPressable}
                     accessibilityRole="button"
                   >
-                    <Text style={styles.modalDangerLabel}>Eliminar</Text>
+                    <Text style={modalStyles.dangerLabel}>Eliminar</Text>
                   </Pressable>
                 </View>
               ) : null}
               <PrimaryButton
                 label={mode === "create" ? "Crear" : "Guardar"}
                 onPress={onSubmit}
-                style={styles.modalPrimaryButton}
+                style={modalStyles.primaryButton}
                 compact
               />
             </View>
@@ -1216,6 +1226,73 @@ const AutomationFormModal = ({
     </Modal>
   );
 };
+
+const createModalStyles = (theme: Theme) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: theme.components.card.background,
+      borderRadius: theme.radii.xl,
+      padding: 24,
+      gap: 20,
+      borderWidth: theme.components.card.borderWidth,
+      borderColor: theme.components.card.border,
+      shadowColor: theme.components.card.shadowColor,
+      shadowOpacity: 0.28,
+      shadowRadius: 26,
+      elevation: 10,
+    },
+    title: {
+      color: theme.palette.textPrimary,
+      fontSize: 20,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    subtitle: {
+      color: theme.palette.textSecondary,
+      fontSize: 14,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+    error: {
+      color: theme.palette.danger,
+      fontSize: 13,
+      textAlign: "center",
+    },
+    actions: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      gap: 10,
+      marginTop: 16,
+    },
+    primaryButton: {
+      flexGrow: 1,
+      flexBasis: 0,
+      minWidth: 0,
+    },
+    dangerPressable: {
+      flex: 1,
+      width: "100%",
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: theme.radii.full,
+      backgroundColor: `${theme.palette.danger}22`,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: `${theme.palette.danger}55`,
+      shadowColor: theme.palette.danger,
+      shadowOpacity: 0.18,
+      shadowRadius: 12,
+    },
+    dangerLabel: {
+      color: theme.palette.danger,
+      fontWeight: "700",
+      fontSize: 14,
+      lineHeight: 16,
+      textAlign: "center",
+      textAlignVertical: "center",
+    },
+  });
 
 const styles = StyleSheet.create({
   touchableContainer: {
@@ -1458,85 +1535,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.8)",
     justifyContent: "center",
     paddingHorizontal: 20,
-  },
-  modalCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 24,
-    padding: 24,
-    gap: 20,
-    borderWidth: 1,
-    borderColor: palette.accentCyan,
-    shadowColor: palette.accentCyan,
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 8,
-  },
-  modalTitle: {
-    color: palette.textPrimary,
-    fontSize: 20,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  modalSubtitle: {
-    color: palette.textSecondary,
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  modalError: {
-    color: palette.danger,
-    fontSize: 13,
-    textAlign: "center",
-  },
-  modalActions: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    gap: 10,
-    marginTop: 16,
-  },
-  modalSecondaryButton: {
-    flexGrow: 1,
-    flexBasis: 0,
-    minWidth: 0,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    alignItems: "center",
-  },
-  modalSecondaryLabel: {
-    color: palette.textSecondary,
-    fontWeight: "600",
-  },
-  modalDangerButton: {
-    backgroundColor: "rgba(255, 68, 68, 0.12)",
-  },
-  modalDangerLabel: {
-    color: palette.danger,
-    fontWeight: "700",
-    fontSize: 14,
-    lineHeight: 16,
-    textAlign: "center",
-    textAlignVertical: "center",
-  },
-  modalDangerPressable: {
-    flex: 1,
-    width: "100%",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: "rgba(255, 68, 68, 0.14)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 68, 68, 0.4)",
-    shadowColor: palette.danger,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  modalPrimaryButton: {
-    flexGrow: 1,
-    flexBasis: 0,
-    minWidth: 0,
   },
   swatchGrid: {
     flexDirection: "row",
