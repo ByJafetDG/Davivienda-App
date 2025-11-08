@@ -46,6 +46,7 @@ const OPERATORS = [
 ] as const;
 
 const cardTokens = themes.pionero.components.card;
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const MobileRechargeScreen = () => {
   const router = useRouter();
@@ -136,10 +137,12 @@ const MobileRechargeScreen = () => {
               accessibilityRole="button"
               accessibilityLabel="Volver"
             >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={26}
-                color={palette.textPrimary}
+              <Image
+                source={leitmotivLogo}
+                style={styles.backLogo}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="Volver"
               />
             </Pressable>
             <Text style={styles.title}>Recarga móvil</Text>
@@ -342,6 +345,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   profileShortcut: {
     shadowOpacity: 0.25,

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentType } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   PressableStateCallbackType,
@@ -35,6 +36,7 @@ import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/
 import MarqueeText from "@/components/MarqueeText";
 
 const cardTokens = themes.pionero.components.card;
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const MoneyTransferScreen = () => {
   const router = useRouter();
@@ -462,10 +464,12 @@ const MoneyTransferScreen = () => {
                 accessibilityLabel="Volver"
                 style={styles.backButton}
               >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={26}
-                  color={palette.textPrimary}
+                <Image
+                  source={leitmotivLogo}
+                  style={styles.backLogo}
+                  resizeMode="contain"
+                  accessible
+                  accessibilityLabel="Volver"
                 />
               </Pressable>
               <Text style={styles.title}>Nueva transferencia</Text>
@@ -949,6 +953,11 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 18,
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   scanInlineRow: {
     flexDirection: "row",

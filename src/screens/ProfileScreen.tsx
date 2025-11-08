@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import QRCode from "react-native-qrcode-svg";
 import { MotiView } from "moti";
 import { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -12,6 +12,7 @@ import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 
 const bankLogo = require("../../assets/logo.png");
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const ProfileScreen = () => {
   const router = useRouter();
@@ -51,10 +52,12 @@ const ProfileScreen = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={26}
-                  color={palette.textPrimary}
+                <Image
+                  source={leitmotivLogo}
+                  style={styles.backLogo}
+                  resizeMode="contain"
+                  accessible
+                  accessibilityLabel="Volver"
                 />
               </Pressable>
               <Text style={styles.title}>Tu perfil financiero</Text>
@@ -180,6 +183,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   headerSpacer: {
     width: 40,

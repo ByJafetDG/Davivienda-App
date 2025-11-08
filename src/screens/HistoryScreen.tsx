@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -22,6 +23,7 @@ import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, TransferRecord, RechargeRecord } from "@/store/useBankStore";
 import { palette, themes } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const FILTERS = [
   { id: "all", label: "Todo", icon: "history" },
@@ -644,10 +646,12 @@ const HistoryScreen = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={26}
-                  color={palette.textPrimary}
+                <Image
+                  source={leitmotivLogo}
+                  style={styles.backLogo}
+                  resizeMode="contain"
+                  accessible
+                  accessibilityLabel="Volver"
                 />
               </Pressable>
               <Text style={styles.title}>Historial de movimientos</Text>
@@ -1047,6 +1051,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   profileShortcut: {
     shadowOpacity: 0.28,

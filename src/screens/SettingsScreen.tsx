@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from "react-native";
@@ -138,27 +139,15 @@ const SettingsScreen = () => {
                       inmediata.
                     </Text>
                   </View>
-                  <Pressable
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: supportAssistantEnabled }}
-                    onPress={() => toggleSupportAssistant(!supportAssistantEnabled)}
-                    style={({ pressed }) => [
-                      styles.toggleControl,
-                      supportAssistantEnabled
-                        ? styles.toggleControlOn
-                        : styles.toggleControlOff,
-                      pressed && styles.toggleControlPressed,
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.toggleThumb,
-                        supportAssistantEnabled
-                          ? styles.toggleThumbOn
-                          : styles.toggleThumbOff,
-                      ]}
-                    />
-                  </Pressable>
+                  <Switch
+                    value={supportAssistantEnabled}
+                    onValueChange={toggleSupportAssistant}
+                    trackColor={{
+                      false: "rgba(255,255,255,0.24)",
+                      true: theme.palette.primary,
+                    }}
+                    thumbColor="#ffffff"
+                  />
                 </View>
               </View>
             </GlassCard>
@@ -169,9 +158,8 @@ const SettingsScreen = () => {
   );
 };
 
-const createStyles = (theme: Theme) => {
-  const brandBlue = theme.palette.brandBlue ?? "#0082C4";
-  return StyleSheet.create({
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
     screen: {
       flex: 1,
     },
@@ -279,53 +267,6 @@ const createStyles = (theme: Theme) => {
       color: theme.palette.textSecondary,
       lineHeight: 18,
     },
-    toggleControl: {
-      width: 60,
-      height: 34,
-      borderRadius: 18,
-      borderWidth: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 4,
-      paddingVertical: 4,
-    },
-    toggleControlOff: {
-      justifyContent: "flex-start",
-      backgroundColor: "rgba(8, 12, 22, 0.68)",
-      borderColor: "rgba(255,255,255,0.14)",
-      shadowColor: "rgba(0,0,0,0.55)",
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 4,
-    },
-    toggleControlOn: {
-      justifyContent: "flex-end",
-      backgroundColor: "rgba(255,255,255,0.52)",
-      borderColor: "rgba(255,255,255,0.32)",
-      shadowColor: "rgba(255,255,255,0.38)",
-      shadowOpacity: 0.32,
-      shadowRadius: 18,
-      elevation: 6,
-    },
-    toggleControlPressed: {
-      opacity: 0.82,
-    },
-    toggleThumb: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-  backgroundColor: "rgba(255,255,255,0.92)",
-      shadowColor: "rgba(0,0,0,0.45)",
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    toggleThumbOn: {
-      backgroundColor: "#ffffff",
-      shadowColor: "rgba(0,130,196,0.4)",
-    },
-    toggleThumbOff: {},
   });
-};
 
 export default SettingsScreen;
