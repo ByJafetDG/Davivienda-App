@@ -139,23 +139,23 @@ const SettingsScreen = () => {
                     </Text>
                   </View>
                   <Pressable
-                    onPress={() => toggleSupportAssistant(!supportAssistantEnabled)}
                     accessibilityRole="switch"
                     accessibilityState={{ checked: supportAssistantEnabled }}
+                    onPress={() => toggleSupportAssistant(!supportAssistantEnabled)}
                     style={({ pressed }) => [
-                      styles.switchBase,
+                      styles.toggleControl,
                       supportAssistantEnabled
-                        ? styles.switchBaseOn
-                        : styles.switchBaseOff,
-                      pressed && styles.switchBasePressed,
+                        ? styles.toggleControlOn
+                        : styles.toggleControlOff,
+                      pressed && styles.toggleControlPressed,
                     ]}
                   >
                     <View
                       style={[
-                        styles.switchThumb,
+                        styles.toggleThumb,
                         supportAssistantEnabled
-                          ? styles.switchThumbOn
-                          : styles.switchThumbOff,
+                          ? styles.toggleThumbOn
+                          : styles.toggleThumbOff,
                       ]}
                     />
                   </Pressable>
@@ -169,8 +169,9 @@ const SettingsScreen = () => {
   );
 };
 
-const createStyles = (theme: Theme) =>
-  StyleSheet.create({
+const createStyles = (theme: Theme) => {
+  const brandBlue = theme.palette.brandBlue ?? "#0082C4";
+  return StyleSheet.create({
     screen: {
       flex: 1,
     },
@@ -278,44 +279,53 @@ const createStyles = (theme: Theme) =>
       color: theme.palette.textSecondary,
       lineHeight: 18,
     },
-    switchBase: {
-      width: 52,
-      height: 30,
-      borderRadius: 999,
+    toggleControl: {
+      width: 60,
+      height: 34,
+      borderRadius: 18,
       borderWidth: 1,
-      borderColor: "rgba(0,0,0,0.4)",
-      backgroundColor: "rgba(0,0,0,0.45)",
-      padding: 2,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-start",
+      paddingHorizontal: 4,
+      paddingVertical: 4,
     },
-    switchBaseOn: {
-      backgroundColor: "rgba(255,255,255,0.32)",
+    toggleControlOff: {
+      justifyContent: "flex-start",
+      backgroundColor: "rgba(8, 12, 22, 0.68)",
+      borderColor: "rgba(255,255,255,0.14)",
+      shadowColor: "rgba(0,0,0,0.55)",
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 4,
+    },
+    toggleControlOn: {
       justifyContent: "flex-end",
+      backgroundColor: "rgba(255,255,255,0.52)",
+      borderColor: "rgba(255,255,255,0.32)",
+      shadowColor: "rgba(255,255,255,0.38)",
+      shadowOpacity: 0.32,
+      shadowRadius: 18,
+      elevation: 6,
     },
-    switchBaseOff: {
-      justifyContent: "flex-start",
+    toggleControlPressed: {
+      opacity: 0.82,
     },
-    switchBasePressed: {
-      opacity: 0.8,
-    },
-    switchThumb: {
+    toggleThumb: {
       width: 24,
       height: 24,
       borderRadius: 12,
-      backgroundColor: "#ffffff",
-      shadowColor: "#000000",
-      shadowOpacity: 0.18,
-      shadowRadius: 4,
-      shadowOffset: { width: 0, height: 1 },
+  backgroundColor: "rgba(255,255,255,0.92)",
+      shadowColor: "rgba(0,0,0,0.45)",
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
     },
-    switchThumbOn: {
+    toggleThumbOn: {
       backgroundColor: "#ffffff",
+      shadowColor: "rgba(0,130,196,0.4)",
     },
-    switchThumbOff: {
-      backgroundColor: "#ffffff",
-    },
+    toggleThumbOff: {},
   });
+};
 
 export default SettingsScreen;
