@@ -844,11 +844,11 @@ const EnvelopeFormModal = ({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.modalBackdrop}>
-          <MotiView
-            from={{ opacity: 0, translateY: 18 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 260 }}
-            style={modalStyles.card}
+          <GlassCard
+            intensity={48}
+            padding={24}
+            style={modalStyles.cardWrapper}
+            contentStyle={modalStyles.cardContent}
           >
             <Text style={modalStyles.title}>
               {mode === "create" ? "Crear sobre" : "Editar sobre"}
@@ -939,7 +939,7 @@ const EnvelopeFormModal = ({
                 compact
               />
             </View>
-          </MotiView>
+          </GlassCard>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -977,11 +977,11 @@ const AllocationModal = ({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.modalBackdrop}>
-          <MotiView
-            from={{ opacity: 0, translateY: 18 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 260 }}
-            style={modalStyles.card}
+          <GlassCard
+            intensity={48}
+            padding={24}
+            style={modalStyles.cardWrapper}
+            contentStyle={modalStyles.cardContent}
           >
             <Text style={modalStyles.title}>
               {formState.mode === "deposit"
@@ -1055,7 +1055,7 @@ const AllocationModal = ({
                 compact
               />
             </View>
-          </MotiView>
+          </GlassCard>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -1097,11 +1097,11 @@ const AutomationFormModal = ({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.modalBackdrop}>
-          <MotiView
-            from={{ opacity: 0, translateY: 18 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 260 }}
-            style={modalStyles.card}
+          <GlassCard
+            intensity={48}
+            padding={24}
+            style={modalStyles.cardWrapper}
+            contentStyle={modalStyles.cardContent}
           >
             <Text style={modalStyles.title}>
               {mode === "create" ? "Nueva automatización" : "Editar automatización"}
@@ -1220,7 +1220,7 @@ const AutomationFormModal = ({
                 compact
               />
             </View>
-          </MotiView>
+          </GlassCard>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
@@ -1229,17 +1229,13 @@ const AutomationFormModal = ({
 
 const createModalStyles = (theme: Theme) =>
   StyleSheet.create({
-    card: {
-      backgroundColor: theme.components.card.background,
-      borderRadius: theme.radii.xl,
-      padding: 24,
+    cardWrapper: {
+      width: "100%",
+      maxWidth: 440,
+      alignSelf: "center",
+    },
+    cardContent: {
       gap: 20,
-      borderWidth: theme.components.card.borderWidth,
-      borderColor: theme.components.card.border,
-      shadowColor: theme.components.card.shadowColor,
-      shadowOpacity: 0.28,
-      shadowRadius: 26,
-      elevation: 10,
     },
     title: {
       color: theme.palette.textPrimary,
@@ -1275,13 +1271,13 @@ const createModalStyles = (theme: Theme) =>
       paddingVertical: 8,
       paddingHorizontal: 12,
       borderRadius: theme.radii.full,
-      backgroundColor: `${theme.palette.danger}22`,
+      backgroundColor: `${theme.palette.danger}24`,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
-      borderColor: `${theme.palette.danger}55`,
+      borderColor: `${theme.palette.danger}66`,
       shadowColor: theme.palette.danger,
-      shadowOpacity: 0.18,
+      shadowOpacity: 0.2,
       shadowRadius: 12,
     },
     dangerLabel: {
