@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
@@ -37,6 +37,8 @@ const withOpacity = (color: string, alpha: number) => {
   }
   return color;
 };
+
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const ConfirmTransferScreen = () => {
   const router = useRouter();
@@ -141,18 +143,20 @@ const ConfirmTransferScreen = () => {
           transition={{ type: "timing", duration: 480 }}
         >
           <View style={styles.header}>
-              <Pressable
-                onPress={() => router.push("/(app)/home")}
-                accessibilityRole="button"
+            <Pressable
+              onPress={() => router.push("/(app)/home")}
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+              style={styles.backButton}
+            >
+              <Image
+                source={leitmotivLogo}
+                style={styles.backLogo}
+                resizeMode="contain"
+                accessible
                 accessibilityLabel="Volver"
-                style={styles.backButton}
-              >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={24}
-                  color={palette.textPrimary}
-                />
-              </Pressable>
+              />
+            </Pressable>
             <Text style={styles.headerTitle}>Confirmar envío</Text>
             <View style={styles.headerSpacer} />
           </View>
@@ -269,6 +273,11 @@ const createStyles = (theme: Theme) => {
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "rgba(255,255,255,0.06)",
+    },
+    backLogo: {
+      width: 22,
+      height: 22,
+      transform: [{ rotate: "-90deg" }],
     },
     headerTitle: {
       color: palette.textPrimary,
