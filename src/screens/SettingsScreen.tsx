@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +17,8 @@ import GlassCard from "@/components/GlassCard";
 import { Theme, useTheme } from "@/theme/ThemeProvider";
 import { themes, type ThemeName } from "@/theme/colors";
 import { useChatStore } from "@/store/useChatStore";
+
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const themeCopy: Record<ThemeName, string> = {
   pionero: "Tema original de la aplicación, inspirado en la estética futurista.",
@@ -63,10 +66,12 @@ const SettingsScreen = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={26}
-                  color={theme.palette.textPrimary}
+                <Image
+                  source={leitmotivLogo}
+                  style={styles.backLogo}
+                  resizeMode="contain"
+                  accessible
+                  accessibilityLabel="Volver"
                 />
               </Pressable>
               <Text style={styles.title}>Ajustes</Text>
@@ -183,6 +188,11 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "rgba(255,255,255,0.05)",
+    },
+    backLogo: {
+      width: 22,
+      height: 22,
+      transform: [{ rotate: "-90deg" }],
     },
     headerSpacer: {
       width: 40,

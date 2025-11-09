@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +21,8 @@ import {
   NotificationCategory,
 } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
+
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const CATEGORY_META: Record<NotificationCategory, { icon: string; color: string }> = {
   transfer: {
@@ -134,10 +137,12 @@ const NotificationsScreen = () => {
               accessibilityRole="button"
               accessibilityLabel="Volver"
             >
-              <MaterialCommunityIcons
-                name="arrow-left"
-                size={26}
-                color={palette.textPrimary}
+              <Image
+                source={leitmotivLogo}
+                style={styles.backLogo}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="Volver"
               />
             </Pressable>
             <Text style={styles.title}>Centro de notificaciones</Text>
@@ -280,6 +285,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   profileShortcut: {
     shadowColor: palette.primary,

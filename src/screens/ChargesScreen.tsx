@@ -16,6 +16,7 @@ import SingleDatePickerModal, { DateKey, parseDateKey, toDateKey } from "@/compo
 import SettlementRangePickerModal from "../components/SettlementRangePickerModal";
 import { RechargeRecord, TransferRecord, useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
 import { formatAmountDisplay, parseAmountToNumber, sanitizeAmountInput } from "@/utils/amount";
 import { createId } from "@/utils/id";
@@ -481,6 +482,9 @@ const buildSettlementReportHtml = (options: {
 
 const ChargesScreen = () => {
   const router = useRouter();
+  const { themeName } = useTheme();
+  const isPionero = themeName === "pionero";
+  const iconAccent = isPionero ? "#FFFFFF" : palette.accentCyan;
   const { transfers, recharges, createEnvelope } = useBankStore();
 
   const [splitLabel, setSplitLabel] = useState("");
@@ -826,7 +830,7 @@ const ChargesScreen = () => {
                   />
                 </View>
                 <View style={styles.cardHeaderIconWrap}>
-                  <MaterialCommunityIcons name="account-group" size={22} color={palette.accentCyan} />
+                  <MaterialCommunityIcons name="account-group" size={22} color={iconAccent} />
                 </View>
               </View>
 
@@ -840,7 +844,7 @@ const ChargesScreen = () => {
                   value={splitLabel}
                   onChangeText={handleSplitLabelChange}
                   icon={
-                    <MaterialCommunityIcons name="notebook-outline" size={20} color={palette.accentCyan} />
+                    <MaterialCommunityIcons name="notebook-outline" size={20} color={iconAccent} />
                   }
                 />
                 <NeonTextField
@@ -850,7 +854,7 @@ const ChargesScreen = () => {
                   onChangeText={handleParticipantsChange}
                   helpText="Separa los nombres con comas o saltos de línea."
                   icon={
-                    <MaterialCommunityIcons name="account-multiple" size={20} color={palette.accentCyan} />
+                    <MaterialCommunityIcons name="account-multiple" size={20} color={iconAccent} />
                   }
                 />
                 <NeonTextField
@@ -861,7 +865,7 @@ const ChargesScreen = () => {
                   keyboardType="decimal-pad"
                   allowOnlyNumeric
                   icon={
-                    <MaterialCommunityIcons name="currency-usd" size={20} color={palette.accentCyan} />
+                    <MaterialCommunityIcons name="currency-usd" size={20} color={iconAccent} />
                   }
                 />
               </View>
@@ -920,7 +924,7 @@ const ChargesScreen = () => {
                   />
                 </View>
                 <View style={styles.cardHeaderIconWrap}>
-                  <MaterialCommunityIcons name="autorenew" size={22} color={palette.accentCyan} />
+                  <MaterialCommunityIcons name="autorenew" size={22} color={iconAccent} />
                 </View>
               </View>
 
@@ -934,7 +938,7 @@ const ChargesScreen = () => {
                   value={recurringLabel}
                   onChangeText={handleRecurringLabelChange}
                   icon={
-                    <MaterialCommunityIcons name="clipboard-text-outline" size={20} color={palette.accentCyan} />
+                    <MaterialCommunityIcons name="clipboard-text-outline" size={20} color={iconAccent} />
                   }
                 />
                 <NeonTextField
@@ -945,7 +949,7 @@ const ChargesScreen = () => {
                   keyboardType="decimal-pad"
                   allowOnlyNumeric
                   icon={
-                    <MaterialCommunityIcons name="cash-sync" size={20} color={palette.accentCyan} />
+                    <MaterialCommunityIcons name="cash-sync" size={20} color={iconAccent} />
                   }
                 />
                 <View style={styles.datePickerFieldWrapper}>
@@ -958,7 +962,7 @@ const ChargesScreen = () => {
                     showSoftInputOnFocus={false}
                     selectTextOnFocus={false}
                     icon={
-                      <MaterialCommunityIcons name="calendar" size={20} color={palette.accentCyan} />
+                      <MaterialCommunityIcons name="calendar" size={20} color={iconAccent} />
                     }
                   />
                   <Pressable
@@ -1038,7 +1042,7 @@ const ChargesScreen = () => {
                   />
                 </View>
                 <View style={styles.cardHeaderIconWrap}>
-                  <MaterialCommunityIcons name="file-chart-outline" size={22} color={palette.accentCyan} />
+                  <MaterialCommunityIcons name="file-chart-outline" size={22} color={iconAccent} />
                 </View>
               </View>
 
@@ -1052,7 +1056,7 @@ const ChargesScreen = () => {
                   showSoftInputOnFocus={false}
                   selectTextOnFocus={false}
                   icon={
-                    <MaterialCommunityIcons name="calendar-range" size={20} color={palette.accentCyan} />
+                    <MaterialCommunityIcons name="calendar-range" size={20} color={iconAccent} />
                   }
                 />
                 <Pressable
@@ -1108,7 +1112,7 @@ const ChargesScreen = () => {
                         <MaterialCommunityIcons
                           name="arrow-top-right-bold-outline"
                           size={16}
-                          color={palette.accentCyan}
+                          color={iconAccent}
                         />
                       </View>
                       <Text style={styles.topContactName}>{item.name}</Text>

@@ -9,6 +9,7 @@ import {
 } from "react";
 import {
   Alert,
+  Image,
   Keyboard,
   Modal,
   Platform,
@@ -45,6 +46,8 @@ import {
   PHONE_REQUIRED_LENGTH,
   sanitizePhoneInput,
 } from "@/utils/phone";
+
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 type EnvelopeFormState = {
   id: string | null;
@@ -438,10 +441,12 @@ const EnvelopesScreen = () => {
                   accessibilityRole="button"
                   accessibilityLabel="Volver"
                 >
-                  <MaterialCommunityIcons
-                    name="arrow-left"
-                    size={24}
-                    color={palette.textPrimary}
+                  <Image
+                    source={leitmotivLogo}
+                    style={styles.backLogo}
+                    resizeMode="contain"
+                    accessible
+                    accessibilityLabel="Volver"
                   />
                 </Pressable>
                 <Text style={styles.title}>Sobres inteligentes</Text>
@@ -1318,6 +1323,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   headerActions: {
     flexDirection: "row",

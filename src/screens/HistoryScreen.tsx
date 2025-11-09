@@ -856,7 +856,7 @@ const HistoryScreen = () => {
                   <MaterialCommunityIcons
                     name="clock-outline"
                     size={42}
-                    color={palette.accentCyan}
+                    color={palette.textPrimary}
                   />
                   <Text style={styles.emptyTitle}>Sin movimientos registrados</Text>
                   <Text style={styles.emptyCopy}>

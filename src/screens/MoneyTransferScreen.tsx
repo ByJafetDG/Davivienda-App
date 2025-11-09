@@ -30,6 +30,7 @@ import PrimaryButton from "@/components/PrimaryButton";
 import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, Contact } from "@/store/useBankStore";
 import { palette, themes } from "@/theme/colors";
+import { useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
 import { formatAmountDisplay, parseAmountToNumber, sanitizeAmountInput } from "@/utils/amount";
 import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
@@ -46,6 +47,8 @@ const MoneyTransferScreen = () => {
     amount?: string;
     note?: string;
   }>();
+  const { themeName } = useTheme();
+  const isPionero = themeName === "pionero";
   const { contacts, balance, envelopes, recordContactUsage } = useBankStore();
 
   const [contactName, setContactName] = useState("");
@@ -514,6 +517,7 @@ const MoneyTransferScreen = () => {
                     <Text
                       style={[
                         styles.contactsLink,
+                        isPionero && styles.contactsLinkPionero,
                         pressed && styles.contactsLinkPressed,
                       ]}
                     >
@@ -902,8 +906,13 @@ const styles = StyleSheet.create({
   },
   contactsLink: {
     color: palette.accentCyan,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
+  },
+  contactsLinkPionero: {
+    color: "#FFFFFF",
+    textDecorationLine: "underline",
+    textDecorationColor: "#FFFFFF",
   },
   contactsLinkPressed: {
     opacity: 0.7,

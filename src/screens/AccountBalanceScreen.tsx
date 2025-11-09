@@ -64,9 +64,10 @@ const bankLogo = require("../../assets/logo2.png");
 
 const AccountBalanceScreen = () => {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
   const palette = theme.palette;
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const isPionero = themeName === "pionero";
+  const styles = useMemo(() => createStyles(theme, isPionero), [theme, isPionero]);
   const { user, balance, transfers, recharges, envelopes, automations } =
     useBankStore();
 
@@ -218,7 +219,7 @@ const AccountBalanceScreen = () => {
                     <MaterialCommunityIcons
                       name="clock-time-eight-outline"
                       size={20}
-                      color={palette.textSecondary}
+                      color={isPionero ? "#FFFFFF" : palette.textSecondary}
                     />
                   </View>
                   <Pressable
@@ -233,7 +234,7 @@ const AccountBalanceScreen = () => {
                     <MaterialCommunityIcons
                       name="tray"
                       size={42}
-                      color={palette.accentCyan}
+                      color={isPionero ? "#FFFFFF" : palette.accentCyan}
                     />
                     <Text style={styles.emptyTitle}>Sin movimientos aún</Text>
                     <Text style={styles.emptyCopy}>
@@ -247,7 +248,7 @@ const AccountBalanceScreen = () => {
                         <MaterialCommunityIcons
                           name={item.icon as any}
                           size={22}
-                          color={item.color}
+                          color={isPionero ? "#FFFFFF" : item.color}
                         />
                       </View>
                       <View style={styles.historyCopy}>
@@ -438,7 +439,7 @@ const AccountBalanceScreen = () => {
   );
 };
 
-const createStyles = (theme: Theme) => {
+const createStyles = (theme: Theme, isPionero: boolean) => {
   const { palette } = theme;
   const cardTokens = theme.components.card;
   return StyleSheet.create({
@@ -558,9 +559,11 @@ const createStyles = (theme: Theme) => {
       fontWeight: "700",
     },
     historyLink: {
-      color: palette.accentCyan,
-      fontSize: 13,
+      color: isPionero ? "#FFFFFF" : palette.accentCyan,
+      fontSize: 14,
       fontWeight: "600",
+      textDecorationLine: isPionero ? "underline" : "none",
+      textDecorationColor: isPionero ? "#FFFFFF" : palette.accentCyan,
     },
     emptyState: {
       paddingVertical: 32,
