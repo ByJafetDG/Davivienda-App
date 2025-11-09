@@ -570,7 +570,7 @@ const createStyles = (theme: Theme) => {
       fontWeight: "600",
     },
     title: {
-      fontSize: 32,
+      fontSize: 20,
       color: palette.textPrimary,
       fontWeight: "800",
     },

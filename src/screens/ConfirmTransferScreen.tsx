@@ -281,7 +281,7 @@ const createStyles = (theme: Theme) => {
     },
     title: {
       color: palette.textPrimary,
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: "700",
     },
     subtitle: {

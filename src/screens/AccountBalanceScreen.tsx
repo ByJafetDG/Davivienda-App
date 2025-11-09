@@ -492,7 +492,7 @@ const createStyles = (theme: Theme, isPionero: boolean) => {
     },
     title: {
       color: palette.textPrimary,
-      fontSize: 28,
+      fontSize: 24,
       fontWeight: "800",
     },
     balanceCard: {

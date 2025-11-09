@@ -23,7 +23,7 @@ import ProfileAvatarButton from "@/components/ProfileAvatarButton";
 import { useBankStore, TransferRecord, RechargeRecord } from "@/store/useBankStore";
 import { palette, themes } from "@/theme/colors";
 import { formatCurrency } from "@/utils/currency";
-const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
+const bankLogo = require("../../assets/logo2.png");
 
 const FILTERS = [
   { id: "all", label: "Todo", icon: "history" },
@@ -646,13 +646,15 @@ const HistoryScreen = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
-                <Image
-                  source={leitmotivLogo}
-                  style={styles.backLogo}
-                  resizeMode="contain"
-                  accessible
-                  accessibilityLabel="Volver"
-                />
+                <View style={styles.logoBadge}>
+                  <Image
+                    source={bankLogo}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                    accessible
+                    accessibilityLabel="Logo Davivienda"
+                  />
+                </View>
               </Pressable>
               <Text style={styles.title}>Historial de movimientos</Text>
               <ProfileAvatarButton
@@ -1045,17 +1047,25 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 16,
+    borderRadius: 26,
+    padding: 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "transparent",
   },
-  backLogo: {
-    width: 22,
-    height: 22,
-    transform: [{ rotate: "-90deg" }],
+  logoBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  logoImage: {
+    width: 32,
+    height: 32,
   },
   profileShortcut: {
     shadowOpacity: 0.28,

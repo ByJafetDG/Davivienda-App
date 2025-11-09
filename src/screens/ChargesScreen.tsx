@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View, Share, Platform } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View, Share, Platform } from "react-native";
 import * as Print from "expo-print";
 import * as FileSystem from "expo-file-system";
 import MarqueeText from "@/components/MarqueeText";
@@ -20,6 +20,8 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { formatCurrency } from "@/utils/currency";
 import { formatAmountDisplay, parseAmountToNumber, sanitizeAmountInput } from "@/utils/amount";
 import { createId } from "@/utils/id";
+
+const bankLogo = require("../../assets/logo2.png");
 
 type RecurringFrequency = "weekly" | "biweekly" | "monthly";
 
@@ -804,12 +806,19 @@ const ChargesScreen = () => {
             transition={{ type: "timing", duration: 420 }}
           >
             <View style={styles.header}>
-              <View style={styles.headerCopy}>
-                <Text style={styles.caption}>Cobros inteligentes</Text>
-                <Text style={styles.title}>Cobra sin fricción</Text>
-                <Text style={styles.subtitle}>
-                  Administra enlaces compartidos, programaciones recurrentes y resúmenes automáticos desde un solo lugar.
-                </Text>
+              <View style={styles.headerLeft}>
+                <View style={styles.logoBadge}>
+                  <Image
+                    source={bankLogo}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                    accessible
+                    accessibilityLabel="Logo Davivienda"
+                  />
+                </View>
+                <View style={styles.headerCopy}>
+                  <Text style={styles.title}>Cobros inteligentes</Text>
+                </View>
               </View>
               <ProfileAvatarButton
                 size={40}
@@ -818,6 +827,10 @@ const ChargesScreen = () => {
                 style={styles.profileShortcut}
               />
             </View>
+
+            <Text style={styles.headerSubtitle}>
+              Administra enlaces compartidos, programaciones recurrentes y resúmenes automáticos desde un solo lugar.
+            </Text>
 
             <GlassCard>
               <View style={styles.cardHeaderRow}>
@@ -1267,29 +1280,56 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 16,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    flex: 1,
   },
   headerCopy: {
     flex: 1,
     gap: 12,
     paddingRight: 16,
+    alignItems: "center",
   },
   caption: {
     color: palette.textMuted,
     letterSpacing: 1.6,
     textTransform: "uppercase",
     fontSize: 12,
+    textAlign: "center",
   },
   title: {
     color: palette.textPrimary,
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: "800",
+    textAlign: "center",
   },
-  subtitle: {
+  headerSubtitle: {
     color: palette.textSecondary,
     fontSize: 14,
     lineHeight: 20,
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 12,
+    paddingHorizontal: 12,
+  },
+  logoBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  logoImage: {
+    width: 32,
+    height: 32,
   },
   profileShortcut: {
     shadowOpacity: 0.25,

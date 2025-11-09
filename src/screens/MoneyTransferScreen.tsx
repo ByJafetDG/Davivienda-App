@@ -37,7 +37,7 @@ import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/
 import MarqueeText from "@/components/MarqueeText";
 
 const cardTokens = themes.pionero.components.card;
-const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
+const bankLogo = require("../../assets/logo2.png");
 
 const MoneyTransferScreen = () => {
   const router = useRouter();
@@ -62,7 +62,6 @@ const MoneyTransferScreen = () => {
   const [scannerPermission, setScannerPermission] = useState<null | boolean>(null);
   const [scannerBusy, setScannerBusy] = useState(false);
   const [scannerError, setScannerError] = useState<string | null>(null);
-  const [scanExpanded, setScanExpanded] = useState(false);
   const [requestingPermission, setRequestingPermission] = useState(false);
   const hasHandledScan = useRef(false);
 
@@ -358,16 +357,11 @@ const MoneyTransferScreen = () => {
 
   const openScanner = () => {
     setScannerError(null);
-    setScanExpanded(false);
     setScannerVisible(true);
   };
 
   const closeScanner = () => {
     setScannerVisible(false);
-  };
-
-  const toggleScanHint = () => {
-    setScanExpanded((prev) => !prev);
   };
 
   const handlePhoneChange = (text: string) => {
@@ -467,15 +461,17 @@ const MoneyTransferScreen = () => {
                 accessibilityLabel="Volver"
                 style={styles.backButton}
               >
-                <Image
-                  source={leitmotivLogo}
-                  style={styles.backLogo}
-                  resizeMode="contain"
-                  accessible
-                  accessibilityLabel="Volver"
-                />
+                <View style={styles.logoBadge}>
+                  <Image
+                    source={bankLogo}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                    accessible
+                    accessibilityLabel="Logo Davivienda"
+                  />
+                </View>
               </Pressable>
-              <Text style={styles.title}>Nueva transferencia</Text>
+              <Text style={styles.title}>Transferencias</Text>
               <ProfileAvatarButton
                 size={40}
                 onPress={() => router.push("/(app)/notifications")}
@@ -599,29 +595,17 @@ const MoneyTransferScreen = () => {
                     <MotiView
                       style={styles.scanInlineButton}
                       animate={{
-                        width: scanExpanded ? 290 : 56,
-                        paddingHorizontal: scanExpanded ? 18 : 0,
-                        paddingVertical: scanExpanded ? 14 : 0,
-                        borderRadius: scanExpanded ? 20 : 18,
-                        backgroundColor: scanExpanded
-                          ? "rgba(0, 240, 255, 0.1)"
-                          : "rgba(0, 240, 255, 0.16)",
-                        borderColor: scanExpanded
-                          ? "rgba(0, 240, 255, 0.3)"
-                          : "rgba(0, 240, 255, 0.42)",
                         scale: state.pressed ? 0.96 : 1,
                         opacity: state.pressed ? 0.82 : 1,
-                        height: scanExpanded ? 56 : 48,
                       }}
                       transition={{ type: "timing", duration: 230, easing: Easing.out(Easing.cubic) }}
                     >
                       <MotiView
                         style={styles.scanInlineIconWrapper}
                         animate={{
-                          marginRight: scanExpanded ? 14 : 0,
-                          backgroundColor: scanExpanded
-                            ? "rgba(255, 255, 255, 0.08)"
-                            : "rgba(0, 12, 24, 0.24)",
+                          backgroundColor: state.pressed
+                            ? "rgba(255, 255, 255, 0.12)"
+                            : "rgba(255, 255, 255, 0.08)",
                         }}
                         transition={{ type: "timing", duration: 220, easing: Easing.out(Easing.cubic) }}
                       >
@@ -635,8 +619,7 @@ const MoneyTransferScreen = () => {
                         pointerEvents="none"
                         style={styles.scanInlineTextWrapper}
                         animate={{
-                          opacity: scanExpanded ? 1 : 0,
-                          maxWidth: scanExpanded ? 220 : 0,
+                          opacity: state.pressed ? 0.9 : 1,
                         }}
                         transition={{ type: "timing", duration: 220, easing: Easing.out(Easing.cubic) }}
                       >
@@ -648,38 +631,9 @@ const MoneyTransferScreen = () => {
                           speedFactor={42}
                           gap={28}
                           delay={680}
-                          isActive={scanExpanded}
+                          isActive
                         />
                       </MotiView>
-                      {scanExpanded ? (
-                        <MaterialCommunityIcons
-                          name="chevron-right"
-                          size={24}
-                          color={palette.textSecondary}
-                        />
-                      ) : null}
-                    </MotiView>
-          )}
-        </Pressable>
-                <Pressable
-                  onPress={toggleScanHint}
-                  accessibilityRole="button"
-                  accessibilityLabel="Mostrar información del escáner QR"
-                  style={styles.scanHelpButton}
-                >
-                  {(state: PressableStateCallbackType) => (
-                    <MotiView
-                      style={styles.scanHelpInner}
-                      animate={{
-                        scale: state.pressed ? 0.92 : 1,
-                        rotate: scanExpanded ? "180deg" : "0deg",
-                        backgroundColor: scanExpanded
-                          ? "rgba(0, 240, 255, 0.22)"
-                          : "rgba(255, 255, 255, 0.08)",
-                      }}
-                      transition={{ type: "timing", duration: 220, easing: Easing.out(Easing.cubic) }}
-                    >
-                      <Text style={styles.scanHelpLabel}>➜</Text>
                     </MotiView>
                   )}
                 </Pressable>
@@ -856,12 +810,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   backButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 18,
+    borderRadius: 26,
+    padding: 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: "transparent",
   },
   profileShortcut: {
     shadowOpacity: 0.32,
@@ -963,10 +916,19 @@ const styles = StyleSheet.create({
   form: {
     gap: 18,
   },
-  backLogo: {
-    width: 22,
-    height: 22,
-    transform: [{ rotate: "-90deg" }],
+  logoBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+  },
+  logoImage: {
+    width: 32,
+    height: 32,
   },
   scanInlineRow: {
     flexDirection: "row",
@@ -974,8 +936,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   scanActionWrapper: {
-    flexShrink: 1,
-    alignItems: "flex-start",
+    flex: 1,
+    alignItems: "stretch",
+    width: "100%",
   },
   scanInlineButton: {
     flexDirection: "row",
@@ -983,7 +946,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderWidth: 1,
     overflow: "hidden",
-    minHeight: 48,
+    minHeight: 56,
+    width: "100%",
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    backgroundColor: "rgba(0, 240, 255, 0.1)",
+    borderColor: "rgba(0, 240, 255, 0.3)",
   },
   scanInlineIconWrapper: {
     width: 40,
@@ -992,10 +961,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255, 255, 255, 0.08)",
+    marginRight: 14,
   },
   scanInlineTextWrapper: {
     flex: 1,
     gap: 4,
+    maxWidth: "100%",
   },
   scanInlineTitle: {
     color: palette.textPrimary,
@@ -1008,26 +979,6 @@ const styles = StyleSheet.create({
   },
   scanInlineHintMarquee: {
     width: "100%",
-  },
-  scanHelpButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  scanHelpInner: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(0, 240, 255, 0.25)",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-  },
-  scanHelpLabel: {
-    color: palette.textPrimary,
-    fontSize: 18,
-    fontWeight: "800",
   },
   error: {
     color: palette.danger,
