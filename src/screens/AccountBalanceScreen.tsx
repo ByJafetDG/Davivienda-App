@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -58,6 +59,8 @@ const withOpacity = (color: string, alpha: number) => {
   }
   return color;
 };
+
+const bankLogo = require("../../assets/logo2.png");
 
 const AccountBalanceScreen = () => {
   const router = useRouter();
@@ -160,9 +163,20 @@ const AccountBalanceScreen = () => {
             transition={{ type: "timing", duration: 520 }}
           >
             <View style={styles.header}>
-              <View>
-                <Text style={styles.caption}>Davivienda SINPE Móvil</Text>
-                <Text style={styles.title}>Hola, {user.name.split(" ")[0]}</Text>
+              <View style={styles.headerLeft}>
+                <View style={styles.logoBadge}>
+                  <Image
+                    source={bankLogo}
+                    style={styles.logoImage}
+                    resizeMode="contain"
+                    accessible
+                    accessibilityLabel="Logo Davivienda"
+                  />
+                </View>
+                <View style={styles.headerCopy}>
+                  <Text style={styles.caption}>Davivienda SINPE Móvil</Text>
+                  <Text style={styles.title}>Hola, {user.name.split(" ")[0]}</Text>
+                </View>
               </View>
               <ProfileAvatarButton
                 size={40}
@@ -444,6 +458,30 @@ const createStyles = (theme: Theme) => {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+    },
+    headerLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      flex: 1,
+    },
+    headerCopy: {
+      flex: 1,
+      gap: 4,
+    },
+    logoBadge: {
+      width: 52,
+      height: 52,
+      borderRadius: 18,
+      backgroundColor: withOpacity(palette.textPrimary, 0.08),
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: withOpacity(palette.textPrimary, 0.12),
+    },
+    logoImage: {
+      width: 32,
+      height: 32,
     },
     caption: {
       color: palette.textMuted,

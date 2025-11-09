@@ -52,7 +52,6 @@ const AnimatedSplash = ({ visible, style }: AnimatedSplashProps) => {
               transition={{ type: "timing", duration: 500, delay: 340 }}
             >
               <Text style={styles.copyTitle}>Davivienda SINPE</Text>
-              <Text style={styles.copySubtitle}>Aquí lo tiene todo.</Text>
             </MotiView>
           </View>
         </MotiView>
