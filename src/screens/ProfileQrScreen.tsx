@@ -54,6 +54,97 @@ const ProfileQrScreen = () => {
         });
         const dataUrl = `data:image/png;base64,${base64}`;
 
+        if (Platform.OS === "web") {
+          const globalRef = globalThis as any;
+          const navigatorRef = globalRef?.navigator as (Navigator & {
+            share?: (data?: Record<string, unknown>) => Promise<void>;
+            canShare?: (data?: Record<string, unknown>) => boolean;
+          });
+          const filename = `sinpe-qr-${Date.now()}.png`;
+          try {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i += 1) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: "image/png" });
+
+            let handled = false;
+
+            if (navigatorRef?.share) {
+              let file: File | undefined;
+              try {
+                file = new File([blob], filename, { type: "image/png" });
+              } catch (fileError) {
+                console.warn("No se pudo crear el archivo para compartir", fileError);
+              }
+
+              const shareData: Record<string, unknown> = {
+                title: "Mi código SINPE",
+                text: "Escanéalo para enviarme dinero vía SINPE Móvil.",
+              };
+
+              if (file && navigatorRef.canShare?.({ files: [file] })) {
+                shareData.files = [file];
+              } else {
+                shareData.url = dataUrl;
+              }
+
+              try {
+                await navigatorRef.share(shareData);
+                handled = true;
+              } catch (shareError) {
+                console.warn("Compartir en web fue cancelado o falló", shareError);
+              }
+            }
+
+            if (!handled) {
+              const opener = globalRef?.open;
+              if (typeof opener === "function") {
+                try {
+                  const popup = opener(dataUrl, "_blank", "noopener,noreferrer");
+                  if (popup && typeof popup.focus === "function") {
+                    popup.focus();
+                  }
+                  handled = true;
+                } catch (popupError) {
+                  console.warn("No se pudo abrir la imagen en una pestaña nueva", popupError);
+                }
+              }
+            }
+
+            if (!handled) {
+              const doc = globalRef?.document as any;
+              if (doc?.createElement) {
+                const downloadUrl = URL.createObjectURL(blob);
+                const anchor = doc.createElement("a");
+                anchor.href = downloadUrl;
+                anchor.download = filename;
+                doc.body?.appendChild(anchor);
+                anchor.click();
+                anchor.remove?.();
+                URL.revokeObjectURL(downloadUrl);
+                handled = true;
+              }
+            }
+
+            return;
+          } catch (webError) {
+            console.warn("No se pudo preparar el QR para compartir en web", webError);
+            const opener = (globalThis as any)?.open;
+            if (typeof opener === "function") {
+              try {
+                const popup = opener(dataUrl, "_blank", "noopener,noreferrer");
+                popup?.focus?.();
+              } catch (popupError) {
+                console.warn("No se pudo abrir la imagen en una pestaña nueva", popupError);
+              }
+            }
+            return;
+          }
+        }
+
         // Prefer saving to a temporary file if expo-file-system is available.
         // Use casts to `any` to avoid depending on specific TS types in different expo-file-system versions.
         const fsAny: any = FileSystem as any;

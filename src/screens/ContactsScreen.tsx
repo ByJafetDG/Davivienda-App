@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useCallback, useMemo, useState } from "react";
 import {
   Alert,
   Image,
@@ -29,6 +29,35 @@ import { palette } from "@/theme/colors";
 import { formatPhoneNumber, sanitizePhoneInput, PHONE_REQUIRED_LENGTH } from "@/utils/phone";
 
 const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
+
+type DeviceContact = {
+  id: string;
+  name: string;
+  phone: string;
+  avatarColor: string;
+};
+
+type DeviceEntry = {
+  device: DeviceContact;
+  savedContact: Contact | null;
+  isFavorite: boolean;
+  isSaved: boolean;
+};
+
+const DEVICE_CONTACTS: DeviceContact[] = [
+  { id: "device-alejandro-mora", name: "Alejandro Mora", phone: "7103-2288", avatarColor: "#00F0FF" },
+  { id: "device-valeria-soto", name: "Valeria Soto", phone: "8425-3391", avatarColor: "#FF8A65" },
+  { id: "device-daniela-lopez", name: "Daniela López", phone: "6701-1140", avatarColor: "#8F9BFF" },
+  { id: "device-pedro-arias", name: "Pedro Arias", phone: "6032-7781", avatarColor: "#4ADE80" },
+  { id: "device-silvia-ramirez", name: "Silvia Ramírez", phone: "7120-5599", avatarColor: "#FACC15" },
+  { id: "device-diego-salazar", name: "Diego Salazar", phone: "8438-2266", avatarColor: "#7A2BFF" },
+  { id: "device-ana-gabriela", name: "Ana Gabriela", phone: "6457-9912", avatarColor: "#63F7B0" },
+  { id: "device-jimena-fallas", name: "Jimena Fallas", phone: "8302-4105", avatarColor: "#FF86E8" },
+  { id: "device-ricardo-quesada", name: "Ricardo Quesada", phone: "7014-8899", avatarColor: "#8D84FF" },
+  { id: "device-josefina-solis", name: "Josefina Solís", phone: "8811-5570", avatarColor: "#FFB786" },
+  { id: "device-marco-vargas", name: "Marco Vargas", phone: "6055-1204", avatarColor: "#4CEAF7" },
+  { id: "device-ernesto-arias", name: "Ernesto Arias", phone: "8350-6621", avatarColor: "#7A2BFF" },
+];
 
 const ContactFormModal = ({
   visible,
@@ -228,6 +257,99 @@ const ContactCard = ({
   );
 };
 
+type PhoneContactRowProps = {
+  deviceContact: DeviceContact;
+  isFavorite: boolean;
+  isSaved: boolean;
+  onToggleFavorite: () => void;
+  onTransfer: () => void;
+};
+
+const PhoneContactRow = ({
+  deviceContact,
+  isFavorite,
+  isSaved,
+  onToggleFavorite,
+  onTransfer,
+}: PhoneContactRowProps) => {
+  const statusLabel = isFavorite
+    ? "En favoritos de Davivienda"
+    : isSaved
+      ? "Guardado en la app"
+      : "Solo en tu teléfono";
+  const starIcon = isFavorite
+    ? "star"
+    : isSaved
+      ? "star-outline"
+      : "star-plus-outline";
+  const starColor = isFavorite ? palette.accentCyan : palette.textSecondary;
+
+  return (
+    <GlassCard intensity={18} padding={0}>
+      <View style={styles.contactCardCompact}>
+        <View style={styles.contactInfoRow}>
+          <View
+            style={[
+              styles.contactAvatarLarge,
+              { backgroundColor: deviceContact.avatarColor },
+            ]}
+          >
+            <Text style={styles.contactAvatarText}>
+              {deviceContact.name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.contactCopy}>
+            <Text style={styles.contactName} numberOfLines={1}>
+              {deviceContact.name}
+            </Text>
+            <Text style={styles.contactPhone}>{deviceContact.phone}</Text>
+            <Text
+              style={[
+                styles.phoneContactStatus,
+                isFavorite && styles.phoneContactStatusFavorite,
+              ]}
+            >
+              {statusLabel}
+            </Text>
+          </View>
+          <Pressable
+            onPress={onToggleFavorite}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isFavorite
+                ? `Quitar a ${deviceContact.name} de favoritos`
+                : `Agregar a ${deviceContact.name} a favoritos`
+            }
+            style={[
+              styles.favoriteToggle,
+              isFavorite && styles.favoriteToggleActive,
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={starIcon as any}
+              size={22}
+              color={starColor}
+            />
+          </Pressable>
+        </View>
+        <Pressable
+          onPress={onTransfer}
+          style={[styles.quickActionButton, styles.quickActionPrimary]}
+          accessibilityRole="button"
+          accessibilityLabel={`Enviar a ${deviceContact.name}`}
+        >
+          <MaterialCommunityIcons
+            name="send"
+            size={18}
+            color={palette.textPrimary}
+          />
+          <Text style={styles.quickActionLabel}>Enviar</Text>
+        </Pressable>
+      </View>
+    </GlassCard>
+  );
+};
+
 const ContactsScreen = () => {
   const router = useRouter();
   const {
@@ -250,6 +372,17 @@ const ContactsScreen = () => {
   );
   const digitsQuery = useMemo(() => sanitizePhoneInput(searchQuery), [searchQuery]);
   const hasQuery = normalizedQuery.length > 0 || digitsQuery.length > 0;
+
+  const contactMap = useMemo(() => {
+    const map = new Map<string, Contact>();
+    contacts.forEach((item: Contact) => {
+      const key = sanitizePhoneInput(item.phone);
+      if (key) {
+        map.set(key, item);
+      }
+    });
+    return map;
+  }, [contacts]);
 
   const matchesQuery = useMemo<(contact: Contact) => boolean>(
     () =>
@@ -282,7 +415,7 @@ const ContactsScreen = () => {
     [contacts, matchesQuery],
   );
 
-  const others = useMemo(
+  const savedContacts = useMemo(
     () =>
       contacts
         .filter((contact: Contact) => !contact.favorite && matchesQuery(contact))
@@ -297,7 +430,41 @@ const ContactsScreen = () => {
     [contacts, matchesQuery],
   );
 
-  const totalContacts = contacts.length;
+    const deviceMatches = useMemo(
+      () =>
+        DEVICE_CONTACTS.filter((contact: DeviceContact) => {
+          if (!hasQuery) {
+            return true;
+          }
+          const nameMatch = normalizedQuery.length > 0
+            ? contact.name.toLowerCase().includes(normalizedQuery)
+            : false;
+          const phoneDigits = sanitizePhoneInput(contact.phone);
+          const phoneMatch = digitsQuery.length > 0
+            ? phoneDigits.includes(digitsQuery)
+            : false;
+          return nameMatch || phoneMatch;
+        }).sort((a, b) => a.name.localeCompare(b.name, "es")),
+      [digitsQuery, hasQuery, normalizedQuery],
+    );
+
+    const deviceEntries = useMemo<DeviceEntry[]>(
+      () =>
+        deviceMatches.map((device) => {
+          const normalizedPhone = sanitizePhoneInput(device.phone);
+          const savedContact = normalizedPhone ? contactMap.get(normalizedPhone) ?? null : null;
+          return {
+            device,
+            savedContact,
+            isFavorite: savedContact?.favorite ?? false,
+            isSaved: Boolean(savedContact),
+          };
+        }),
+      [contactMap, deviceMatches],
+    );
+
+    const totalPhoneContacts = DEVICE_CONTACTS.length;
+    const savedContactsCount = contacts.length;
   const lastUsed = useMemo(() => {
     const latest = contacts.reduce<string | null>((acc, item) => {
       if (!item.lastUsedAt) {
@@ -402,7 +569,43 @@ const ContactsScreen = () => {
     });
   };
 
-  const noResults = hasQuery && favorites.length === 0 && others.length === 0;
+  const handleToggleDeviceFavorite = useCallback(
+    (entry: DeviceEntry) => {
+      if (entry.savedContact) {
+        toggleFavoriteContact(entry.savedContact.id);
+        return;
+      }
+      addContact({
+        name: entry.device.name,
+        phone: entry.device.phone,
+        avatarColor: entry.device.avatarColor,
+        favorite: true,
+      });
+    },
+    [addContact, toggleFavoriteContact],
+  );
+
+  const handleTransferFromDevice = useCallback(
+    (entry: DeviceEntry) => {
+      const target = entry.savedContact ?? {
+        name: entry.device.name,
+        phone: entry.device.phone,
+      };
+      router.push({
+        pathname: "/(app)/transfer",
+        params: {
+          contactName: target.name,
+          phone: target.phone,
+        },
+      });
+    },
+    [router],
+  );
+
+  const noResults = hasQuery
+    && favorites.length === 0
+    && savedContacts.length === 0
+    && deviceEntries.length === 0;
 
   return (
     <FuturisticBackground>
@@ -427,7 +630,7 @@ const ContactsScreen = () => {
                 accessibilityLabel="Volver"
               />
             </Pressable>
-            <Text style={styles.title}>Contactos frecuentes</Text>
+            <Text style={styles.title}>Contactos</Text>
             <ProfileAvatarButton
               size={40}
               onPress={() =>
@@ -451,19 +654,22 @@ const ContactsScreen = () => {
             <GlassCard>
               <View style={styles.summaryCard}>
                 <View>
-                  <Text style={styles.summaryLabel}>Contactos guardados</Text>
-                  <Text style={styles.summaryValue}>{totalContacts}</Text>
-                  <Text style={styles.summaryHint}>{lastUsed}</Text>
+                  <Text style={styles.summaryLabel}>Contactos del teléfono</Text>
+                  <Text style={styles.summaryValue}>{totalPhoneContacts}</Text>
+                  <Text style={styles.summaryHint}>
+                    Simulación de la agenda del dispositivo.
+                  </Text>
                 </View>
                 <View>
                   <Text style={styles.summaryLabel}>Favoritos</Text>
                   <Text style={styles.summaryValue}>{favorites.length}</Text>
                   <Text style={styles.summaryHint}>
-                    Presiona la estrella para fijarlos primero.
+                    Guardados en la app: {savedContactsCount}
                   </Text>
+                  <Text style={styles.summaryHint}>Última actividad: {lastUsed}</Text>
                 </View>
                 <PrimaryButton
-                  label="Nuevo contacto"
+                  label="Agregar manualmente"
                   onPress={openCreate}
                   style={styles.summaryButton}
                 />
@@ -471,44 +677,7 @@ const ContactsScreen = () => {
             </GlassCard>
           </MotiView>
 
-          <MotiView
-            from={{ opacity: 0, translateY: 16 }}
-            animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 320 }}
-            style={styles.searchWrapper}
-          >
-            <NeonTextField
-              label="Buscar"
-              placeholder="Nombre o teléfono"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              icon={
-                <MaterialCommunityIcons
-                  name="magnify"
-                  size={20}
-                  color={palette.accentCyan}
-                />
-              }
-              autoCapitalize="words"
-            />
-          </MotiView>
-
-          {contacts.length === 0 ? (
-            <GlassCard>
-              <View style={styles.emptyState}>
-                <MaterialCommunityIcons
-                  name="account-box-outline"
-                  size={46}
-                  color={palette.accentCyan}
-                />
-                <Text style={styles.emptyTitle}>Aún no tienes contactos</Text>
-                <Text style={styles.emptyCopy}>
-                  Cada transferencia que realices se guardará automáticamente aquí.
-                </Text>
-                <PrimaryButton label="Agregar manualmente" onPress={openCreate} />
-              </View>
-            </GlassCard>
-          ) : noResults ? (
+          {noResults ? (
             <GlassCard>
               <View style={styles.noResults}>
                 <MaterialCommunityIcons
@@ -518,7 +687,7 @@ const ContactsScreen = () => {
                 />
                 <Text style={styles.noResultsTitle}>Sin coincidencias</Text>
                 <Text style={styles.noResultsCopy}>
-                  No encontramos contactos que coincidan con "{searchQuery}".
+                  No encontramos contactos que coincidan con "{searchQuery}" en tu agenda ni en la app.
                   Verifica el nombre o número e inténtalo de nuevo.
                 </Text>
               </View>
@@ -541,19 +710,70 @@ const ContactsScreen = () => {
                 </View>
               ) : null}
 
-              {others.length > 0 ? (
+              {(savedContacts.length > 0 || !hasQuery) ? (
                 <View style={styles.sectionBlock}>
-                  <Text style={styles.sectionTitle}>Contactos</Text>
-                  {others.map((contact) => (
-                    <ContactCard
-                      key={contact.id}
-                      contact={contact}
-                      onToggleFavorite={() => toggleFavoriteContact(contact.id)}
-                      onTransfer={() => handleTransfer(contact)}
-                      onEdit={() => openEdit(contact)}
-                      onRemove={() => handleRemove(contact)}
+                  <Text style={styles.sectionTitle}>Guardados en la app</Text>
+                  {savedContacts.length > 0 ? (
+                    savedContacts.map((contact) => (
+                      <ContactCard
+                        key={contact.id}
+                        contact={contact}
+                        onToggleFavorite={() => toggleFavoriteContact(contact.id)}
+                        onTransfer={() => handleTransfer(contact)}
+                        onEdit={() => openEdit(contact)}
+                        onRemove={() => handleRemove(contact)}
+                      />
+                    ))
+                  ) : !hasQuery ? (
+                    <Text style={styles.sectionEmpty}>
+                      Aún no agregas contactos manuales.
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+
+              {(!hasQuery || deviceEntries.length > 0) ? (
+                <View style={styles.sectionBlock}>
+                  <Text style={styles.sectionTitle}>Contactos del teléfono</Text>
+                  <MotiView
+                    from={{ opacity: 0, translateY: 12 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ type: "timing", duration: 240 }}
+                    style={styles.searchWrapper}
+                  >
+                    <NeonTextField
+                      label="Buscar"
+                      placeholder="Nombre o teléfono"
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      icon={
+                        <MaterialCommunityIcons
+                          name="magnify"
+                          size={20}
+                          color={palette.accentCyan}
+                        />
+                      }
+                      autoCapitalize="words"
                     />
-                  ))}
+                  </MotiView>
+                  {!hasQuery ? (
+                    <Text style={styles.sectionHint}>
+                      Lista simulada de tu agenda completa. Usa la estrella para guardarlos en Davivienda.
+                    </Text>
+                  ) : null}
+                  {deviceEntries.map((entry) => {
+                    const { device, isFavorite, isSaved } = entry;
+                    return (
+                      <PhoneContactRow
+                        key={device.id}
+                        deviceContact={device}
+                        isFavorite={isFavorite}
+                        isSaved={isSaved}
+                        onToggleFavorite={() => handleToggleDeviceFavorite(entry)}
+                        onTransfer={() => handleTransferFromDevice(entry)}
+                      />
+                    );
+                  })}
                 </View>
               ) : null}
             </View>
@@ -654,15 +874,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listSection: {
-    gap: 24,
+    gap: 18,
   },
   sectionBlock: {
-    gap: 12,
+    gap: 10,
   },
   sectionTitle: {
     color: palette.textPrimary,
     fontSize: 16,
     fontWeight: "700",
+    marginLeft: 6,
+  },
+  sectionHint: {
+    color: palette.textSecondary,
+    fontSize: 12,
+    marginLeft: 6,
+  },
+  sectionEmpty: {
+    color: palette.textSecondary,
+    fontSize: 13,
     marginLeft: 6,
   },
   noResults: {
@@ -681,25 +911,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   contactCard: {
-    paddingHorizontal: 22,
-    paddingVertical: 20,
-    gap: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    gap: 12,
+  },
+  contactCardCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    gap: 12,
   },
   contactInfoRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 12,
+    flex: 1,
   },
   contactAvatarLarge: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
   contactAvatarText: {
     color: palette.textPrimary,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
   },
   contactCopy: {
@@ -729,19 +968,19 @@ const styles = StyleSheet.create({
   contactActionRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
+    gap: 10,
     width: "100%",
   },
   contactActionButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 16,
     backgroundColor: "rgba(255, 255, 255, 0.05)",
-    gap: 8,
-    minWidth: 110,
+    gap: 6,
+    minWidth: 100,
     flexGrow: 1,
   },
   contactActionPrimary: {
@@ -752,7 +991,7 @@ const styles = StyleSheet.create({
   },
   contactActionLabel: {
     color: palette.textSecondary,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
   },
   contactActionLabelPrimary: {
@@ -760,6 +999,30 @@ const styles = StyleSheet.create({
   },
   contactActionLabelDanger: {
     color: palette.danger,
+  },
+  phoneContactStatus: {
+    color: palette.textSecondary,
+    fontSize: 12,
+  },
+  phoneContactStatusFavorite: {
+    color: palette.accentCyan,
+  },
+  quickActionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.06)",
+  },
+  quickActionPrimary: {
+    backgroundColor: "rgba(0, 240, 255, 0.16)",
+  },
+  quickActionLabel: {
+    color: palette.textPrimary,
+    fontSize: 13,
+    fontWeight: "600",
   },
   modalBackdrop: {
     flex: 1,
