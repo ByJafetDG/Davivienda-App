@@ -23,6 +23,7 @@ import { useBankStore } from "@/store/useBankStore";
 import { palette } from "@/theme/colors";
 
 const bankLogo = require("../../assets/logo.png");
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const ProfileQrScreen = () => {
   const router = useRouter();
@@ -126,14 +127,16 @@ const ProfileQrScreen = () => {
             <View style={styles.header}>
               <Pressable
                 style={styles.headerButton}
-                onPress={() => router.push("/(app)/home")}
+                onPress={() => router.replace("/(app)/profile")}
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={26}
-                  color={palette.textPrimary}
+                <Image
+                  source={leitmotivLogo}
+                  style={styles.headerLogo}
+                  resizeMode="contain"
+                  accessible
+                  accessibilityLabel="Volver"
                 />
               </Pressable>
               <Text style={styles.title}>Código QR de tu cuenta</Text>
@@ -253,6 +256,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  headerLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   title: {
     color: palette.textPrimary,

@@ -936,7 +936,14 @@ const ChargesScreen = () => {
               </View>
               <ProfileAvatarButton
                 size={40}
-                onPress={() => router.push("/(app)/notifications")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/notifications",
+                    params: {
+                      from: "/(app)/charges",
+                    },
+                  })
+                }
                 accessibilityLabel="Ver notificaciones"
                 style={styles.profileShortcut}
               />
@@ -967,7 +974,7 @@ const ChargesScreen = () => {
               <View style={styles.fieldGroup}>
                 <NeonTextField
                   label="Nombre del cobro"
-                  placeholder="Cena del equipo"
+                  placeholder="Describe el cobro"
                   value={splitLabel}
                   onChangeText={handleSplitLabelChange}
                   icon={
@@ -977,7 +984,7 @@ const ChargesScreen = () => {
                 <View style={styles.participantsInputBlock}>
                   <NeonTextField
                     label="Participante"
-                    placeholder="Ana"
+                    placeholder="Ingresa participantes"
                     value={participantNameInput}
                     onChangeText={handleParticipantNameChange}
                     helpText='Escribe un nombre y pulsa "Añadir persona".'

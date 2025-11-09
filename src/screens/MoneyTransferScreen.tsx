@@ -474,7 +474,14 @@ const MoneyTransferScreen = () => {
               <Text style={styles.title}>Transferencias</Text>
               <ProfileAvatarButton
                 size={40}
-                onPress={() => router.push("/(app)/notifications")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/notifications",
+                    params: {
+                      from: "/(app)/transfer",
+                    },
+                  })
+                }
                 accessibilityLabel="Ver notificaciones"
                 style={styles.profileShortcut}
               />
@@ -685,7 +692,7 @@ const MoneyTransferScreen = () => {
               />
               <NeonTextField
                 label="Mensaje (opcional)"
-                placeholder="Cena viernes"
+                placeholder="Agrega un detalle"
                 value={note}
                 onChangeText={setNote}
                 icon={

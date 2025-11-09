@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { usePathname, useRouter, useSegments } from "expo-router";
+import { useGlobalSearchParams, usePathname, useRouter, useSegments } from "expo-router";
 import { MotiView } from "moti";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -88,6 +88,7 @@ const segmentToKey: Record<string, BottomNavItem["key"]> = {
   charges: "charges",
   profile: "profile",
   "profile-qr": "profile",
+  "financial-education": "profile",
   automations: "profile",
   notifications: "profile",
   contacts: "transfer",
@@ -110,6 +111,7 @@ const BottomNavigationBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const segments = useSegments();
+  const searchParams = useGlobalSearchParams<{ from?: string }>();
   const insets = useSafeAreaInsets();
   const { theme, themeName } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -127,7 +129,42 @@ const BottomNavigationBar = () => {
     return matching ?? "home";
   }, [segments]);
 
+  const originRoute = useMemo(() => {
+    const raw = searchParams.from;
+    if (typeof raw !== "string" || raw.length === 0) {
+      return null;
+    }
+    try {
+      return decodeURIComponent(raw);
+    } catch (error) {
+      console.warn("No se pudo decodificar la ruta de origen", error);
+      return raw;
+    }
+  }, [searchParams.from]);
+
+  const originKey = useMemo<BottomNavItem["key"] | null>(() => {
+    if (!originRoute) {
+      return null;
+    }
+    const matched = items.find((item) => originRoute.startsWith(item.route));
+    if (matched) {
+      return matched.key;
+    }
+    const tokens = originRoute
+      .split("/")
+      .filter(Boolean)
+      .filter((token) => !token.startsWith("("));
+    const last = tokens[tokens.length - 1];
+    if (!last) {
+      return null;
+    }
+    return segmentToKey[last] ?? null;
+  }, [originRoute]);
+
   const activeKey = useMemo(() => {
+    if (routeSegment === "notifications") {
+      return originKey ?? "balance";
+    }
     const fromSegment = segmentToKey[routeSegment];
     if (fromSegment) {
       return fromSegment;
@@ -135,7 +172,7 @@ const BottomNavigationBar = () => {
 
     const byRoute = items.find((item) => pathname.startsWith(item.route));
     return byRoute?.key ?? "balance";
-  }, [pathname, routeSegment]);
+  }, [pathname, routeSegment, originKey]);
 
   const [layouts, setLayouts] = useState<Record<string, ItemLayout>>(
     () => ({ ...layoutMemory })

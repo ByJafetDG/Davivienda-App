@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -22,6 +23,8 @@ import FuturisticBackground from "@/components/FuturisticBackground";
 import GlassCard from "@/components/GlassCard";
 import PrimaryButton from "@/components/PrimaryButton";
 import { palette } from "@/theme/colors";
+
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 const FinancialEducationScreen = () => {
   const router = useRouter();
@@ -114,14 +117,16 @@ const FinancialEducationScreen = () => {
             <View style={styles.header}>
               <Pressable
                 style={styles.backButton}
-                onPress={() => router.back()}
+                onPress={() => router.replace("/(app)/profile")}
                 accessibilityRole="button"
                 accessibilityLabel="Volver"
               >
-                <MaterialCommunityIcons
-                  name="arrow-left"
-                  size={26}
-                  color={palette.textPrimary}
+                <Image
+                  source={leitmotivLogo}
+                  style={styles.backLogo}
+                  resizeMode="contain"
+                  accessible
+                  accessibilityLabel="Volver"
                 />
               </Pressable>
               <Text style={styles.title}>Educación financiera</Text>
@@ -379,6 +384,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
+  },
+  backLogo: {
+    width: 22,
+    height: 22,
+    transform: [{ rotate: "-90deg" }],
   },
   headerSpacer: {
     width: 40,

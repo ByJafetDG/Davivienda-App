@@ -149,7 +149,14 @@ const InsightsScreen = () => {
             <Text style={styles.title}>Insights financieros</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/notifications")}
+              onPress={() =>
+                router.push({
+                  pathname: "/(app)/notifications",
+                  params: {
+                    from: "/(app)/insights",
+                  },
+                })
+              }
               accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />

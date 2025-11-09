@@ -181,7 +181,14 @@ const AccountBalanceScreen = () => {
               </View>
               <ProfileAvatarButton
                 size={40}
-                onPress={() => router.push("/(app)/notifications")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/notifications",
+                    params: {
+                      from: "/(app)/home",
+                    },
+                  })
+                }
                 accessibilityLabel="Ver notificaciones"
               />
             </View>

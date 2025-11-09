@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo } from "react";
 import {
@@ -45,6 +45,19 @@ const CATEGORY_META: Record<NotificationCategory, { icon: string; color: string 
 
 const NotificationsScreen = () => {
   const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+
+  const originRoute = useMemo(() => {
+    if (typeof from !== "string" || from.length === 0) {
+      return null;
+    }
+    try {
+      return decodeURIComponent(from);
+    } catch (error) {
+      console.warn("No se pudo decodificar la ruta de origen", error);
+      return from;
+    }
+  }, [from]);
   const {
     notifications,
     toggleNotificationRead,
@@ -133,7 +146,13 @@ const NotificationsScreen = () => {
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
-              onPress={() => router.push("/(app)/home")}
+              onPress={() => {
+                if (originRoute) {
+                  router.replace(originRoute);
+                } else {
+                  router.back();
+                }
+              }}
               accessibilityRole="button"
               accessibilityLabel="Volver"
             >
@@ -148,8 +167,14 @@ const NotificationsScreen = () => {
             <Text style={styles.title}>Centro de notificaciones</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/notifications")}
-              accessibilityLabel="Ver notificaciones"
+              onPress={() => {
+                if (originRoute) {
+                  router.replace(originRoute);
+                } else {
+                  router.back();
+                }
+              }}
+              accessibilityLabel="Cerrar notificaciones"
               style={styles.profileShortcut}
             />
           </View>

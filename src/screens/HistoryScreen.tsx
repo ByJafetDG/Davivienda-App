@@ -659,7 +659,14 @@ const HistoryScreen = () => {
               <Text style={styles.title}>Historial de movimientos</Text>
               <ProfileAvatarButton
                 size={40}
-                onPress={() => router.push("/(app)/notifications")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/notifications",
+                    params: {
+                      from: "/(app)/history",
+                    },
+                  })
+                }
                 accessibilityLabel="Ver notificaciones"
                 style={styles.profileShortcut}
               />

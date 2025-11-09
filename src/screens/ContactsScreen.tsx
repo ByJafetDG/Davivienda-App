@@ -415,7 +415,7 @@ const ContactsScreen = () => {
           <View style={styles.header}>
             <Pressable
               style={styles.backButton}
-              onPress={() => router.push("/(app)/home")}
+              onPress={() => router.replace("/(app)/transfer")}
               accessibilityRole="button"
               accessibilityLabel="Volver"
             >
@@ -430,7 +430,14 @@ const ContactsScreen = () => {
             <Text style={styles.title}>Contactos frecuentes</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/notifications")}
+              onPress={() =>
+                router.push({
+                  pathname: "/(app)/notifications",
+                  params: {
+                    from: "/(app)/contacts",
+                  },
+                })
+              }
               accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />

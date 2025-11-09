@@ -145,7 +145,14 @@ const AutomationsScreen = () => {
             <Text style={styles.title}>Automatizaciones</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/notifications")}
+              onPress={() =>
+                router.push({
+                  pathname: "/(app)/notifications",
+                  params: {
+                    from: "/(app)/automations",
+                  },
+                })
+              }
               accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />

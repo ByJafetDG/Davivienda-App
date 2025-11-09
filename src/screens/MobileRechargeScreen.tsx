@@ -150,7 +150,14 @@ const MobileRechargeScreen = () => {
             <Text style={styles.title}>Recarga móvil</Text>
             <ProfileAvatarButton
               size={40}
-              onPress={() => router.push("/(app)/notifications")}
+              onPress={() =>
+                router.push({
+                  pathname: "/(app)/notifications",
+                  params: {
+                    from: "/(app)/mobile-recharge",
+                  },
+                })
+              }
               accessibilityLabel="Ver notificaciones"
               style={styles.profileShortcut}
             />

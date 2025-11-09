@@ -453,7 +453,14 @@ const EnvelopesScreen = () => {
                 <View style={styles.headerActions}>
                   <ProfileAvatarButton
                     size={40}
-                    onPress={() => router.push("/(app)/notifications")}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(app)/notifications",
+                        params: {
+                          from: "/(app)/envelopes",
+                        },
+                      })
+                    }
                     accessibilityLabel="Ver notificaciones"
                     style={styles.profileShortcut}
                   />
