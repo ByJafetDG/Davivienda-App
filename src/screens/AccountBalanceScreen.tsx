@@ -4,6 +4,7 @@ import { MotiView } from "moti";
 import { useMemo } from "react";
 import {
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -721,7 +722,7 @@ const createStyles = (theme: Theme, usesBrightVariant: boolean) => {
     },
     fabContainer: {
       position: "absolute",
-      bottom: 153,
+      bottom: Platform.OS === "ios" ? 173 : 153,
       right: 20,
       zIndex: 999,
     },

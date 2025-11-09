@@ -8,7 +8,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -29,6 +29,7 @@ import {
 
 export const SupportChatScreen: React.FC = () => {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const flatListRef = useRef<FlatList>(null);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
 
@@ -70,6 +71,14 @@ export const SupportChatScreen: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  const handleBackPress = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace('/(app)/home');
+  };
 
   const handleSendMessage = async (text: string) => {
     if (!sessionId) {
@@ -128,13 +137,16 @@ export const SupportChatScreen: React.FC = () => {
         <FuturisticBackground />
       </View>
 
-      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <SafeAreaView
+        style={[styles.safeArea, { paddingTop: insets.top + 8 }]}
+        edges={['bottom']}
+      >
         <StatusBar style="light" />
 
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.push('/(app)/home')}
+            onPress={handleBackPress}
             activeOpacity={0.7}
           >
             <Ionicons name="arrow-back" size={24} color="white" />
@@ -260,7 +272,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     backgroundColor: 'rgba(0, 0, 0, 0.94)',

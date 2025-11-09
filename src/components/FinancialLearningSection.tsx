@@ -1,9 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { MotiView } from "moti";
-import { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View, Image, PanResponder } from "react-native";
 
 import { Theme, useTheme } from "@/theme/ThemeProvider";
+
+const leitmotivLogo = require("../../assets/leimotiv_davivienda-removebg-preview.png");
 
 export type TriviaQuestion = {
   question: string;
@@ -298,88 +300,146 @@ const FinancialLearningSection = ({
 }: FinancialLearningSectionProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) =>
+      prev === 0 ? learningModules.length - 1 : prev - 1
+    );
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) =>
+      prev === learningModules.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          return Math.abs(gestureState.dx) > 20;
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx > 50) {
+            handlePrevious();
+          } else if (gestureState.dx < -50) {
+            handleNext();
+          }
+        },
+      }),
+    []
+  );
+
+  const currentModule = learningModules[currentIndex];
+  const isActive = currentModule?.id === selectedModuleId;
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>Laboratorio financiero</Text>
-        <View style={styles.badge}>
-          <MaterialCommunityIcons
-            name="flash"
-            size={14}
-            color={theme.palette.textPrimary}
-          />
-          <Text style={styles.badgeLabel}>Selecciona un reto</Text>
-        </View>
+      <Text style={styles.sectionTitle}>Laboratorio financiero</Text>
+      <View style={styles.badge}>
+        <MaterialCommunityIcons
+          name="flash"
+          size={14}
+          color={theme.palette.textPrimary}
+        />
+        <Text style={styles.badgeLabel}>Selecciona un reto</Text>
       </View>
       <Text style={styles.subtitle}>
         Elige una cápsula para desbloquear su trivia guiada y dominarla en
         minutos.
       </Text>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carousel}
-      >
-        {learningModules.map((item, index) => {
-          const isActive = item.id === selectedModuleId;
-          return (
-            <Pressable
-              key={item.id}
-              style={({ pressed }) => [
-                styles.lessonPressable,
-                pressed && styles.lessonPressablePressed,
-              ]}
-              onPress={() => onModuleSelect?.(item)}
-              disabled={!onModuleSelect}
-              accessibilityRole={onModuleSelect ? "button" : undefined}
-              accessibilityState={{ selected: isActive }}
+      <View style={styles.carouselContainer}>
+        <Pressable
+          style={styles.arrowButton}
+          onPress={handlePrevious}
+          accessibilityRole="button"
+          accessibilityLabel="Módulo anterior"
+        >
+          <Image
+            source={leitmotivLogo}
+            style={[styles.arrowImage, styles.arrowLeft]}
+            resizeMode="contain"
+          />
+        </Pressable>
+
+        <View style={styles.cardWrapper} {...panResponder.panHandlers}>
+          <Pressable
+            style={styles.lessonPressable}
+            onPress={() => onModuleSelect?.(currentModule)}
+            disabled={!onModuleSelect}
+            accessibilityRole={onModuleSelect ? "button" : undefined}
+            accessibilityState={{ selected: isActive }}
+          >
+            <MotiView
+              key={currentModule.id}
+              style={[styles.lessonCard, isActive && styles.lessonCardActive]}
+              from={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                type: "timing",
+                duration: 300,
+              }}
             >
-              <MotiView
-                style={[styles.lessonCard, isActive && styles.lessonCardActive]}
-                from={{ opacity: 0, translateY: 20 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{
-                  type: "timing",
-                  duration: 420,
-                  delay: index * 120,
-                }}
-              >
-                <View style={styles.iconPill}>
+              <View style={styles.iconPill}>
+                <MaterialCommunityIcons
+                  name={currentModule.icon as any}
+                  size={22}
+                  color={theme.palette.textPrimary}
+                />
+              </View>
+              <Text style={styles.lessonTitle}>{currentModule.title}</Text>
+              <Text style={styles.lessonCaption}>{currentModule.caption}</Text>
+              <View style={styles.lessonFooter}>
+                <MaterialCommunityIcons
+                  name="timer-outline"
+                  size={18}
+                  color={theme.palette.textMuted}
+                />
+                <Text style={styles.lessonMeta}>
+                  {currentModule.minutes} min · {currentModule.trivia.length} preguntas
+                </Text>
+              </View>
+              {isActive ? (
+                <View style={styles.lessonSelectedBadge}>
                   <MaterialCommunityIcons
-                    name={item.icon as any}
-                    size={22}
-                    color={theme.palette.textPrimary}
+                    name="star-four-points"
+                    size={16}
+                    color={theme.palette.primary}
                   />
+                  <Text style={styles.lessonSelectedLabel}>Preparado</Text>
                 </View>
-                <Text style={styles.lessonTitle}>{item.title}</Text>
-                <Text style={styles.lessonCaption}>{item.caption}</Text>
-                <View style={styles.lessonFooter}>
-                  <MaterialCommunityIcons
-                    name="timer-outline"
-                    size={18}
-                    color={theme.palette.textMuted}
-                  />
-                  <Text style={styles.lessonMeta}>
-                    {item.minutes} min · {item.trivia.length} preguntas
-                  </Text>
-                </View>
-                {isActive ? (
-                  <View style={styles.lessonSelectedBadge}>
-                    <MaterialCommunityIcons
-                      name="star-four-points"
-                      size={16}
-                      color={theme.palette.primary}
-                    />
-                    <Text style={styles.lessonSelectedLabel}>Preparado</Text>
-                  </View>
-                ) : null}
-              </MotiView>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+              ) : null}
+            </MotiView>
+          </Pressable>
+        </View>
+
+        <Pressable
+          style={styles.arrowButton}
+          onPress={handleNext}
+          accessibilityRole="button"
+          accessibilityLabel="Siguiente módulo"
+        >
+          <Image
+            source={leitmotivLogo}
+            style={[styles.arrowImage, styles.arrowRight]}
+            resizeMode="contain"
+          />
+        </Pressable>
+      </View>
+
+      <View style={styles.dotsContainer}>
+        {learningModules.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              index === currentIndex && styles.dotActive,
+            ]}
+          />
+        ))}
+      </View>
     </View>
   );
 };
@@ -388,11 +448,6 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       gap: 18,
-    },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
     },
     sectionTitle: {
       color: theme.palette.textPrimary,
@@ -409,6 +464,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: "rgba(240, 68, 44, 0.18)",
       borderWidth: 1,
       borderColor: "rgba(240, 68, 44, 0.35)",
+      alignSelf: "flex-start",
     },
     badgeLabel: {
       color: theme.palette.textPrimary,
@@ -422,25 +478,45 @@ const createStyles = (theme: Theme) =>
       fontSize: 13,
       lineHeight: 19,
     },
-    carousel: {
+    carouselContainer: {
+      flexDirection: "row",
+      alignItems: "center",
       gap: 16,
-      paddingVertical: 6,
-      paddingRight: 8,
+      marginTop: 8,
+    },
+    arrowButton: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+      opacity: 0.7,
+    },
+    arrowImage: {
+      width: 32,
+      height: 32,
+      tintColor: theme.palette.primary,
+    },
+    arrowLeft: {
+      transform: [{ rotate: '-90deg' }],
+    },
+    arrowRight: {
+      transform: [{ rotate: '90deg' }],
+    },
+    cardWrapper: {
+      flex: 1,
     },
     lessonPressable: {
+      flex: 1,
       borderRadius: 22,
-    },
-    lessonPressablePressed: {
-      transform: [{ scale: 0.97 }],
     },
     lessonCard: {
-      width: 220,
-      padding: 18,
+      padding: 26,
       borderRadius: 22,
       backgroundColor: "rgba(24, 14, 18, 0.76)",
-      borderWidth: 1,
+      borderWidth: 2,
       borderColor: "rgba(255, 255, 255, 0.08)",
-      gap: 12,
+      gap: 16,
+      minHeight: 260,
     },
     lessonCardActive: {
       borderColor: "rgba(240, 68, 44, 0.6)",
@@ -494,6 +570,23 @@ const createStyles = (theme: Theme) =>
       letterSpacing: 0.6,
       color: theme.palette.primary,
       textTransform: "uppercase",
+    },
+    dotsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      marginTop: 16,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+    },
+    dotActive: {
+      backgroundColor: theme.palette.primary,
+      width: 24,
     },
   });
 
