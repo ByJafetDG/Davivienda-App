@@ -48,7 +48,7 @@ const MoneyTransferScreen = () => {
     note?: string;
   }>();
   const { themeName } = useTheme();
-  const isPionero = themeName === "pionero";
+  const usesBrightVariant = themeName === "pionero" || themeName === "aurora";
   const { contacts, balance, envelopes, recordContactUsage } = useBankStore();
 
   const [contactName, setContactName] = useState("");
@@ -513,7 +513,7 @@ const MoneyTransferScreen = () => {
                     <Text
                       style={[
                         styles.contactsLink,
-                        isPionero && styles.contactsLinkPionero,
+                        usesBrightVariant && styles.contactsLinkBright,
                         pressed && styles.contactsLinkPressed,
                       ]}
                     >
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  contactsLinkPionero: {
+  contactsLinkBright: {
     color: "#FFFFFF",
     textDecorationLine: "underline",
     textDecorationColor: "#FFFFFF",

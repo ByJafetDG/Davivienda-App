@@ -22,6 +22,7 @@
     "index.js",
     "App.tsx",
     "src/**/*",
-    "app/**/*"
+    "app/**/*",
+    "types/**/*"
   ]
 }

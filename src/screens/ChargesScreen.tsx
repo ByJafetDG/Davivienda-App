@@ -2,9 +2,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MotiView } from "moti";
 import { useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View, Share, Platform } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View, Share, Platform, Linking } from "react-native";
+import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
 import * as FileSystem from "expo-file-system";
+import { EncodingType, StorageAccessFramework, getContentUriAsync } from "expo-file-system/legacy";
 import MarqueeText from "@/components/MarqueeText";
 
 import FuturisticBackground from "@/components/FuturisticBackground";
@@ -243,170 +245,195 @@ const buildSettlementReportHtml = (options: {
   <html lang="es">
     <head>
       <meta charset="utf-8" />
-      <title>Liquidación ${escapeHtml(monthLabel)}</title>
+  <title>Resumen ${escapeHtml(monthLabel)}</title>
       <style>
         :root {
-          color-scheme: dark;
+          color-scheme: light;
+        }
+        @page {
+          size: A4 portrait;
+          margin: 14mm 14mm;
+        }
+        html, body {
+          height: auto;
+        }
+        body, * {
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         body {
           font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
           margin: 0;
-          padding: 32px 16px;
-          background: linear-gradient(135deg, #030712, #12172b);
-          color: #f5f7ff;
+          padding: 0;
+          background: #ffffff;
+          color: #101828;
         }
         .wrapper {
-          max-width: 760px;
+          width: 100%;
+          max-width: 720px;
           margin: 0 auto;
-          background: rgba(10, 16, 28, 0.88);
-          border-radius: 28px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: #ffffff;
+          border-radius: 20px;
+          border: 1px solid #e0e4ed;
           overflow: hidden;
-          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+          box-shadow: 0 18px 32px rgba(15, 23, 42, 0.12);
         }
         header {
-          padding: 32px 36px 24px;
-          background: linear-gradient(120deg, rgba(0, 240, 255, 0.18), rgba(114, 89, 255, 0.15));
+          padding: 24px 28px 18px;
+          background: linear-gradient(120deg, rgba(227, 246, 255, 0.95), rgba(244, 238, 255, 0.95));
+          page-break-after: avoid;
         }
         header h1 {
           margin: 0;
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 700;
-          letter-spacing: 0.4px;
+          letter-spacing: 0.3px;
+          color: #152645;
         }
         header p {
           margin: 8px 0 0;
-          color: rgba(245, 247, 255, 0.8);
-          font-size: 14px;
+          color: #475467;
+          font-size: 13px;
         }
         .badge-flow {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          margin-top: 18px;
-          padding: 10px 18px;
+          margin-top: 12px;
+          padding: 8px 16px;
           border-radius: 999px;
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 600;
-          background: rgba(255, 255, 255, 0.12);
+          background: #e4f1ff;
+          color: #1554a1;
         }
-        .badge-flow.positive { background: rgba(0, 240, 200, 0.12); color: #00f6a2; }
-        .badge-flow.negative { background: rgba(255, 94, 91, 0.14); color: #ff6c8c; }
-        .badge-flow.neutral { background: rgba(255, 255, 255, 0.12); color: #f5f7ff; }
+        .badge-flow.positive { background: #ecfdf3; color: #027a48; }
+        .badge-flow.negative { background: #fef3f2; color: #d92d20; }
+        .badge-flow.neutral { background: #eff4ff; color: #1554a1; }
         main {
-          padding: 28px 36px 36px;
+          padding: 20px 24px 24px;
+          page-break-inside: auto;
         }
         .grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 18px;
-          margin-bottom: 28px;
+          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          gap: 14px;
+          margin-bottom: 20px;
         }
         .metric-card {
-          background: rgba(8, 12, 24, 0.92);
-          border: 1px solid rgba(255, 255, 255, 0.07);
-          border-radius: 20px;
-          padding: 18px 20px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 14px 16px;
         }
         .metric-label {
-          font-size: 13px;
+          font-size: 11px;
           text-transform: uppercase;
-          letter-spacing: 1px;
-          color: rgba(245, 247, 255, 0.64);
+          letter-spacing: 0.9px;
+          color: #667085;
         }
         .metric-value {
           display: block;
-          margin-top: 12px;
-          font-size: 22px;
+          margin-top: 10px;
+          font-size: 19px;
           font-weight: 700;
+          color: #0f172a;
         }
         .metric-sub {
-          margin-top: 6px;
-          font-size: 12px;
-          color: rgba(245, 247, 255, 0.6);
+          margin-top: 4px;
+          font-size: 10px;
+          color: #475467;
         }
         .section {
-          margin-bottom: 32px;
+          margin-bottom: 20px;
+          page-break-inside: avoid;
         }
         .section h2 {
-          margin: 0 0 12px;
-          font-size: 18px;
+          margin: 0 0 8px;
+          font-size: 16px;
           font-weight: 700;
           letter-spacing: 0.3px;
+          color: #152645;
         }
         table {
           width: 100%;
           border-collapse: collapse;
-          background: rgba(6, 10, 22, 0.9);
-          border-radius: 18px;
+          background: #ffffff;
+          border-radius: 16px;
           overflow: hidden;
+          page-break-inside: avoid;
+          border: 1px solid #e4e7ec;
         }
         th, td {
-          padding: 14px 18px;
+          padding: 10px 14px;
           text-align: left;
         }
         th {
-          font-size: 13px;
+          font-size: 11px;
           text-transform: uppercase;
-          letter-spacing: 1px;
-          color: rgba(245, 247, 255, 0.6);
-          background: rgba(255, 255, 255, 0.05);
+          letter-spacing: 0.9px;
+          color: #475467;
+          background: #f2f4f7;
         }
-        tr:nth-child(even) td { background: rgba(255, 255, 255, 0.03); }
+        tr:nth-child(even) td { background: #f8fafc; }
         .list {
           margin: 0;
           padding: 0;
           list-style: none;
-          background: rgba(6, 10, 22, 0.9);
-          border-radius: 18px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          background: #ffffff;
+          border-radius: 15px;
+          border: 1px solid #e4e7ec;
+          page-break-inside: avoid;
         }
         .list-item {
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 14px 18px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          gap: 10px;
+          padding: 10px 14px;
+          border-bottom: 1px solid #e4e7ec;
         }
         .list-item:last-child { border-bottom: none; }
         .badge {
-          width: 28px;
-          height: 28px;
-          border-radius: 12px;
+          width: 24px;
+          height: 24px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(0, 240, 255, 0.18);
-          color: #00f6ff;
+          background: #eff4ff;
+          color: #1554a1;
           font-weight: 700;
-          font-size: 13px;
+          font-size: 11px;
         }
         .list-text strong {
           display: block;
-          font-size: 15px;
+          font-size: 13px;
+          color: #101828;
         }
         .list-text small {
           display: block;
           margin-top: 2px;
-          color: rgba(245, 247, 255, 0.64);
+          color: #475467;
         }
         .list-item.empty {
           justify-content: center;
-          color: rgba(245, 247, 255, 0.55);
+          color: #667085;
           font-style: italic;
         }
         footer {
-          padding: 24px 36px 32px;
-          font-size: 12px;
-          color: rgba(245, 247, 255, 0.58);
-          background: rgba(0, 0, 0, 0.28);
+          padding: 16px 26px 20px;
+          font-size: 10px;
+          color: #475467;
+          background: #f8fafc;
+          page-break-before: avoid;
         }
       </style>
     </head>
     <body>
       <div class="wrapper">
         <header>
-          <h1>Liquidación mensual · ${escapeHtml(monthLabel)}</h1>
+          <h1>Resumen mensual · ${escapeHtml(monthLabel)}</h1>
           <p>Resumen automático de cobros SINPE Móvil. Usa este documento como respaldo o compártelo con tu equipo.</p>
           <span class="badge-flow ${netFlowTone}">${netFlowLabel}: ${formatCurrency(summary.netFlow)}</span>
         </header>
@@ -485,12 +512,14 @@ const buildSettlementReportHtml = (options: {
 const ChargesScreen = () => {
   const router = useRouter();
   const { themeName } = useTheme();
-  const isPionero = themeName === "pionero";
-  const iconAccent = isPionero ? "#FFFFFF" : palette.accentCyan;
+  const usesBrightVariant = themeName === "pionero" || themeName === "aurora";
+  const isWeb = Platform.select({ web: true, default: false }) ?? false;
+  const iconAccent = usesBrightVariant ? "#FFFFFF" : palette.accentCyan;
   const { transfers, recharges, createEnvelope } = useBankStore();
 
   const [splitLabel, setSplitLabel] = useState("");
-  const [participantsInput, setParticipantsInput] = useState("");
+  const [participantNameInput, setParticipantNameInput] = useState("");
+  const [participantsList, setParticipantsList] = useState<string[]>([]);
   const [splitAmountRaw, setSplitAmountRaw] = useState("");
   const [splitResult, setSplitResult] = useState<SplitResult | null>(null);
   const [splitError, setSplitError] = useState<string | null>(null);
@@ -552,16 +581,41 @@ const ChargesScreen = () => {
     return fullDateFormatter.format(parsed);
   }, [recurringStartDate]);
   const [settlementStatus, setSettlementStatus] = useState<string | null>(null);
+  const canAddParticipant = participantNameInput.trim().length > 0;
 
   const handleSplitLabelChange = (value: string) => {
     setSplitStatus(null);
     setSplitLabel(value);
   };
 
-  const handleParticipantsChange = (value: string) => {
+  const handleParticipantNameChange = (value: string) => {
     setSplitError(null);
     setSplitStatus(null);
-    setParticipantsInput(value);
+    setParticipantNameInput(value);
+  };
+
+  const handleAddParticipant = () => {
+    const trimmed = participantNameInput.trim();
+    setSplitStatus(null);
+    if (!trimmed) {
+      setSplitError("Ingresa un nombre válido antes de añadirlo.");
+      return;
+    }
+    if (participantsList.some((name) => name.toLowerCase() === trimmed.toLowerCase())) {
+      setSplitError("Ese participante ya está en la lista.");
+      return;
+    }
+    setParticipantsList((prev) => [...prev, trimmed]);
+    setParticipantNameInput("");
+    setSplitError(null);
+    setSplitResult(null);
+  };
+
+  const handleRemoveParticipant = (index: number) => {
+    setSplitStatus(null);
+    setSplitError(null);
+    setParticipantsList((prev) => prev.filter((_, idx) => idx !== index));
+    setSplitResult(null);
   };
 
   const handleSplitAmountChange = (value: string) => {
@@ -571,12 +625,10 @@ const ChargesScreen = () => {
   };
 
   const handleCalculateSplit = () => {
+    setSplitError(null);
     setSplitStatus(null);
 
-    const names = participantsInput
-      .split(/[,;\n]/)
-      .map((name) => name.trim())
-      .filter(Boolean);
+    const names = participantsList.map((name) => name.trim()).filter((name): name is string => Boolean(name));
 
     const total = parseAmountToNumber(splitAmountRaw);
 
@@ -734,7 +786,7 @@ const ChargesScreen = () => {
       settlementRange.start && settlementRange.end
         ? settlementRangeLabel
         : monthFormatter.format(new Date());
-    setSettlementStatus("Generando PDF de liquidación…");
+  setSettlementStatus("Generando PDF del resumen…");
 
     try {
       const html = buildSettlementReportHtml({
@@ -743,9 +795,35 @@ const ChargesScreen = () => {
         generatedAt: new Date(),
       });
 
+      if (isWeb) {
+        const autoPrintHtml = html.replace(
+          "</body>",
+          `<script>window.addEventListener('load', function(){setTimeout(function(){window.print();}, 360);});</script></body>`,
+        );
+
+        try {
+          const blob = new Blob([autoPrintHtml], { type: "text/html" });
+          const previewUrl = URL.createObjectURL(blob);
+          const popup = window.open(previewUrl, "_blank", "noopener,noreferrer");
+          if (!popup) {
+            URL.revokeObjectURL(previewUrl);
+            setSettlementStatus("Activa las ventanas emergentes para ver el resumen.");
+            return;
+          }
+          popup.focus();
+          setSettlementStatus("Resumen generado. Descárgalo o imprímelo desde la nueva ventana.");
+          setTimeout(() => {
+            URL.revokeObjectURL(previewUrl);
+          }, 60000);
+        } catch (err) {
+          setSettlementStatus("No se pudo abrir la vista previa. Intenta nuevamente.");
+        }
+        return;
+      }
+
       const { uri, base64 } = await Print.printToFileAsync({ html, base64: true });
       const sanitizedLabel = periodLabel.replace(/\s+/g, "_").replace(/[^A-Za-z0-9_\-]/g, "");
-      const fileName = `Liquidacion_${sanitizedLabel || "mes"}_${Date.now()}.pdf`;
+  const fileName = `Resumen_${sanitizedLabel || "mes"}_${Date.now()}.pdf`;
       let fileUri = uri;
 
       const fileSystemModule = FileSystem as unknown as {
@@ -768,22 +846,58 @@ const ChargesScreen = () => {
       }
 
       if (Platform.OS === "web") {
-        setSettlementStatus(`Liquidación generada. Descarga el PDF desde ${fileUri}.`);
+        setSettlementStatus(`Resumen generado. Descarga el PDF desde ${fileUri}.`);
         return;
       }
 
-      const shareResult = await Share.share(
-        {
-          url: fileUri,
-          message: `Liquidación ${periodLabel}`,
-        },
-        { dialogTitle: "Compartir liquidación" },
-      );
+      if (Platform.OS === "android") {
+        const safFileName = fileName.replace(/\.pdf$/i, "");
+        if (base64 && StorageAccessFramework?.requestDirectoryPermissionsAsync) {
+          try {
+            const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
+            if (!permissions.granted) {
+              setSettlementStatus("Resumen generado. Concede acceso a una carpeta para guardarlo.");
+              return;
+            }
+            const destinationUri = await StorageAccessFramework.createFileAsync(
+              permissions.directoryUri,
+              safFileName,
+              "application/pdf",
+            );
+            await StorageAccessFramework.writeAsStringAsync(destinationUri, base64, {
+              encoding: EncodingType.Base64,
+            });
+            setSettlementStatus("Resumen generado y guardado en la carpeta seleccionada.");
+            return;
+          } catch (safError) {
+            console.warn("No se pudo guardar usando StorageAccessFramework", safError);
+          }
+        }
 
-      if (shareResult.action === Share.sharedAction) {
-        setSettlementStatus("Liquidación generada y compartida correctamente.");
-      } else {
-        setSettlementStatus("Liquidación generada en PDF. Puedes compartirla más tarde desde tu gestor de archivos.");
+        const contentUri = await getContentUriAsync(fileUri);
+        try {
+          await Linking.openURL(contentUri);
+          setSettlementStatus("Resumen generado. Ábrelo desde tu visor de documentos para guardarlo.");
+        } catch (linkingError) {
+          console.warn("No se pudo abrir el visor para el PDF", linkingError);
+          setSettlementStatus(`Resumen generado. Ubícalo en: ${fileUri}`);
+        }
+        return;
+      }
+
+      if (Platform.OS === "ios") {
+        try {
+          await Sharing.shareAsync(fileUri, {
+            dialogTitle: "Guardar resumen",
+            mimeType: "application/pdf",
+            UTI: "com.adobe.pdf",
+          });
+          setSettlementStatus("Resumen generado. Selecciona un destino en la hoja para guardarlo.");
+        } catch (shareError) {
+          console.warn("Expo share sheet fallo", shareError);
+          setSettlementStatus("Resumen generado. Abre Archivos para guardarlo manualmente: " + fileUri);
+        }
+        return;
       }
     } catch (error) {
       console.error("Error generating settlement PDF", error);
@@ -860,16 +974,77 @@ const ChargesScreen = () => {
                     <MaterialCommunityIcons name="notebook-outline" size={20} color={iconAccent} />
                   }
                 />
-                <NeonTextField
-                  label="Participantes"
-                  placeholder="Ana, José, Laura"
-                  value={participantsInput}
-                  onChangeText={handleParticipantsChange}
-                  helpText="Separa los nombres con comas o saltos de línea."
-                  icon={
-                    <MaterialCommunityIcons name="account-multiple" size={20} color={iconAccent} />
-                  }
-                />
+                <View style={styles.participantsInputBlock}>
+                  <NeonTextField
+                    label="Participante"
+                    placeholder="Ana"
+                    value={participantNameInput}
+                    onChangeText={handleParticipantNameChange}
+                    helpText='Escribe un nombre y pulsa "Añadir persona".'
+                    returnKeyType="done"
+                    onSubmitEditing={() => handleAddParticipant()}
+                    icon={
+                      <MaterialCommunityIcons name="account-multiple" size={20} color={iconAccent} />
+                    }
+                  />
+                  <Pressable
+                    onPress={handleAddParticipant}
+                    disabled={!canAddParticipant}
+                    accessibilityRole="button"
+                    accessibilityLabel="Añadir participante"
+                    style={({ pressed }) => [
+                      styles.participantAddButton,
+                      usesBrightVariant && styles.participantAddButtonBright,
+                      pressed && styles.participantAddButtonPressed,
+                      !canAddParticipant && styles.participantAddButtonDisabled,
+                    ]}
+                  >
+                    <MaterialCommunityIcons name="account-plus" size={18} color={iconAccent} />
+                    <Text
+                      style={[
+                        styles.participantAddLabel,
+                        usesBrightVariant && styles.participantAddLabelBright,
+                      ]}
+                    >
+                      Añadir persona
+                    </Text>
+                  </Pressable>
+                  {participantsList.length > 0 ? (
+                    <View style={styles.participantChips}>
+                      {participantsList.map((name, index) => (
+                        <View
+                          key={`${name}-${index}`}
+                          style={[
+                            styles.participantChip,
+                            usesBrightVariant && styles.participantChipBright,
+                          ]}
+                        >
+                          <Text style={styles.participantChipLabel}>{name}</Text>
+                          <Pressable
+                            onPress={() => handleRemoveParticipant(index)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Eliminar a ${name}`}
+                            style={({ pressed }) => [
+                              styles.participantChipRemove,
+                              usesBrightVariant && styles.participantChipRemoveBright,
+                              pressed && styles.participantChipRemovePressed,
+                            ]}
+                          >
+                            <MaterialCommunityIcons
+                              name="close"
+                              size={14}
+                              color={usesBrightVariant ? "#FFFFFF" : palette.textSecondary}
+                            />
+                          </Pressable>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.participantEmptyHelper}>
+                      Añade al menos dos personas para repartir el monto.
+                    </Text>
+                  )}
+                </View>
                 <NeonTextField
                   label="Monto total"
                   placeholder="₡75,000"
@@ -1047,7 +1222,7 @@ const ChargesScreen = () => {
             <GlassCard>
               <View style={styles.cardHeaderRow}>
                 <View style={styles.cardHeaderTextWrap}>
-                  <Text style={styles.sectionTitle}>Liquidaciones automáticas</Text>
+                  <Text style={styles.sectionTitle}>Resumen Financiero</Text>
                   <MarqueeText
                     text="Genera un resumen mensual de tus ingresos y egresos listo para compartir con contabilidad."
                     containerStyle={styles.cardHintContainer}
@@ -1075,7 +1250,7 @@ const ChargesScreen = () => {
                 <Pressable
                   style={styles.datePickerOverlay}
                   accessibilityRole="button"
-                  accessibilityLabel="Seleccionar periodo para la liquidación"
+                  accessibilityLabel="Seleccionar periodo para el resumen"
                   onPress={handleOpenSettlementRangePicker}
                 />
               </View>
@@ -1161,7 +1336,7 @@ const ChargesScreen = () => {
               {settlementStatus ? <Text style={styles.statusMessage}>{settlementStatus}</Text> : null}
 
               <PrimaryButton
-                label="Generar liquidación"
+                label="Descargar resumen"
                 onPress={handleGenerateSettlement}
                 style={styles.sectionButton}
               />
@@ -1351,6 +1526,80 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     marginTop: 4,
+  },
+  participantsInputBlock: {
+    gap: 12,
+  },
+  participantAddButton: {
+    alignSelf: "flex-start",
+    marginTop: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.3)",
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  participantAddButtonBright: {
+    borderColor: "rgba(255,255,255,0.32)",
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  participantAddButtonPressed: {
+    backgroundColor: "rgba(0, 240, 255, 0.2)",
+  },
+  participantAddButtonDisabled: {
+    opacity: 0.5,
+  },
+  participantAddLabel: {
+    color: palette.accentCyan,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  participantAddLabelBright: {
+    color: "#FFFFFF",
+  },
+  participantChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  participantChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(0, 240, 255, 0.28)",
+    backgroundColor: "rgba(0, 240, 255, 0.12)",
+  },
+  participantChipBright: {
+    borderColor: "rgba(255,255,255,0.32)",
+    backgroundColor: "rgba(255,255,255,0.18)",
+  },
+  participantChipLabel: {
+    color: palette.textPrimary,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  participantChipRemove: {
+    borderRadius: 12,
+    padding: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.16)",
+  },
+  participantChipRemoveBright: {
+    backgroundColor: "rgba(255,255,255,0.16)",
+  },
+  participantChipRemovePressed: {
+    backgroundColor: "rgba(0, 0, 0, 0.26)",
+  },
+  participantEmptyHelper: {
+    color: palette.textSecondary,
+    fontSize: 12,
   },
   fieldGroup: {
     gap: 14,
