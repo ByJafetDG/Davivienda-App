@@ -152,7 +152,7 @@ const MoneyTransferScreen = () => {
     if (!hasNativeScanner) {
       setScannerPermission(false);
       setScannerError(
-        "Este build de Expo Go no incluye el lector. Usa 'npm run start:classic' o un dev build personalizado.",
+        "Ajustes / Permisos / Cámara ",
       );
       return;
     }
@@ -510,7 +510,7 @@ const MoneyTransferScreen = () => {
 
             <View style={styles.contactRow}>
               <View style={styles.contactHeader}>
-                <Text style={styles.sectionTitle}>Contactos frecuentes</Text>
+                <Text style={styles.sectionTitle}>Favoritos</Text>
                 <Pressable
                   onPress={() => router.push("/(app)/contacts")}
                   accessibilityRole="button"
@@ -702,7 +702,7 @@ const MoneyTransferScreen = () => {
                     color={palette.accentCyan}
                   />
                 }
-                helpText="Se mostrará en tu historial local."
+                helpText="Se mostrará en tu historial."
               />
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <PrimaryButton label="Continuar" onPress={handleContinue} />
@@ -782,7 +782,7 @@ const MoneyTransferScreen = () => {
               </View>
             )}
             <Text style={styles.scannerFooter}>
-              Aceptamos códigos con formato JSON, query string o lista clave-valor.
+              
             </Text>
             {scannerBusy ? (
               <View style={styles.scannerBusyRow}>

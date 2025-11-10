@@ -463,8 +463,7 @@ const ContactsScreen = () => {
       [contactMap, deviceMatches],
     );
 
-    const totalPhoneContacts = DEVICE_CONTACTS.length;
-    const savedContactsCount = contacts.length;
+  const totalPhoneContacts = DEVICE_CONTACTS.length;
   const lastUsed = useMemo(() => {
     const latest = contacts.reduce<string | null>((acc, item) => {
       if (!item.lastUsedAt) {
@@ -663,9 +662,6 @@ const ContactsScreen = () => {
                 <View>
                   <Text style={styles.summaryLabel}>Favoritos</Text>
                   <Text style={styles.summaryValue}>{favorites.length}</Text>
-                  <Text style={styles.summaryHint}>
-                    Guardados en la app: {savedContactsCount}
-                  </Text>
                   <Text style={styles.summaryHint}>Última actividad: {lastUsed}</Text>
                 </View>
                 <PrimaryButton
@@ -710,28 +706,6 @@ const ContactsScreen = () => {
                 </View>
               ) : null}
 
-              {(savedContacts.length > 0 || !hasQuery) ? (
-                <View style={styles.sectionBlock}>
-                  <Text style={styles.sectionTitle}>Guardados en la app</Text>
-                  {savedContacts.length > 0 ? (
-                    savedContacts.map((contact) => (
-                      <ContactCard
-                        key={contact.id}
-                        contact={contact}
-                        onToggleFavorite={() => toggleFavoriteContact(contact.id)}
-                        onTransfer={() => handleTransfer(contact)}
-                        onEdit={() => openEdit(contact)}
-                        onRemove={() => handleRemove(contact)}
-                      />
-                    ))
-                  ) : !hasQuery ? (
-                    <Text style={styles.sectionEmpty}>
-                      Aún no agregas contactos manuales.
-                    </Text>
-                  ) : null}
-                </View>
-              ) : null}
-
               {(!hasQuery || deviceEntries.length > 0) ? (
                 <View style={styles.sectionBlock}>
                   <Text style={styles.sectionTitle}>Contactos del teléfono</Text>
@@ -759,6 +733,22 @@ const ContactsScreen = () => {
                   {!hasQuery ? (
                     <Text style={styles.sectionHint}>
                       Lista simulada de tu agenda completa. Usa la estrella para guardarlos en Davivienda.
+                    </Text>
+                  ) : null}
+                  {savedContacts.length > 0 ? (
+                    savedContacts.map((contact) => (
+                      <ContactCard
+                        key={contact.id}
+                        contact={contact}
+                        onToggleFavorite={() => toggleFavoriteContact(contact.id)}
+                        onTransfer={() => handleTransfer(contact)}
+                        onEdit={() => openEdit(contact)}
+                        onRemove={() => handleRemove(contact)}
+                      />
+                    ))
+                  ) : !hasQuery ? (
+                    <Text style={styles.sectionEmpty}>
+                      Aún no agregas contactos manuales.
                     </Text>
                   ) : null}
                   {deviceEntries.map((entry) => {

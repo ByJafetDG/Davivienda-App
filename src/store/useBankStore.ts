@@ -244,7 +244,7 @@ const DEFAULT_CONTACTS: Contact[] = [
     name: "Carlos Jiménez",
     phone: "8803-1212",
     avatarColor: CONTACT_COLORS[2],
-    favorite: false,
+    favorite: true,
     lastUsedAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
   },
 ];

@@ -752,7 +752,7 @@ const EnvelopesScreen = () => {
                               false: "rgba(255,255,255,0.2)",
                               true: palette.accentCyan,
                             }}
-                            thumbColor={rule.active ? palette.surface : palette.textMuted}
+                            thumbColor="white"
                             ios_backgroundColor="rgba(255,255,255,0.2)"
                           />
                         </View>
@@ -1202,7 +1202,7 @@ const AutomationFormModal = ({
                   setFormState((current) => ({ ...current, active: value }))
                 }
                 trackColor={{ false: "rgba(255,255,255,0.2)", true: palette.accentCyan }}
-                thumbColor={formState.active ? palette.surface : palette.textMuted}
+                thumbColor="white"
               />
             </View>
             {error ? <Text style={modalStyles.error}>{error}</Text> : null}
