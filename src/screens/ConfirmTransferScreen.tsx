@@ -227,7 +227,7 @@ const ConfirmTransferScreen = () => {
               <Text style={styles.successTitle}>Transferencia completada</Text>
               <Text style={styles.successCopy}>
                 Enviamos {formatCurrency(amountNumber)} a {params.contactName}.
-                Puedes ver el registro en tu historial local.
+                Puedes ver el registro en tu historial.
               </Text>
               <View style={styles.successActions}>
                 <PrimaryButton
